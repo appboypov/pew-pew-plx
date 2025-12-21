@@ -46,13 +46,14 @@ The CLI SHALL provide a top-level `show` command for displaying changes and spec
 
 ### Requirement: Output format options
 
-The show command SHALL support various output formats consistent with existing commands.
+The show command SHALL support various output formats consistent with existing commands, including tracked issue metadata when available.
 
 #### Scenario: JSON output
 
 - **WHEN** executing `openspec show <item> --json`
 - **THEN** output the item in JSON format
 - **AND** include parsed metadata and structure
+- **AND** include `trackedIssues` array if present in frontmatter
 - **AND** maintain format consistency with existing change/spec show commands
 
 #### Scenario: Flag scoping and delegation

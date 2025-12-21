@@ -192,7 +192,7 @@ export class ChangeCommand {
           const issueText = change.trackedIssues && change.trackedIssues.length > 0
             ? ` (${change.trackedIssues[0].id})`
             : '';
-          console.log(`${changeName}${issueText}: ${title}${deltaCountText}${taskStatusText}`);
+          console.log(`${changeName}: ${title}${issueText}${deltaCountText}${taskStatusText}`);
         } catch {
           console.log(`${changeName}: (unable to read)`);
         }

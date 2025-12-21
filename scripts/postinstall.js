@@ -76,29 +76,25 @@ async function installCompletions(shell) {
       return;
     }
 
-    // Generate completion script
     const generator = CompletionFactory.createGenerator(shell);
-    const script = generator.generate(COMMAND_REGISTRY);
-
-    // Install completion script
     const installer = CompletionFactory.createInstaller(shell);
-    const result = await installer.install(script);
 
-    if (result.success) {
-      // Show success message based on installation type
-      if (result.isOhMyZsh) {
-        console.log(`✓ Shell completions installed`);
-        console.log(`  Restart shell: exec zsh`);
-      } else if (result.zshrcConfigured) {
-        console.log(`✓ Shell completions installed and configured`);
-        console.log(`  Restart shell: exec zsh`);
-      } else {
-        console.log(`✓ Shell completions installed to ~/.zsh/completions/`);
-        console.log(`  Add to ~/.zshrc: fpath=(~/.zsh/completions $fpath)`);
-        console.log(`  Then: exec zsh`);
+    // Install completions for both command names
+    const commandNames = ['openspec', 'plx'];
+    let anySuccess = false;
+
+    for (const commandName of commandNames) {
+      const script = generator.generate(COMMAND_REGISTRY, commandName);
+      const result = await installer.install(script, commandName);
+      if (result.success) {
+        anySuccess = true;
       }
+    }
+
+    if (anySuccess) {
+      console.log(`✓ Shell completions installed for openspec and plx`);
+      console.log(`  Restart shell: exec zsh`);
     } else {
-      // Installation failed, show tip for manual install
       console.log(`\nTip: Run 'openspec completion install' or 'plx completion install' for shell completions`);
     }
   } catch (error) {

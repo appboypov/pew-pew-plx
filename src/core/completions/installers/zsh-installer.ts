@@ -60,21 +60,23 @@ export class ZshInstaller {
   /**
    * Get the appropriate installation path for the completion script
    *
+   * @param commandName - The CLI command name (defaults to 'openspec')
    * @returns Object with installation path and whether it's Oh My Zsh
    */
-  async getInstallationPath(): Promise<{ path: string; isOhMyZsh: boolean }> {
+  async getInstallationPath(commandName: string = 'openspec'): Promise<{ path: string; isOhMyZsh: boolean }> {
     const isOhMyZsh = await this.isOhMyZshInstalled();
+    const filename = `_${commandName}`;
 
     if (isOhMyZsh) {
       // Oh My Zsh custom completions directory
       return {
-        path: path.join(this.homeDir, '.oh-my-zsh', 'custom', 'completions', '_openspec'),
+        path: path.join(this.homeDir, '.oh-my-zsh', 'custom', 'completions', filename),
         isOhMyZsh: true,
       };
     } else {
       // Standard Zsh completions directory
       return {
-        path: path.join(this.homeDir, '.zsh', 'completions', '_openspec'),
+        path: path.join(this.homeDir, '.zsh', 'completions', filename),
         isOhMyZsh: false,
       };
     }
@@ -259,11 +261,12 @@ export class ZshInstaller {
    * Install the completion script
    *
    * @param completionScript - The completion script content to install
+   * @param commandName - The CLI command name (defaults to 'openspec')
    * @returns Installation result with status and instructions
    */
-  async install(completionScript: string): Promise<InstallationResult> {
+  async install(completionScript: string, commandName: string = 'openspec'): Promise<InstallationResult> {
     try {
-      const { path: targetPath, isOhMyZsh } = await this.getInstallationPath();
+      const { path: targetPath, isOhMyZsh } = await this.getInstallationPath(commandName);
 
       // Check if already installed with same content
       let isUpdate = false;

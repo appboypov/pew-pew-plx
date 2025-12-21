@@ -64,6 +64,29 @@ describe('ZshInstaller', () => {
       expect(result.isOhMyZsh).toBe(false);
       expect(result.path).toBe(path.join(testHomeDir, '.zsh', 'completions', '_openspec'));
     });
+
+    it('should use custom commandName in installation path', async () => {
+      const result = await installer.getInstallationPath('plx');
+
+      expect(result.isOhMyZsh).toBe(false);
+      expect(result.path).toBe(path.join(testHomeDir, '.zsh', 'completions', '_plx'));
+    });
+
+    it('should use custom commandName with Oh My Zsh path', async () => {
+      const ohMyZshPath = path.join(testHomeDir, '.oh-my-zsh');
+      await fs.mkdir(ohMyZshPath, { recursive: true });
+
+      const result = await installer.getInstallationPath('plx');
+
+      expect(result.isOhMyZsh).toBe(true);
+      expect(result.path).toBe(path.join(testHomeDir, '.oh-my-zsh', 'custom', 'completions', '_plx'));
+    });
+
+    it('should default to openspec when no commandName provided', async () => {
+      const result = await installer.getInstallationPath();
+
+      expect(result.path).toContain('_openspec');
+    });
   });
 
   describe('backupExistingFile', () => {
@@ -221,6 +244,52 @@ describe('ZshInstaller', () => {
       expect(secondResult.backupPath).toBeUndefined();
       expect(secondResult.instructions).toBeDefined();
       expect(secondResult.instructions!.join(' ')).toContain('already installed');
+    });
+
+    it('should install to plx path when commandName is plx', async () => {
+      const plxScript = '#compdef plx\n_plx() {\n  echo "plx"\n}\n';
+      const result = await installer.install(plxScript, 'plx');
+
+      expect(result.success).toBe(true);
+      expect(result.installedPath).toBe(path.join(testHomeDir, '.zsh', 'completions', '_plx'));
+
+      // Verify file was created with correct content
+      const content = await fs.readFile(result.installedPath!, 'utf-8');
+      expect(content).toBe(plxScript);
+    });
+
+    it('should install both openspec and plx completions independently', async () => {
+      const openspecScript = '#compdef openspec\n_openspec() {}\n';
+      const plxScript = '#compdef plx\n_plx() {}\n';
+
+      // Install openspec
+      const openspecResult = await installer.install(openspecScript, 'openspec');
+      expect(openspecResult.success).toBe(true);
+      expect(openspecResult.installedPath).toContain('_openspec');
+
+      // Install plx
+      const plxResult = await installer.install(plxScript, 'plx');
+      expect(plxResult.success).toBe(true);
+      expect(plxResult.installedPath).toContain('_plx');
+
+      // Verify both files exist independently
+      const openspecContent = await fs.readFile(openspecResult.installedPath!, 'utf-8');
+      const plxContent = await fs.readFile(plxResult.installedPath!, 'utf-8');
+
+      expect(openspecContent).toBe(openspecScript);
+      expect(plxContent).toBe(plxScript);
+    });
+
+    it('should install plx to Oh My Zsh path when Oh My Zsh is present', async () => {
+      const ohMyZshPath = path.join(testHomeDir, '.oh-my-zsh');
+      await fs.mkdir(ohMyZshPath, { recursive: true });
+
+      const plxScript = '#compdef plx\n_plx() {}\n';
+      const result = await installer.install(plxScript, 'plx');
+
+      expect(result.success).toBe(true);
+      expect(result.isOhMyZsh).toBe(true);
+      expect(result.installedPath).toBe(path.join(ohMyZshPath, 'custom', 'completions', '_plx'));
     });
 
     it('should update completion when content differs', async () => {

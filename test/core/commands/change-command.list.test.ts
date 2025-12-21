@@ -74,3 +74,100 @@ describe('ChangeCommand.list', () => {
     }
   });
 });
+
+describe('ChangeCommand.list issue display format', () => {
+  let cmd: ChangeCommand;
+  let tempRoot: string;
+  let originalCwd: string;
+
+  beforeAll(async () => {
+    cmd = new ChangeCommand();
+    originalCwd = process.cwd();
+    tempRoot = path.join(os.tmpdir(), `openspec-change-command-issue-${Date.now()}`);
+    const changeDir = path.join(tempRoot, 'openspec', 'changes', 'with-issue');
+    await fs.mkdir(changeDir, { recursive: true });
+
+    // Create proposal with tracked issue
+    const proposal = `---
+tracked-issues:
+  - tracker: linear
+    id: PROJ-456
+    url: https://linear.app/proj/issue/PROJ-456
+---
+
+# Change: Feature With Issue
+
+## Why
+Testing issue display format.
+
+## What Changes
+- **spec:** Add requirement`;
+    await fs.writeFile(path.join(changeDir, 'proposal.md'), proposal, 'utf-8');
+    await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n', 'utf-8');
+    process.chdir(tempRoot);
+  });
+
+  afterAll(async () => {
+    process.chdir(originalCwd);
+    await fs.rm(tempRoot, { recursive: true, force: true });
+  });
+
+  it('displays issue after title in long format: changeName: title (issue) [deltas] [tasks]', async () => {
+    const logs: string[] = [];
+    const origLog = console.log;
+    try {
+      console.log = (msg?: any, ...args: any[]) => {
+        logs.push([msg, ...args].filter(Boolean).join(' '));
+      };
+
+      await cmd.list({ long: true });
+
+      const output = logs.join('\n');
+
+      // Verify format: changeName: title (issue) [deltas] [tasks]
+      // The issue should appear AFTER the title, not before the colon
+      expect(output).toMatch(/with-issue:\s+.+\(PROJ-456\)/);
+
+      // More specific: verify the order is title then issue then deltas
+      const line = logs.find(l => l.includes('with-issue'));
+      expect(line).toBeDefined();
+
+      if (line) {
+        const colonIndex = line.indexOf(':');
+        const issueIndex = line.indexOf('(PROJ-456)');
+        const deltasIndex = line.indexOf('[deltas');
+
+        // Issue should appear after colon (which comes after changeName)
+        expect(issueIndex).toBeGreaterThan(colonIndex);
+        // Deltas should appear after issue
+        expect(deltasIndex).toBeGreaterThan(issueIndex);
+      }
+    } finally {
+      console.log = origLog;
+    }
+  });
+
+  it('includes tracked issue in JSON output', async () => {
+    const logs: string[] = [];
+    const origLog = console.log;
+    try {
+      console.log = (msg?: any, ...args: any[]) => {
+        logs.push([msg, ...args].filter(Boolean).join(' '));
+      };
+
+      await cmd.list({ json: true });
+
+      const output = logs.join('\n');
+      const parsed = JSON.parse(output);
+
+      expect(Array.isArray(parsed)).toBe(true);
+      const item = parsed.find((i: any) => i.id === 'with-issue');
+      expect(item).toBeDefined();
+      expect(item.trackedIssues).toBeDefined();
+      expect(item.trackedIssues.length).toBeGreaterThan(0);
+      expect(item.trackedIssues[0].id).toBe('PROJ-456');
+    } finally {
+      console.log = origLog;
+    }
+  });
+});

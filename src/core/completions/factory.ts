@@ -7,7 +7,7 @@ import { SupportedShell } from '../../utils/shell-detection.js';
  * Interface for completion installers
  */
 export interface CompletionInstaller {
-  install(script: string): Promise<InstallationResult>;
+  install(script: string, commandName?: string): Promise<InstallationResult>;
   uninstall(): Promise<{ success: boolean; message: string }>;
 }
 

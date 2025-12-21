@@ -6,8 +6,13 @@ import path from 'path';
  */
 export function getCommandName(): string {
   const scriptPath = process.argv[1] || '';
-  const scriptName = path.basename(scriptPath).replace(/\.js$/, '');
-  return scriptName === 'plx' ? 'plx' : 'openspec';
+  // Handle both Unix and Windows path separators
+  const lastSeparator = Math.max(scriptPath.lastIndexOf('/'), scriptPath.lastIndexOf('\\'));
+  const rawScriptName = lastSeparator >= 0 ? scriptPath.slice(lastSeparator + 1) : scriptPath;
+  const normalizedScriptName = rawScriptName
+    .toLowerCase()
+    .replace(/\.(js|cjs|mjs|ts|cmd|exe|bat)$/, '');
+  return normalizedScriptName === 'plx' ? 'plx' : 'openspec';
 }
 
 /**

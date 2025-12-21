@@ -70,12 +70,15 @@ export class ListCommand {
       // Display results
       console.log('Changes:');
       const padding = '  ';
-      const nameWidth = Math.max(...changes.map(c => c.name.length));
+      const getDisplayName = (c: ChangeInfo) => {
+        const issueDisplay = c.trackedIssue ? ` (${c.trackedIssue})` : '';
+        return `${c.name}${issueDisplay}`;
+      };
+      const nameWidth = Math.max(...changes.map(c => getDisplayName(c).length));
       for (const change of changes) {
-        const paddedName = change.name.padEnd(nameWidth);
-        const issueDisplay = change.trackedIssue ? ` (${change.trackedIssue})` : '';
+        const displayName = getDisplayName(change).padEnd(nameWidth);
         const status = formatTaskStatus({ total: change.totalTasks, completed: change.completedTasks });
-        console.log(`${padding}${paddedName}${issueDisplay}     ${status}`);
+        console.log(`${padding}${displayName}     ${status}`);
       }
       return;
     }

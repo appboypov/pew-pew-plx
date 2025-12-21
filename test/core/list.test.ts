@@ -135,7 +135,7 @@ Regular text that should be ignored
 
     it('should handle multiple changes with various states', async () => {
       const changesDir = path.join(tempDir, 'openspec', 'changes');
-      
+
       // Complete change
       await fs.mkdir(path.join(changesDir, 'completed'), { recursive: true });
       await fs.writeFile(
@@ -160,6 +160,104 @@ Regular text that should be ignored
       expect(logOutput.some(line => line.includes('completed') && line.includes('✓ Complete'))).toBe(true);
       expect(logOutput.some(line => line.includes('partial') && line.includes('1/3 tasks'))).toBe(true);
       expect(logOutput.some(line => line.includes('no-tasks') && line.includes('No tasks'))).toBe(true);
+    });
+
+    it('should display tracked issue IDs from proposal frontmatter', async () => {
+      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      await fs.mkdir(path.join(changesDir, 'with-issue'), { recursive: true });
+
+      const proposal = `---
+tracked-issues:
+  - tracker: linear
+    id: PROJ-123
+    url: https://linear.app/proj/issue/PROJ-123
+---
+
+# Change: Test
+
+## Why
+Test
+
+## What Changes
+Test`;
+      await fs.writeFile(path.join(changesDir, 'with-issue', 'proposal.md'), proposal);
+
+      const listCommand = new ListCommand();
+      await listCommand.execute(tempDir, 'changes');
+
+      expect(logOutput.some(line => line.includes('with-issue') && line.includes('(PROJ-123)'))).toBe(true);
+    });
+
+    it('should align columns correctly when changes have different issue ID lengths', async () => {
+      const changesDir = path.join(tempDir, 'openspec', 'changes');
+
+      // Change with short issue ID
+      await fs.mkdir(path.join(changesDir, 'short'), { recursive: true });
+      const shortProposal = `---
+tracked-issues:
+  - tracker: linear
+    id: A-1
+    url: https://example.com/A-1
+---
+# Change: Short`;
+      await fs.writeFile(path.join(changesDir, 'short', 'proposal.md'), shortProposal);
+      await fs.writeFile(path.join(changesDir, 'short', 'tasks.md'), '- [x] Done\n');
+
+      // Change with long issue ID
+      await fs.mkdir(path.join(changesDir, 'long'), { recursive: true });
+      const longProposal = `---
+tracked-issues:
+  - tracker: linear
+    id: PROJECT-12345
+    url: https://example.com/PROJECT-12345
+---
+# Change: Long`;
+      await fs.writeFile(path.join(changesDir, 'long', 'proposal.md'), longProposal);
+      await fs.writeFile(path.join(changesDir, 'long', 'tasks.md'), '- [x] Done\n');
+
+      // Change without issue
+      await fs.mkdir(path.join(changesDir, 'no-issue'), { recursive: true });
+      await fs.writeFile(path.join(changesDir, 'no-issue', 'proposal.md'), '# Change: No Issue');
+      await fs.writeFile(path.join(changesDir, 'no-issue', 'tasks.md'), '- [x] Done\n');
+
+      const listCommand = new ListCommand();
+      await listCommand.execute(tempDir, 'changes');
+
+      // Find the lines with status info
+      const statusLines = logOutput.filter(line => line.includes('✓ Complete'));
+
+      // All status indicators should be aligned (start at same column position)
+      const statusPositions = statusLines.map(line => line.indexOf('✓ Complete'));
+      const uniquePositions = [...new Set(statusPositions)];
+
+      // All status indicators should be at the same position (aligned)
+      expect(uniquePositions.length).toBe(1);
+    });
+
+    it('should handle changes without tracked issues in alignment calculation', async () => {
+      const changesDir = path.join(tempDir, 'openspec', 'changes');
+
+      // Mix of changes with and without issues
+      await fs.mkdir(path.join(changesDir, 'alpha-with-issue'), { recursive: true });
+      const withIssue = `---
+tracked-issues:
+  - tracker: github
+    id: GH-999
+    url: https://github.com/org/repo/issues/999
+---
+# Change`;
+      await fs.writeFile(path.join(changesDir, 'alpha-with-issue', 'proposal.md'), withIssue);
+
+      await fs.mkdir(path.join(changesDir, 'beta-no-issue'), { recursive: true });
+      await fs.writeFile(path.join(changesDir, 'beta-no-issue', 'proposal.md'), '# Change');
+
+      const listCommand = new ListCommand();
+      await listCommand.execute(tempDir, 'changes');
+
+      // Verify both are displayed
+      expect(logOutput.some(line => line.includes('alpha-with-issue') && line.includes('(GH-999)'))).toBe(true);
+      expect(logOutput.some(line => line.includes('beta-no-issue'))).toBe(true);
+      expect(logOutput.some(line => line.includes('beta-no-issue') && line.includes('('))).toBe(false);
     });
   });
 });
