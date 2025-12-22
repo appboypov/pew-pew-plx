@@ -13,6 +13,7 @@ import { ChangeCommand } from '../commands/change.js';
 import { ValidateCommand } from '../commands/validate.js';
 import { ShowCommand } from '../commands/show.js';
 import { CompletionCommand } from '../commands/completion.js';
+import { registerConfigCommand } from '../commands/config.js';
 
 // Import command name detection utility
 import { commandName } from '../utils/command-name.js';
@@ -203,6 +204,7 @@ program
   });
 
 registerSpecCommand(program);
+registerConfigCommand(program);
 
 // Top-level validate command
 program
