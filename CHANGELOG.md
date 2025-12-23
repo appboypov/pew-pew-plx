@@ -20,6 +20,12 @@ Initial release of OpenSplx fork.
 
 ## Upstream History (OpenSpec)
 
+## 0.17.2
+
+### Patch Changes
+
+- 455c65f: Fix `--no-interactive` flag in validate command to properly disable spinner, preventing hangs in pre-commit hooks and CI environments
+
 ## 0.17.1
 
 ### Patch Changes
