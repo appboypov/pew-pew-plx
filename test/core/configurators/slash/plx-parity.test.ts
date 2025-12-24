@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { SlashCommandRegistry } from '../../../../src/core/configurators/slash/registry.js';
 import { PlxSlashCommandRegistry } from '../../../../src/core/configurators/slash/plx-registry.js';
+import { ALL_PLX_COMMANDS } from '../../../../src/core/configurators/slash/plx-base.js';
+import { plxSlashCommandBodies } from '../../../../src/core/templates/plx-slash-command-templates.js';
 
 /**
  * Parity tests to ensure PLX commands are available for ALL tools that have OpenSpec commands.
@@ -31,15 +33,22 @@ describe('PLX Command Parity', () => {
   });
 
   describe('command parity', () => {
+    it('ALL_PLX_COMMANDS contains all PlxSlashCommandId values', () => {
+      const bodyKeys = Object.keys(plxSlashCommandBodies);
+      expect(ALL_PLX_COMMANDS).toHaveLength(bodyKeys.length);
+      for (const key of bodyKeys) {
+        expect(ALL_PLX_COMMANDS).toContain(key);
+      }
+    });
+
     it('every PLX configurator returns targets for all PLX command IDs', () => {
-      const expectedCommandIds = ['init-architecture', 'update-architecture'];
       const configurators = PlxSlashCommandRegistry.getAll();
 
       for (const configurator of configurators) {
         const targets = configurator.getTargets();
         const targetIds = targets.map(t => t.id);
 
-        for (const expectedId of expectedCommandIds) {
+        for (const expectedId of ALL_PLX_COMMANDS) {
           expect(targetIds).toContain(expectedId);
         }
       }
