@@ -1,4 +1,24 @@
-# @fission-ai/openspec
+# OpenSplx Changelog
+
+## 0.1.0 - 2024-12-24
+
+Initial release of OpenSplx fork.
+
+### Added
+
+- **PLX command alias**: `plx` as an alias for `openspec` command
+- **PLX architecture commands**: `plx/init-architecture` and `plx/update-architecture` slash commands for all 20 supported tools
+- **PLX commands on update**: Running `plx update` generates PLX commands for tools with existing OpenSpec slash commands
+- **External issue tracking**: Support `tracker` and `id` fields in proposal frontmatter for Linear, GitHub, etc.
+
+### Changed
+
+- Rebrand fork as OpenSplx while maintaining upstream compatibility
+- Archive workflow suggests refreshing architecture documentation after spec updates
+
+---
+
+## Upstream History (OpenSpec)
 
 ## 0.16.0
 
@@ -8,16 +28,10 @@
 
   - **feat(iflow-cli)**: Add iFlow-cli integration with slash command support and documentation
   - **feat(init)**: Add IDE restart instruction after init to inform users about slash command availability
-    **feat(antigravity)**: Add Antigravity slash command support
+  - **feat(antigravity)**: Add Antigravity slash command support
   - **fix**: Generate TOML commands for Qwen Code (fixes #293)
   - Clarify scaffold proposal documentation and enhance proposal guidelines
   - Update proposal guidelines to emphasize design-first approach before implementation
-
-## Unreleased
-
-### Minor Changes
-
-- Add Antigravity slash command support so `openspec init` can generate `.agent/workflows/openspec-*.md` files with description-only frontmatter and `openspec update` refreshes existing workflows alongside Windsurf.
 
 ## 0.15.0
 
@@ -115,12 +129,6 @@
 ### Minor Changes
 
 - efbbf3b: Add support for Codex and GitHub Copilot slash commands with YAML frontmatter and $ARGUMENTS
-
-## Unreleased
-
-### Minor Changes
-
-- Add GitHub Copilot slash command support. OpenSpec now writes prompts to `.github/prompts/openspec-{proposal,apply,archive}.prompt.md` with YAML frontmatter and `$ARGUMENTS` placeholder, and refreshes them on `openspec update`.
 
 ## 0.8.1
 

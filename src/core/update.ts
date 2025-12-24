@@ -3,6 +3,7 @@ import { FileSystemUtils } from '../utils/file-system.js';
 import { OPENSPEC_DIR_NAME } from './config.js';
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
+import { PlxSlashCommandRegistry } from './configurators/slash/plx-registry.js';
 import { agentsTemplate } from './templates/agents-template.js';
 
 export class UpdateCommand {
@@ -66,6 +67,8 @@ export class UpdateCommand {
       }
     }
 
+    const updatedToolIds = new Set<string>();
+
     for (const slashConfigurator of slashConfigurators) {
       if (!slashConfigurator.isAvailable) {
         continue;
@@ -77,10 +80,34 @@ export class UpdateCommand {
           openspecPath
         );
         updatedSlashFiles.push(...updated);
+        if (updated.length > 0) {
+          updatedToolIds.add(slashConfigurator.toolId);
+        }
       } catch (error) {
         failedSlashTools.push(slashConfigurator.toolId);
         console.error(
           `Failed to update slash commands for ${slashConfigurator.toolId}: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+      }
+    }
+
+    for (const plxConfigurator of PlxSlashCommandRegistry.getAll()) {
+      if (!plxConfigurator.isAvailable) {
+        continue;
+      }
+      if (!updatedToolIds.has(plxConfigurator.toolId)) {
+        continue;
+      }
+
+      try {
+        const updated = await plxConfigurator.generateAll(resolvedProjectPath);
+        updatedSlashFiles.push(...updated);
+      } catch (error) {
+        failedSlashTools.push(plxConfigurator.toolId);
+        console.error(
+          `Failed to generate PLX commands for ${plxConfigurator.toolId}: ${
             error instanceof Error ? error.message : String(error)
           }`
         );

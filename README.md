@@ -30,7 +30,16 @@
 | Feature | OpenSpec | OpenSplx |
 |---------|----------|----------|
 | Command | `openspec` | `openspec` + `plx` alias |
-| Install | `npm i -g @fission-ai/openspec` | Clone & `npm link` (local) |
+| Architecture Docs | — | `plx/init-architecture`, `plx/update-architecture` |
+| Issue Tracking | — | External issue tracking in proposals |
+| Install | `npm i -g @fission-ai/openspec` | Clone & `pnpm link` (local) |
+
+### PLX Slash Commands
+
+When you run `plx init`, these additional commands are installed:
+
+- **`/plx/init-architecture`** - Generate comprehensive `ARCHITECTURE.md` from codebase analysis
+- **`/plx/update-architecture`** - Refresh architecture documentation based on current codebase state
 
 ### Quick Start (OpenSplx)
 

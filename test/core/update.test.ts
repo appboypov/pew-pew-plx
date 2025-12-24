@@ -1639,4 +1639,227 @@ Old content
     errorSpy.mockRestore();
     writeSpy.mockRestore();
   });
+
+  describe('PLX command generation', () => {
+    it('should generate PLX commands when regular Claude slash commands are updated', async () => {
+      // Create existing Claude slash command
+      const proposalPath = path.join(
+        testDir,
+        '.claude/commands/openspec/proposal.md'
+      );
+      await fs.mkdir(path.dirname(proposalPath), { recursive: true });
+      await fs.writeFile(
+        proposalPath,
+        `---
+name: OpenSpec: Proposal
+description: Old description
+category: OpenSpec
+tags: [openspec, change]
+---
+<!-- OPENSPEC:START -->
+Old content
+<!-- OPENSPEC:END -->`
+      );
+
+      const consoleSpy = vi.spyOn(console, 'log');
+
+      await updateCommand.execute(testDir);
+
+      // Check PLX commands were created
+      const plxInitPath = path.join(
+        testDir,
+        '.claude/commands/plx/init-architecture.md'
+      );
+      const plxUpdatePath = path.join(
+        testDir,
+        '.claude/commands/plx/update-architecture.md'
+      );
+
+      await expect(FileSystemUtils.fileExists(plxInitPath)).resolves.toBe(true);
+      await expect(FileSystemUtils.fileExists(plxUpdatePath)).resolves.toBe(true);
+
+      // Check content has OpenSpec markers
+      const initContent = await fs.readFile(plxInitPath, 'utf-8');
+      expect(initContent).toContain('<!-- OPENSPEC:START -->');
+      expect(initContent).toContain('<!-- OPENSPEC:END -->');
+
+      // Check console output includes PLX commands
+      const [logMessage] = consoleSpy.mock.calls[0];
+      expect(logMessage).toContain('.claude/commands/plx/init-architecture.md');
+      expect(logMessage).toContain('.claude/commands/plx/update-architecture.md');
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should generate PLX commands when regular Codex prompts are updated', async () => {
+      // Create existing Codex prompt
+      const applyPath = path.join(
+        testDir,
+        '.codex/prompts/openspec-apply.md'
+      );
+      await fs.mkdir(path.dirname(applyPath), { recursive: true });
+      await fs.writeFile(
+        applyPath,
+        `---
+description: Old description
+argument-hint: old-hint
+---
+
+$ARGUMENTS
+<!-- OPENSPEC:START -->
+Old body
+<!-- OPENSPEC:END -->`
+      );
+
+      const consoleSpy = vi.spyOn(console, 'log');
+
+      await updateCommand.execute(testDir);
+
+      // Check PLX commands were created in global Codex directory
+      const plxInitPath = path.join(
+        testDir,
+        '.codex/prompts/plx-init-architecture.md'
+      );
+      const plxUpdatePath = path.join(
+        testDir,
+        '.codex/prompts/plx-update-architecture.md'
+      );
+
+      await expect(FileSystemUtils.fileExists(plxInitPath)).resolves.toBe(true);
+      await expect(FileSystemUtils.fileExists(plxUpdatePath)).resolves.toBe(true);
+
+      // Check console output includes PLX commands
+      const [logMessage] = consoleSpy.mock.calls[0];
+      expect(logMessage).toContain('plx-init-architecture.md');
+      expect(logMessage).toContain('plx-update-architecture.md');
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should not generate PLX commands when no regular slash commands exist', async () => {
+      // No slash commands created - only the openspec directory exists
+
+      await updateCommand.execute(testDir);
+
+      // Check that no PLX commands were created for Claude
+      const plxInitPath = path.join(
+        testDir,
+        '.claude/commands/plx/init-architecture.md'
+      );
+      const plxUpdatePath = path.join(
+        testDir,
+        '.claude/commands/plx/update-architecture.md'
+      );
+
+      await expect(FileSystemUtils.fileExists(plxInitPath)).resolves.toBe(false);
+      await expect(FileSystemUtils.fileExists(plxUpdatePath)).resolves.toBe(false);
+    });
+
+    it('should generate PLX commands for multiple tools when their slash commands are updated', async () => {
+      // Create Claude slash command
+      const claudeProposalPath = path.join(
+        testDir,
+        '.claude/commands/openspec/proposal.md'
+      );
+      await fs.mkdir(path.dirname(claudeProposalPath), { recursive: true });
+      await fs.writeFile(
+        claudeProposalPath,
+        `---
+name: OpenSpec: Proposal
+description: Old
+category: OpenSpec
+tags: [openspec]
+---
+<!-- OPENSPEC:START -->
+Old
+<!-- OPENSPEC:END -->`
+      );
+
+      // Create Cursor slash command
+      const cursorPath = path.join(testDir, '.cursor/commands/openspec-apply.md');
+      await fs.mkdir(path.dirname(cursorPath), { recursive: true });
+      await fs.writeFile(
+        cursorPath,
+        `---
+name: /openspec-apply
+id: openspec-apply
+category: OpenSpec
+description: Old
+---
+<!-- OPENSPEC:START -->
+Old
+<!-- OPENSPEC:END -->`
+      );
+
+      const consoleSpy = vi.spyOn(console, 'log');
+
+      await updateCommand.execute(testDir);
+
+      // Check Claude PLX commands
+      await expect(
+        FileSystemUtils.fileExists(
+          path.join(testDir, '.claude/commands/plx/init-architecture.md')
+        )
+      ).resolves.toBe(true);
+
+      // Check Cursor PLX commands
+      await expect(
+        FileSystemUtils.fileExists(
+          path.join(testDir, '.cursor/commands/plx-init-architecture.md')
+        )
+      ).resolves.toBe(true);
+
+      const [logMessage] = consoleSpy.mock.calls[0];
+      expect(logMessage).toContain('.claude/commands/plx/init-architecture.md');
+      expect(logMessage).toContain('.cursor/commands/plx-init-architecture.md');
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should refresh existing PLX commands on subsequent updates', async () => {
+      // Create Claude slash command
+      const proposalPath = path.join(
+        testDir,
+        '.claude/commands/openspec/proposal.md'
+      );
+      await fs.mkdir(path.dirname(proposalPath), { recursive: true });
+      await fs.writeFile(
+        proposalPath,
+        `---
+name: OpenSpec: Proposal
+description: Old
+category: OpenSpec
+tags: [openspec]
+---
+<!-- OPENSPEC:START -->
+Old
+<!-- OPENSPEC:END -->`
+      );
+
+      // First update - creates PLX commands
+      await updateCommand.execute(testDir);
+
+      const plxInitPath = path.join(
+        testDir,
+        '.claude/commands/plx/init-architecture.md'
+      );
+      const firstContent = await fs.readFile(plxInitPath, 'utf-8');
+
+      // Modify the PLX file to simulate outdated content
+      await fs.writeFile(
+        plxInitPath,
+        firstContent.replace(
+          /<!-- OPENSPEC:START -->[\s\S]*<!-- OPENSPEC:END -->/,
+          '<!-- OPENSPEC:START -->\nOutdated content\n<!-- OPENSPEC:END -->'
+        )
+      );
+
+      // Second update - should refresh PLX commands
+      await updateCommand.execute(testDir);
+
+      const refreshedContent = await fs.readFile(plxInitPath, 'utf-8');
+      expect(refreshedContent).not.toContain('Outdated content');
+      expect(refreshedContent).toContain('<!-- OPENSPEC:START -->');
+    });
+  });
 });

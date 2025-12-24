@@ -134,6 +134,20 @@ The update command SHALL refresh existing slash command files for configured too
 - **WHEN** a tool lacks a slash command file
 - **THEN** do not create a new file during update
 
+### Requirement: PLX Command Updates
+The update command SHALL generate PLX architecture commands for tools that have existing regular slash commands.
+
+#### Scenario: Generating PLX commands when regular slash commands exist
+- **WHEN** a tool has existing regular slash commands (e.g., `.claude/commands/openspec/proposal.md`)
+- **AND** the user runs `openspec update`
+- **THEN** generate all PLX commands for that tool (e.g., `.claude/commands/plx/init-architecture.md`, `.claude/commands/plx/update-architecture.md`)
+- **AND** include them in the updated slash commands output
+
+#### Scenario: PLX commands not generated when no regular slash commands exist
+- **WHEN** a tool has no existing regular slash commands
+- **AND** the user runs `openspec update`
+- **THEN** do not generate PLX commands for that tool
+
 ### Requirement: Archive Command Argument Support
 The archive slash command template SHALL support optional change ID arguments for tools that support `$ARGUMENTS` placeholder.
 
