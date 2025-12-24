@@ -232,6 +232,7 @@ export class ArchiveCommand {
             `Totals: + ${totals.added}, ~ ${totals.modified}, - ${totals.removed}, → ${totals.renamed}`
           );
           console.log('Specs updated successfully.');
+          console.log(chalk.gray('Tip: Run /plx/update-architecture to refresh your architecture documentation.'));
         }
       }
     }
