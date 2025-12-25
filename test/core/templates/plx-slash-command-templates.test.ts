@@ -24,7 +24,7 @@ describe('plx-slash-command-templates', () => {
 
   describe('plxSlashCommandBodies', () => {
     it('contains all PLX command IDs', () => {
-      const expectedIds: PlxSlashCommandId[] = ['init-architecture', 'update-architecture', 'act-next'];
+      const expectedIds: PlxSlashCommandId[] = ['init-architecture', 'update-architecture', 'get-task'];
 
       for (const id of expectedIds) {
         expect(plxSlashCommandBodies[id]).toBeDefined();

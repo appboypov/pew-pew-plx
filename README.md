@@ -32,7 +32,7 @@
 | Command | `openspec` | `openspec` + `plx` alias |
 | Task Structure | Single `tasks.md` | `tasks/` directory with numbered files |
 | Task Status | Checkbox-based | YAML frontmatter (`to-do`, `in-progress`, `done`) |
-| Task Selection | Manual | `plx act next` for prioritized selection |
+| Task Selection | Manual | `plx get task` for prioritized selection |
 | Architecture Docs | `openspec/project.md` | `ARCHITECTURE.md` |
 | Issue Tracking | — | External issue tracking in proposals |
 | Install | `npm i -g @fission-ai/openspec` | `npm i -g @appboypov/opensplx` |
@@ -50,14 +50,14 @@ tasks/
 
 Each task file is scoped for one AI conversation. The apply command auto-detects the next incomplete task and processes only that one. Legacy `tasks.md` files are auto-migrated on first CLI access.
 
-### Act Next Command
+### Get Task Command
 
-OpenSplx introduces intelligent task selection with the `act next` command:
+OpenSplx introduces intelligent task selection with the `get task` command:
 
 ```bash
-plx act next                      # Get the next prioritized task
-plx act next --did-complete-previous  # Mark current task done, get next
-plx act next --json               # Machine-readable output
+plx get task                      # Get the next prioritized task
+plx get task --did-complete-previous  # Mark current task done, get next
+plx get task --json               # Machine-readable output
 ```
 
 **Prioritization logic:**
@@ -72,11 +72,13 @@ status: to-do  # or: in-progress, done
 ---
 ```
 
+**Checkbox auto-completion:** When using `--did-complete-previous`, all checkboxes in the `## Implementation Checklist` section are automatically marked as complete. Checkboxes in `## Constraints` and `## Acceptance Criteria` sections are preserved unchanged.
+
 ### PLX Slash Commands
 
 When you run `plx init`, these additional commands are installed:
 
-- **`/plx/act-next`** - Get the next prioritized task across active changes
+- **`/plx/get-task`** - Get the next prioritized task across active changes
 - **`/plx/init-architecture`** - Generate comprehensive `ARCHITECTURE.md` from codebase analysis
 - **`/plx/update-architecture`** - Refresh architecture documentation based on current codebase state
 

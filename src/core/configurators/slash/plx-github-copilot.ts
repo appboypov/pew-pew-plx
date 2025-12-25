@@ -4,7 +4,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.github/prompts/plx-init-architecture.prompt.md',
   'update-architecture': '.github/prompts/plx-update-architecture.prompt.md',
-  'act-next': '.github/prompts/plx-act-next.prompt.md'
+  'get-task': '.github/prompts/plx-get-task.prompt.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -18,7 +18,7 @@ description: Refresh ARCHITECTURE.md based on current codebase state.
 ---
 
 $ARGUMENTS`,
-  'act-next': `---
+  'get-task': `---
 description: Select and display the next prioritized task to work on.
 ---
 

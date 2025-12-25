@@ -4,7 +4,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.opencode/command/plx-init-architecture.md',
   'update-architecture': '.opencode/command/plx-update-architecture.md',
-  'act-next': '.opencode/command/plx-act-next.md'
+  'get-task': '.opencode/command/plx-get-task.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -20,7 +20,7 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS`,
-  'act-next': `---
+  'get-task': `---
 description: Select and display the next prioritized task to work on.
 argument-hint: (optional context)
 ---

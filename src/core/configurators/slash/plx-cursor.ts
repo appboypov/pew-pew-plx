@@ -4,7 +4,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.cursor/commands/plx-init-architecture.md',
   'update-architecture': '.cursor/commands/plx-update-architecture.md',
-  'act-next': '.cursor/commands/plx-act-next.md'
+  'get-task': '.cursor/commands/plx-get-task.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -20,9 +20,9 @@ id: plx-update-architecture
 category: PLX
 description: Refresh ARCHITECTURE.md based on current codebase state.
 ---`,
-  'act-next': `---
-name: /plx-act-next
-id: plx-act-next
+  'get-task': `---
+name: /plx-get-task
+id: plx-get-task
 category: PLX
 description: Select and display the next prioritized task to work on.
 ---`

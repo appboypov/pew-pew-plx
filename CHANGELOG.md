@@ -1,5 +1,19 @@
 # OpenSplx Changelog
 
+## [Unreleased]
+
+### Changed
+
+- **BREAKING**: Renamed `plx act next` command to `plx get task`
+- **BREAKING**: Renamed `PlxSlashCommandId` value `'act-next'` to `'get-task'`
+
+### Added
+
+- `--did-complete-previous` now automatically marks all `## Implementation Checklist` checkboxes as complete
+- Completed task info (name + completed checkbox items) is output when using `--did-complete-previous`
+
+---
+
 ## 0.3.0 - 2025-12-25
 
 ### Added

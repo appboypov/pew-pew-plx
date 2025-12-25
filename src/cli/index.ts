@@ -14,7 +14,7 @@ import { ValidateCommand } from '../commands/validate.js';
 import { ShowCommand } from '../commands/show.js';
 import { CompletionCommand } from '../commands/completion.js';
 import { registerConfigCommand } from '../commands/config.js';
-import { ActCommand } from '../commands/act.js';
+import { GetCommand } from '../commands/get.js';
 
 // Import command name detection utility
 import { commandName } from '../utils/command-name.js';
@@ -320,20 +320,20 @@ program
     }
   });
 
-// Act command with subcommands
-const actCmd = program
-  .command('act')
-  .description('Workflow actions for task management');
+// Get command with subcommands
+const getCmd = program
+  .command('get')
+  .description('Retrieve project artifacts');
 
-actCmd
-  .command('next')
+getCmd
+  .command('task')
   .description('Show the next task from the highest-priority change')
   .option('--did-complete-previous', 'Complete the in-progress task and advance to next')
   .option('--json', 'Output as JSON')
   .action(async (options?: { didCompletePrevious?: boolean; json?: boolean }) => {
     try {
-      const actCommand = new ActCommand();
-      await actCommand.next(options);
+      const getCommand = new GetCommand();
+      await getCommand.task(options);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);

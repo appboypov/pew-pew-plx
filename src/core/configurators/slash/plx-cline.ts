@@ -4,7 +4,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.clinerules/workflows/plx-init-architecture.md',
   'update-architecture': '.clinerules/workflows/plx-update-architecture.md',
-  'act-next': '.clinerules/workflows/plx-act-next.md'
+  'get-task': '.clinerules/workflows/plx-get-task.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -14,7 +14,7 @@ Generate comprehensive ARCHITECTURE.md from codebase analysis.`,
   'update-architecture': `# PLX: Update Architecture
 
 Refresh ARCHITECTURE.md based on current codebase state.`,
-  'act-next': `# PLX: Act Next
+  'get-task': `# PLX: Get Task
 
 Select and display the next prioritized task to work on.`
 };

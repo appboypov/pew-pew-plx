@@ -4,7 +4,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.cospec/plx/commands/plx-init-architecture.md',
   'update-architecture': '.cospec/plx/commands/plx-update-architecture.md',
-  'act-next': '.cospec/plx/commands/plx-act-next.md'
+  'get-task': '.cospec/plx/commands/plx-get-task.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -16,7 +16,7 @@ argument-hint: (optional context)
 description: "Refresh ARCHITECTURE.md based on current codebase state."
 argument-hint: (optional context)
 ---`,
-  'act-next': `---
+  'get-task': `---
 description: "Select and display the next prioritized task to work on."
 argument-hint: (optional context)
 ---`

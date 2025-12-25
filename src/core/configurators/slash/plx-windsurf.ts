@@ -4,13 +4,13 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.windsurf/workflows/plx-init-architecture.md',
   'update-architecture': '.windsurf/workflows/plx-update-architecture.md',
-  'act-next': '.windsurf/workflows/plx-act-next.md'
+  'get-task': '.windsurf/workflows/plx-get-task.md'
 };
 
 const DESCRIPTIONS: Record<PlxSlashCommandId, string> = {
   'init-architecture': 'Generate comprehensive ARCHITECTURE.md from codebase analysis.',
   'update-architecture': 'Refresh ARCHITECTURE.md based on current codebase state.',
-  'act-next': 'Select and display the next prioritized task to work on.'
+  'get-task': 'Select and display the next prioritized task to work on.'
 };
 
 export class PlxWindsurfSlashCommandConfigurator extends PlxSlashCommandConfigurator {

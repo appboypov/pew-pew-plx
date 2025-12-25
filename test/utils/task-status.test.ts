@@ -8,6 +8,8 @@ import {
   getTaskStatus,
   setTaskStatus,
   DEFAULT_TASK_STATUS,
+  completeImplementationChecklist,
+  completeTaskFully,
 } from '../../src/utils/task-status.js';
 
 describe('task-status', () => {
@@ -217,6 +219,166 @@ Content without frontmatter`);
   describe('DEFAULT_TASK_STATUS', () => {
     it('should be to-do', () => {
       expect(DEFAULT_TASK_STATUS).toBe('to-do');
+    });
+  });
+
+  describe('completeImplementationChecklist', () => {
+    it('marks unchecked items in Implementation Checklist as complete', () => {
+      const content = `---
+status: in-progress
+---
+
+# Task
+
+## Implementation Checklist
+- [ ] First item
+- [x] Already done
+- [ ] Third item
+
+## Notes
+Some notes`;
+      const result = completeImplementationChecklist(content);
+      expect(result.completedItems).toEqual(['First item', 'Third item']);
+      expect(result.updatedContent).toContain('[x] First item');
+      expect(result.updatedContent).toContain('[x] Third item');
+      expect(result.updatedContent).toContain('[x] Already done');
+    });
+
+    it('does NOT modify checkboxes in Constraints section', () => {
+      const content = `---
+status: in-progress
+---
+
+## Implementation Checklist
+- [ ] Implementation item
+
+## Constraints
+- [ ] Constraint item
+
+## Notes`;
+      const result = completeImplementationChecklist(content);
+      expect(result.completedItems).toEqual(['Implementation item']);
+      expect(result.updatedContent).toContain('[x] Implementation item');
+      expect(result.updatedContent).toContain('## Constraints\n- [ ] Constraint item');
+    });
+
+    it('does NOT modify checkboxes in Acceptance Criteria section', () => {
+      const content = `---
+status: in-progress
+---
+
+## Implementation Checklist
+- [ ] Implementation item
+
+## Acceptance Criteria
+- [ ] Acceptance item
+
+## Notes`;
+      const result = completeImplementationChecklist(content);
+      expect(result.completedItems).toEqual(['Implementation item']);
+      expect(result.updatedContent).toContain('[x] Implementation item');
+      expect(result.updatedContent).toContain('## Acceptance Criteria\n- [ ] Acceptance item');
+    });
+
+    it('returns empty completedItems when all items already complete', () => {
+      const content = `---
+status: in-progress
+---
+
+## Implementation Checklist
+- [x] Already done
+- [x] Also done`;
+      const result = completeImplementationChecklist(content);
+      expect(result.completedItems).toEqual([]);
+    });
+
+    it('handles content without Implementation Checklist section', () => {
+      const content = `---
+status: in-progress
+---
+
+## Notes
+- [ ] This should not be touched`;
+      const result = completeImplementationChecklist(content);
+      expect(result.completedItems).toEqual([]);
+      expect(result.updatedContent).toContain('- [ ] This should not be touched');
+    });
+
+    it('resumes completing after exiting excluded sections', () => {
+      const content = `## Implementation Checklist
+- [ ] First impl item
+
+## Constraints
+- [ ] Constraint
+
+## Implementation Checklist
+- [ ] Second impl item
+
+## Acceptance Criteria
+- [ ] Acceptance`;
+      const result = completeImplementationChecklist(content);
+      expect(result.completedItems).toContain('First impl item');
+      expect(result.completedItems).toContain('Second impl item');
+      expect(result.updatedContent).toContain('## Constraints\n- [ ] Constraint');
+      expect(result.updatedContent).toContain('## Acceptance Criteria\n- [ ] Acceptance');
+    });
+  });
+
+  describe('completeTaskFully', () => {
+    let tempDir: string;
+
+    beforeEach(async () => {
+      tempDir = path.join(os.tmpdir(), `openspec-complete-test-${Date.now()}`);
+      await fs.mkdir(tempDir, { recursive: true });
+    });
+
+    afterEach(async () => {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    });
+
+    it('marks checkboxes and updates status to done', async () => {
+      const filePath = path.join(tempDir, '001-task.md');
+      await fs.writeFile(filePath, `---
+status: in-progress
+---
+
+# Task: Test
+
+## Implementation Checklist
+- [ ] First item
+- [ ] Second item
+
+## Constraints
+- [ ] Should not be touched`);
+
+      const completedItems = await completeTaskFully(filePath);
+
+      expect(completedItems).toEqual(['First item', 'Second item']);
+
+      const content = await fs.readFile(filePath, 'utf-8');
+      expect(content).toContain('status: done');
+      expect(content).toContain('[x] First item');
+      expect(content).toContain('[x] Second item');
+      expect(content).toContain('## Constraints\n- [ ] Should not be touched');
+    });
+
+    it('returns empty array when no items to complete', async () => {
+      const filePath = path.join(tempDir, '001-task.md');
+      await fs.writeFile(filePath, `---
+status: in-progress
+---
+
+# Task: Test
+
+## Implementation Checklist
+- [x] Already done`);
+
+      const completedItems = await completeTaskFully(filePath);
+
+      expect(completedItems).toEqual([]);
+
+      const content = await fs.readFile(filePath, 'utf-8');
+      expect(content).toContain('status: done');
     });
   });
 });

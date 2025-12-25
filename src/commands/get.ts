@@ -6,12 +6,22 @@ import {
   getPrioritizedChange,
   PrioritizedChange,
 } from '../utils/change-prioritization.js';
-import { parseStatus, setTaskStatus, TaskStatus } from '../utils/task-status.js';
+import {
+  parseStatus,
+  setTaskStatus,
+  TaskStatus,
+  completeTaskFully,
+} from '../utils/task-status.js';
 import { TaskFileInfo } from '../utils/task-progress.js';
 
-interface NextOptions {
+interface TaskOptions {
   didCompletePrevious?: boolean;
   json?: boolean;
+}
+
+interface CompletedTaskInfo {
+  name: string;
+  completedItems: string[];
 }
 
 interface JsonOutput {
@@ -28,17 +38,18 @@ interface JsonOutput {
     proposal: string;
     design?: string;
   };
+  completedTask?: CompletedTaskInfo;
   warning?: string;
 }
 
-export class ActCommand {
+export class GetCommand {
   private changesPath: string;
 
   constructor() {
     this.changesPath = path.join(process.cwd(), 'openspec', 'changes');
   }
 
-  async next(options: NextOptions = {}): Promise<void> {
+  async task(options: TaskOptions = {}): Promise<void> {
     const prioritizedChange = await getPrioritizedChange(this.changesPath);
 
     if (!prioritizedChange) {
@@ -69,12 +80,19 @@ export class ActCommand {
 
     let warning: string | undefined;
     let nextTask: TaskFileInfo | null = prioritizedChange.nextTask;
+    let completedTaskInfo: CompletedTaskInfo | undefined;
 
     if (options.didCompletePrevious) {
       // Handle --did-complete-previous flag
       if (prioritizedChange.inProgressTask) {
-        // Complete the in-progress task
-        await setTaskStatus(prioritizedChange.inProgressTask.filepath, 'done');
+        // Complete the in-progress task with checkbox marking
+        const completedItems = await completeTaskFully(
+          prioritizedChange.inProgressTask.filepath
+        );
+        completedTaskInfo = {
+          name: prioritizedChange.inProgressTask.name,
+          completedItems,
+        };
 
         // Find the next to-do task
         nextTask = await this.findNextTodoTask(prioritizedChange);
@@ -97,16 +115,22 @@ export class ActCommand {
     // Check again if we have a next task after transitions
     if (!nextTask) {
       if (options.json) {
-        console.log(
-          JSON.stringify({
-            changeId: prioritizedChange.id,
-            task: null,
-            taskContent: null,
-            message: 'All tasks complete',
-            warning,
-          })
-        );
+        const output: JsonOutput = {
+          changeId: prioritizedChange.id,
+          task: null,
+          taskContent: null,
+        };
+        if (completedTaskInfo) {
+          output.completedTask = completedTaskInfo;
+        }
+        if (warning) {
+          output.warning = warning;
+        }
+        console.log(JSON.stringify({ ...output, message: 'All tasks complete' }, null, 2));
       } else {
+        if (completedTaskInfo) {
+          this.printCompletedTaskInfo(completedTaskInfo);
+        }
         if (warning) {
           ora().warn(warning);
         }
@@ -139,6 +163,10 @@ export class ActCommand {
         );
       }
 
+      if (completedTaskInfo) {
+        output.completedTask = completedTaskInfo;
+      }
+
       if (warning) {
         output.warning = warning;
       }
@@ -146,6 +174,10 @@ export class ActCommand {
       console.log(JSON.stringify(output, null, 2));
     } else {
       // Text output
+      if (completedTaskInfo) {
+        this.printCompletedTaskInfo(completedTaskInfo);
+      }
+
       if (warning) {
         ora().warn(warning);
         console.log();
@@ -162,6 +194,17 @@ export class ActCommand {
       );
       console.log(taskContent);
     }
+  }
+
+  private printCompletedTaskInfo(info: CompletedTaskInfo): void {
+    console.log(chalk.green(`\n✓ Completed task: ${info.name}`));
+    if (info.completedItems.length > 0) {
+      console.log(chalk.dim('  Marked complete:'));
+      for (const item of info.completedItems) {
+        console.log(chalk.dim(`    • ${item}`));
+      }
+    }
+    console.log();
   }
 
   private async findNextTodoTask(

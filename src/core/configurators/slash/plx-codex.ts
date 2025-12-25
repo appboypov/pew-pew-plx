@@ -8,7 +8,7 @@ import { OPENSPEC_MARKERS } from '../../config.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.codex/prompts/plx-init-architecture.md',
   'update-architecture': '.codex/prompts/plx-update-architecture.md',
-  'act-next': '.codex/prompts/plx-act-next.md'
+  'get-task': '.codex/prompts/plx-get-task.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -24,7 +24,7 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS`,
-  'act-next': `---
+  'get-task': `---
 description: Select and display the next prioritized task to work on.
 argument-hint: (optional context)
 ---
