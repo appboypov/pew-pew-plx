@@ -22,7 +22,7 @@ The command SHALL generate required template files with appropriate content for 
 #### Scenario: Generating template files
 - **WHEN** initializing OpenSpec
 - **THEN** generate `openspec/AGENTS.md` containing complete OpenSpec instructions for AI assistants
-- **AND** instruct users to run `/plx/init-architecture` to generate architecture documentation
+- **AND** generate `ARCHITECTURE.md` at the project root with template content for users to populate
 
 ### Requirement: Success Output
 
@@ -31,10 +31,10 @@ The command SHALL provide clear, actionable next steps upon successful initializ
 #### Scenario: Displaying success message
 - **WHEN** initialization completes successfully
 - **THEN** include prompt: "Please explain the OpenSpec workflow from openspec/AGENTS.md and how I should work with you on this project"
-- **AND** include prompt: "Run /plx/init-architecture to generate ARCHITECTURE.md with project context, tech stack, and conventions"
+- **AND** include prompt: "Please read ARCHITECTURE.md and help me fill it out with details about my project, tech stack, and conventions"
 
 ## REMOVED Requirements
 
 ### Requirement: File Generation (partial)
-**Reason**: The `project.md` file generation is replaced by the `/plx/init-architecture` command which generates a more comprehensive `ARCHITECTURE.md` at the project root.
-**Migration**: Run `/plx/init-architecture` after `openspec init` to generate architecture documentation.
+**Reason**: The `project.md` file generation is replaced by `ARCHITECTURE.md` which is now automatically generated at the project root during `openspec init`.
+**Migration**: ARCHITECTURE.md is generated automatically. Users are prompted to populate it with project details.

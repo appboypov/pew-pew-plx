@@ -10,7 +10,7 @@ An OpenSpec project SHALL maintain a consistent directory structure for specific
 - **THEN** it SHALL have this structure:
 ```
 project-root/
-├── ARCHITECTURE.md             # Project context (generated via /plx/init-architecture)
+├── ARCHITECTURE.md             # Project context and conventions
 ├── AGENTS.md                   # Root stub pointing to openspec/AGENTS.md
 └── openspec/
     ├── AGENTS.md               # AI assistant instructions
