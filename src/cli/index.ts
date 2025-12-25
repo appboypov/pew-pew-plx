@@ -14,6 +14,7 @@ import { ValidateCommand } from '../commands/validate.js';
 import { ShowCommand } from '../commands/show.js';
 import { CompletionCommand } from '../commands/completion.js';
 import { registerConfigCommand } from '../commands/config.js';
+import { ActCommand } from '../commands/act.js';
 
 // Import command name detection utility
 import { commandName } from '../utils/command-name.js';
@@ -316,6 +317,27 @@ program
     } catch (error) {
       // Silently fail for graceful shell completion experience
       process.exitCode = 1;
+    }
+  });
+
+// Act command with subcommands
+const actCmd = program
+  .command('act')
+  .description('Workflow actions for task management');
+
+actCmd
+  .command('next')
+  .description('Show the next task from the highest-priority change')
+  .option('--did-complete-previous', 'Complete the in-progress task and advance to next')
+  .option('--json', 'Output as JSON')
+  .action(async (options?: { didCompletePrevious?: boolean; json?: boolean }) => {
+    try {
+      const actCommand = new ActCommand();
+      await actCommand.next(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
     }
   });
 

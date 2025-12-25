@@ -36,13 +36,13 @@ New `src/commands/act.ts` command provides:
 
 ## Implementation Checklist
 
-- [ ] 3.1 Create `src/commands/act.ts` with ActCommand class
-- [ ] 3.2 Implement `next(options)` method with main logic
-- [ ] 3.3 Implement change document reading (proposal.md, design.md)
-- [ ] 3.4 Implement `--did-complete-previous` status transition logic
-- [ ] 3.5 Implement `--json` output formatter
-- [ ] 3.6 Register `act` command with `next` subcommand in `src/cli/index.ts`
-- [ ] 3.7 Add integration tests in `test/commands/act.test.ts`
+- [x] 3.1 Create `src/commands/act.ts` with ActCommand class
+- [x] 3.2 Implement `next(options)` method with main logic
+- [x] 3.3 Implement change document reading (proposal.md, design.md)
+- [x] 3.4 Implement `--did-complete-previous` status transition logic
+- [x] 3.5 Implement `--json` output formatter
+- [x] 3.6 Register `act` command with `next` subcommand in `src/cli/index.ts`
+- [x] 3.7 Add integration tests in `test/commands/act.test.ts`
 
 ## Notes
 

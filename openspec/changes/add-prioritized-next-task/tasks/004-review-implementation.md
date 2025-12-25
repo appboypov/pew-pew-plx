@@ -31,12 +31,12 @@ All code is reviewed for:
 
 ## Implementation Checklist
 
-- [ ] 4.1 Run `npm run typecheck` and fix any errors
-- [ ] 4.2 Run `npm run lint` and fix any errors
-- [ ] 4.3 Verify task-status.ts exports and functionality
-- [ ] 4.4 Verify change-prioritization.ts exports and functionality
-- [ ] 4.5 Verify act command registration and help text
-- [ ] 4.6 Test command manually: `openspec act next --help`
+- [x] 4.1 Run `npm run typecheck` and fix any errors
+- [x] 4.2 Run `npm run lint` and fix any errors
+- [x] 4.3 Verify task-status.ts exports and functionality
+- [x] 4.4 Verify change-prioritization.ts exports and functionality
+- [x] 4.5 Verify act command registration and help text
+- [x] 4.6 Test command manually: `openspec act next --help`
 
 ## Notes
 

@@ -33,13 +33,13 @@ New `src/utils/change-prioritization.ts` module provides:
 
 ## Implementation Checklist
 
-- [ ] 2.1 Create `src/utils/change-prioritization.ts` with interfaces
-- [ ] 2.2 Implement `getCompletionPercentage` function
-- [ ] 2.3 Implement `getChangeCreatedAt` using fs.stat birthtime
-- [ ] 2.4 Implement `getPrioritizedChange` with sorting logic
-- [ ] 2.5 Add detection of in-progress tasks across change files
-- [ ] 2.6 Export from `src/utils/index.ts`
-- [ ] 2.7 Add unit tests in `test/utils/change-prioritization.test.ts`
+- [x] 2.1 Create `src/utils/change-prioritization.ts` with interfaces
+- [x] 2.2 Implement `getCompletionPercentage` function
+- [x] 2.3 Implement `getChangeCreatedAt` using fs.stat birthtime
+- [x] 2.4 Implement `getPrioritizedChange` with sorting logic
+- [x] 2.5 Add detection of in-progress tasks across change files
+- [x] 2.6 Export from `src/utils/index.ts`
+- [x] 2.7 Add unit tests in `test/utils/change-prioritization.test.ts`
 
 ## Notes
 

@@ -33,12 +33,12 @@ New `src/utils/task-status.ts` module provides:
 
 ## Implementation Checklist
 
-- [ ] 1.1 Create `src/utils/task-status.ts` with type definitions
-- [ ] 1.2 Implement `parseStatus` function with frontmatter regex
-- [ ] 1.3 Implement `updateStatus` function for existing frontmatter
-- [ ] 1.4 Handle edge case: add frontmatter when missing
-- [ ] 1.5 Export from `src/utils/index.ts`
-- [ ] 1.6 Add unit tests in `test/utils/task-status.test.ts`
+- [x] 1.1 Create `src/utils/task-status.ts` with type definitions
+- [x] 1.2 Implement `parseStatus` function with frontmatter regex
+- [x] 1.3 Implement `updateStatus` function for existing frontmatter
+- [x] 1.4 Handle edge case: add frontmatter when missing
+- [x] 1.5 Export from `src/utils/index.ts`
+- [x] 1.6 Add unit tests in `test/utils/task-status.test.ts`
 
 ## Notes
 

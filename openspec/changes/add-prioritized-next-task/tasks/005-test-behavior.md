@@ -25,12 +25,12 @@ All tests pass and behavior matches spec requirements.
 
 ## Implementation Checklist
 
-- [ ] 5.1 Run `npm test` and verify all tests pass
-- [ ] 5.2 Manual test: run `openspec act next` with active changes
-- [ ] 5.3 Manual test: run `openspec act next --did-complete-previous`
-- [ ] 5.4 Manual test: run `openspec act next --json`
-- [ ] 5.5 Manual test: verify behavior with no active changes
-- [ ] 5.6 Update any failing tests or fix implementation bugs
+- [x] 5.1 Run `npm test` and verify all tests pass
+- [x] 5.2 Manual test: run `openspec act next` with active changes
+- [x] 5.3 Manual test: run `openspec act next --did-complete-previous`
+- [x] 5.4 Manual test: run `openspec act next --json`
+- [x] 5.5 Manual test: verify behavior with no active changes
+- [x] 5.6 Update any failing tests or fix implementation bugs
 
 ## Notes
 
