@@ -3,7 +3,8 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.claude/commands/plx/init-architecture.md',
-  'update-architecture': '.claude/commands/plx/update-architecture.md'
+  'update-architecture': '.claude/commands/plx/update-architecture.md',
+  'act-next': '.claude/commands/plx/act-next.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -18,6 +19,12 @@ name: PLX: Update Architecture
 description: Refresh ARCHITECTURE.md based on current codebase state.
 category: PLX
 tags: [plx, architecture, documentation]
+---`,
+  'act-next': `---
+name: PLX: Act Next
+description: Select and display the next prioritized task to work on.
+category: PLX
+tags: [plx, task, workflow]
 ---`
 };
 

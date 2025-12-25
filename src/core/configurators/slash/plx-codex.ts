@@ -7,7 +7,8 @@ import { OPENSPEC_MARKERS } from '../../config.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.codex/prompts/plx-init-architecture.md',
-  'update-architecture': '.codex/prompts/plx-update-architecture.md'
+  'update-architecture': '.codex/prompts/plx-update-architecture.md',
+  'act-next': '.codex/prompts/plx-act-next.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -19,6 +20,12 @@ argument-hint: (optional context)
 $ARGUMENTS`,
   'update-architecture': `---
 description: Refresh ARCHITECTURE.md based on current codebase state.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'act-next': `---
+description: Select and display the next prioritized task to work on.
 argument-hint: (optional context)
 ---
 

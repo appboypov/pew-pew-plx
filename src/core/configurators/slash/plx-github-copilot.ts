@@ -3,7 +3,8 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.github/prompts/plx-init-architecture.prompt.md',
-  'update-architecture': '.github/prompts/plx-update-architecture.prompt.md'
+  'update-architecture': '.github/prompts/plx-update-architecture.prompt.md',
+  'act-next': '.github/prompts/plx-act-next.prompt.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -14,6 +15,11 @@ description: Generate comprehensive ARCHITECTURE.md from codebase analysis.
 $ARGUMENTS`,
   'update-architecture': `---
 description: Refresh ARCHITECTURE.md based on current codebase state.
+---
+
+$ARGUMENTS`,
+  'act-next': `---
+description: Select and display the next prioritized task to work on.
 ---
 
 $ARGUMENTS`

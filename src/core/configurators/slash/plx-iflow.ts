@@ -3,7 +3,8 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.iflow/commands/plx-init-architecture.md',
-  'update-architecture': '.iflow/commands/plx-update-architecture.md'
+  'update-architecture': '.iflow/commands/plx-update-architecture.md',
+  'act-next': '.iflow/commands/plx-act-next.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -18,6 +19,12 @@ name: /plx-update-architecture
 id: plx-update-architecture
 category: PLX
 description: Refresh ARCHITECTURE.md based on current codebase state.
+---`,
+  'act-next': `---
+name: /plx-act-next
+id: plx-act-next
+category: PLX
+description: Select and display the next prioritized task to work on.
 ---`
 };
 
