@@ -7,7 +7,7 @@ Instructions for AI coding assistants using OpenSpec for spec-driven development
 - Search existing work: `openspec spec list --long`, `openspec list` (use `rg` only for full-text search)
 - Decide scope: new capability vs modify existing capability
 - Pick a unique `change-id`: kebab-case, verb-led (`add-`, `update-`, `remove-`, `refactor-`)
-- Scaffold: `proposal.md`, `tasks/` directory (minimum 3 files: implementation tasks, one review task, one test task), `design.md` (only if needed), and delta specs per affected capability
+- Scaffold: `proposal.md`, `tasks.md`, `design.md` (only if needed), and delta specs per affected capability
 - Write deltas: use `## ADDED|MODIFIED|REMOVED|RENAMED Requirements`; include at least one `#### Scenario:` per requirement
 - Validate: `openspec validate [change-id] --strict` and fix issues
 - Request approval: Do not start implementation until proposal is approved
@@ -42,25 +42,19 @@ Skip proposal for:
 
 **Workflow**
 1. Review `openspec/project.md`, `openspec list`, and `openspec list --specs` to understand current context.
-2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks/` directory with task files, optional `design.md`, and spec deltas under `openspec/changes/<id>/`.
+2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, optional `design.md`, and spec deltas under `openspec/changes/<id>/`.
 3. Draft spec deltas using `## ADDED|MODIFIED|REMOVED Requirements` with at least one `#### Scenario:` per requirement.
 4. Run `openspec validate <id> --strict` and resolve any issues before sharing the proposal.
 
 ### Stage 2: Implementing Changes
-Each task file is designed to be completed in a single conversation.
-
+Track these steps as TODOs and complete them one by one.
 1. **Read proposal.md** - Understand what's being built
 2. **Read design.md** (if exists) - Review technical decisions
-3. **Find next incomplete task** - Scan `tasks/` directory in sequence order:
-   - Read completed task files (for context)
-   - Stop at first task with incomplete items in its Implementation Checklist
-   - Do NOT read tasks beyond the next incomplete one
-   - If user specified a task file, use that instead
-4. **Complete that task** - Work through its Implementation Checklist
-5. **Mark complete** - Set items to `[x]` in that task file only
-6. **Next conversation** - Run apply again for the next task
-
-**Approval gate**: Do not start implementation until the proposal is reviewed and approved.
+3. **Read tasks.md** - Get implementation checklist
+4. **Implement tasks sequentially** - Complete in order
+5. **Confirm completion** - Ensure every item in `tasks.md` is finished before updating statuses
+6. **Update checklist** - After all work is done, set every task to `- [x]` so the list reflects reality
+7. **Approval gate** - Do not start implementation until the proposal is reviewed and approved
 
 ### Stage 3: Archiving Changes
 After deployment, create separate PR to:
@@ -175,11 +169,8 @@ openspec/
 ├── changes/                # Proposals - what SHOULD change
 │   ├── [change-name]/
 │   │   ├── proposal.md     # Why, what, impact
+│   │   ├── tasks.md        # Implementation checklist
 │   │   ├── design.md       # Technical decisions (optional; see criteria)
-│   │   ├── tasks/          # Task files (numbered sequence)
-│   │   │   ├── 001-<task-name>.md
-│   │   │   ├── 002-<task-name>.md
-│   │   │   └── NNN-<task-name>.md
 │   │   └── specs/          # Delta changes
 │   │       └── [capability]/
 │   │           └── spec.md # ADDED/MODIFIED/REMOVED
@@ -241,47 +232,14 @@ The system SHALL provide...
 ```
 If multiple capabilities are affected, create multiple delta files under `changes/[change-id]/specs/<capability>/spec.md`—one per capability.
 
-4. **Create tasks/ directory with task files:**
-
-Create a minimum of 3 task files, named with sequence prefix `NNN-<name>.md`. Include implementation tasks as needed, followed by at least one review task and one test task:
-
-```
-tasks/
-├── 001-<first-task>.md
-├── 002-<second-task>.md
-├── ...
-└── NNN-<last-task>.md
-```
-
-Each task file follows this template:
+4. **Create tasks.md:**
 ```markdown
-# Task: <descriptive-title>
-
-## End Goal
-<What this task accomplishes>
-
-## Currently
-<Current state before this task>
-
-## Should
-<Expected state after this task>
-
-## Constraints
-<Add constraints as unchecked markdown checkboxes>
-
-## Acceptance Criteria
-<Add acceptance criteria as unchecked markdown checkboxes>
-
-## Implementation Checklist
-<Add implementation steps as unchecked markdown checkboxes>
-
-## Notes
-<Additional context if needed>
+## 1. Implementation
+- [ ] 1.1 Create database schema
+- [ ] 1.2 Implement API endpoint
+- [ ] 1.3 Add frontend component
+- [ ] 1.4 Write tests
 ```
-
-**Important**: Checkboxes under `## Constraints` and `## Acceptance Criteria` are NOT counted in task progress. Checkboxes under all other sections (including `## Implementation Checklist`) ARE counted.
-
-Each task file should be scoped to be completable within a single AI conversation context (100k-120k tokens).
 
 5. **Create design.md when needed:**
 Create `design.md` if any of the following apply; otherwise omit it:
@@ -406,40 +364,11 @@ openspec list
 
 # 2) Choose change id and scaffold
 CHANGE=add-two-factor-auth
-mkdir -p openspec/changes/$CHANGE/{specs/auth,tasks}
+mkdir -p openspec/changes/$CHANGE/{specs/auth}
 printf "## Why\n...\n\n## What Changes\n- ...\n\n## Impact\n- ...\n" > openspec/changes/$CHANGE/proposal.md
+printf "## 1. Implementation\n- [ ] 1.1 ...\n" > openspec/changes/$CHANGE/tasks.md
 
-# 3) Create task files
-cat > openspec/changes/$CHANGE/tasks/001-implement.md << 'EOF'
-# Task: Implement two-factor authentication
-
-## End Goal
-Two-factor authentication is implemented and working.
-
-## Currently
-No 2FA support exists.
-
-## Should
-Users can enable and use 2FA for login.
-
-## Constraints
-- [ ] Must work with existing auth flow
-
-## Acceptance Criteria
-- [ ] 2FA can be enabled
-- [ ] OTP challenge works
-
-## Implementation Checklist
-- [ ] Create database schema
-- [ ] Implement API endpoint
-- [ ] Add frontend component
-- [ ] Write tests
-
-## Notes
-None.
-EOF
-
-# 4) Add deltas (example)
+# 3) Add deltas (example)
 cat > openspec/changes/$CHANGE/specs/auth/spec.md << 'EOF'
 ## ADDED Requirements
 ### Requirement: Two-Factor Authentication
@@ -450,7 +379,7 @@ Users MUST provide a second factor during login.
 - **THEN** an OTP challenge is required
 EOF
 
-# 5) Validate
+# 4) Validate
 openspec validate $CHANGE --strict
 ```
 
@@ -459,10 +388,7 @@ openspec validate $CHANGE --strict
 ```
 openspec/changes/add-2fa-notify/
 ├── proposal.md
-├── tasks/
-│   ├── 001-<first-task>.md
-│   ├── ...
-│   └── NNN-<last-task>.md
+├── tasks.md
 └── specs/
     ├── auth/
     │   └── spec.md   # ADDED: Two-Factor Authentication
@@ -552,7 +478,7 @@ Only add complexity with:
 
 ### File Purposes
 - `proposal.md` - Why and what
-- `tasks/` - Task files (numbered sequence: 001-*.md, 002-*.md, etc.)
+- `tasks.md` - Implementation steps
 - `design.md` - Technical decisions
 - `spec.md` - Requirements and behavior
 
