@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { getTaskProgressForChange, formatTaskStatus } from '../utils/task-progress.js';
+import { migrateIfNeeded } from '../utils/task-migration.js';
 import { Validator } from './validation/validator.js';
 import chalk from 'chalk';
 import {
@@ -140,6 +141,12 @@ export class ArchiveCommand {
       
       console.log(chalk.yellow(`[${timestamp}] Validation skipped for change: ${changeName}`));
       console.log(chalk.yellow(`Affected files: ${changeDir}`));
+    }
+
+    // Trigger migration if needed
+    const migrationResult = await migrateIfNeeded(changeDir);
+    if (migrationResult?.migrated) {
+      console.log(`Migrated tasks.md → tasks/001-tasks.md`);
     }
 
     // Show progress and check for incomplete tasks
@@ -296,6 +303,13 @@ export class ArchiveCommand {
     try {
       const progressList: Array<{ id: string; status: string }> = [];
       for (const id of changeDirs) {
+        // Trigger migration if needed
+        const changeFullPath = path.join(changesDir, id);
+        const migrationResult = await migrateIfNeeded(changeFullPath);
+        if (migrationResult?.migrated) {
+          console.log(`Migrated tasks.md → tasks/001-tasks.md`);
+        }
+
         const progress = await getTaskProgressForChange(changesDir, id);
         const status = formatTaskStatus(progress);
         progressList.push({ id, status });

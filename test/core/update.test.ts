@@ -173,7 +173,7 @@ Old body
     expect(updated).toContain('description = "Implement an approved OpenSpec change and keep tasks in sync."');
     expect(updated).toContain('prompt = """');
     expect(updated).toContain('<!-- OPENSPEC:START -->');
-    expect(updated).toContain('Work through tasks sequentially');
+    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
 
     const [logMessage] = consoleSpy.mock.calls[0];
@@ -210,7 +210,7 @@ Old content
     await updateCommand.execute(testDir);
 
     const updatedApply = await fs.readFile(applyPath, 'utf-8');
-    expect(updatedApply).toContain('Work through tasks sequentially');
+    expect(updatedApply).toContain('Work through that task');
     expect(updatedApply).not.toContain('Old content');
 
     const proposalPath = path.join(
@@ -353,7 +353,7 @@ Old body
 
     const updated = await fs.readFile(cursorPath, 'utf-8');
     expect(updated).toContain('id: openspec-apply');
-    expect(updated).toContain('Work through tasks sequentially');
+    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
 
     const [logMessage] = consoleSpy.mock.calls[0];
@@ -391,7 +391,7 @@ Old body
 
     const updated = await fs.readFile(openCodePath, 'utf-8');
     expect(updated).toContain('id: openspec-apply');
-    expect(updated).toContain('Work through tasks sequentially');
+    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
 
     const [logMessage] = consoleSpy.mock.calls[0];
@@ -422,7 +422,7 @@ Old body
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(kilocodePath, 'utf-8');
-    expect(updated).toContain('Work through tasks sequentially');
+    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
     expect(updated.startsWith('<!-- OPENSPEC:START -->')).toBe(true);
 
@@ -452,7 +452,7 @@ Old body
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(wsPath, 'utf-8');
-    expect(updated).toContain('Work through tasks sequentially');
+    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
     expect(updated).toContain('## OpenSpec: Apply (Windsurf)');
 
@@ -483,7 +483,7 @@ Old body
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(agPath, 'utf-8');
-    expect(updated).toContain('Work through tasks sequentially');
+    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
     expect(updated).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
     expect(updated).not.toContain('auto_execution_mode: 3');
@@ -512,7 +512,7 @@ Old body
     expect(updated).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
     expect(updated).toContain('argument-hint: change-id');
     expect(updated).toContain('$ARGUMENTS');
-    expect(updated).toContain('Work through tasks sequentially');
+    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
     expect(updated).not.toContain('Old description');
 
@@ -576,7 +576,7 @@ Old body
     const updated = await fs.readFile(ghPath, 'utf-8');
     expect(updated).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
     expect(updated).toContain('$ARGUMENTS');
-    expect(updated).toContain('Work through tasks sequentially');
+    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
 
     const [logMessage] = consoleSpy.mock.calls[0];

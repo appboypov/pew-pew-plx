@@ -6,6 +6,8 @@ import { ChangeParser } from '../core/parsers/change-parser.js';
 import { Change, TrackedIssue } from '../core/schemas/index.js';
 import { isInteractive } from '../utils/interactive.js';
 import { getActiveChangeIds } from '../utils/item-discovery.js';
+import { migrateIfNeeded } from '../utils/task-migration.js';
+import { getTaskStructureForChange } from '../utils/task-progress.js';
 
 // Constants for better maintainability
 const ARCHIVE_DIR = 'archive';
@@ -66,6 +68,13 @@ export class ChangeCommand {
       throw new Error(`Change "${changeName}" not found at ${proposalPath}`);
     }
 
+    // Trigger migration if needed
+    const changeDir = path.join(changesPath, changeName);
+    const migrationResult = await migrateIfNeeded(changeDir);
+    if (migrationResult?.migrated) {
+      console.log(`Migrated tasks.md → tasks/001-tasks.md`);
+    }
+
     if (options?.json) {
       const jsonOutput = await this.converter.convertChangeToJson(proposalPath);
 
@@ -112,24 +121,19 @@ export class ChangeCommand {
       const changeDetails = await Promise.all(
         changes.map(async (changeName) => {
           const proposalPath = path.join(changesPath, changeName, 'proposal.md');
-          const tasksPath = path.join(changesPath, changeName, 'tasks.md');
-          
+          const changeDir = path.join(changesPath, changeName);
+
           try {
+            // Trigger migration silently in JSON mode
+            await migrateIfNeeded(changeDir);
+
             const content = await fs.readFile(proposalPath, 'utf-8');
-            const changeDir = path.join(changesPath, changeName);
             const parser = new ChangeParser(content, changeDir);
             const change = await parser.parseChangeWithDeltas(changeName);
-            
-            let taskStatus = { total: 0, completed: 0 };
-            try {
-              const tasksContent = await fs.readFile(tasksPath, 'utf-8');
-              taskStatus = this.countTasks(tasksContent);
-            } catch (error) {
-              // Tasks file may not exist, which is okay
-              if (process.env.DEBUG) {
-                console.error(`Failed to read tasks file at ${tasksPath}:`, error);
-              }
-            }
+
+            // Use task structure to get aggregate progress
+            const taskStructure = await getTaskStructureForChange(changesPath, changeName);
+            const taskStatus = taskStructure.aggregateProgress;
             
             const result: ChangeListItem = {
               id: changeName,
@@ -171,21 +175,22 @@ export class ChangeCommand {
       // Long format: id: title and minimal counts
       for (const changeName of sorted) {
         const proposalPath = path.join(changesPath, changeName, 'proposal.md');
-        const tasksPath = path.join(changesPath, changeName, 'tasks.md');
+        const changeDir = path.join(changesPath, changeName);
         try {
+          // Trigger migration if needed
+          const migrationResult = await migrateIfNeeded(changeDir);
+          if (migrationResult?.migrated) {
+            console.log(`Migrated tasks.md → tasks/001-tasks.md`);
+          }
+
           const content = await fs.readFile(proposalPath, 'utf-8');
           const title = this.extractTitle(content, changeName);
-          let taskStatusText = '';
-          try {
-            const tasksContent = await fs.readFile(tasksPath, 'utf-8');
-            const { total, completed } = this.countTasks(tasksContent);
-            taskStatusText = ` [tasks ${completed}/${total}]`;
-          } catch (error) {
-            if (process.env.DEBUG) {
-              console.error(`Failed to read tasks file at ${tasksPath}:`, error);
-            }
-          }
-          const changeDir = path.join(changesPath, changeName);
+
+          // Use task structure to get aggregate progress
+          const taskStructure = await getTaskStructureForChange(changesPath, changeName);
+          const { total, completed } = taskStructure.aggregateProgress;
+          const taskStatusText = total > 0 ? ` [tasks ${completed}/${total}]` : '';
+
           const parser = new ChangeParser(await fs.readFile(proposalPath, 'utf-8'), changeDir);
           const change = await parser.parseChangeWithDeltas(changeName);
           const deltaCountText = ` [deltas ${change.deltas.length}]`;
@@ -226,13 +231,19 @@ export class ChangeCommand {
     }
     
     const changeDir = path.join(changesPath, changeName);
-    
+
     try {
       await fs.access(changeDir);
     } catch {
       throw new Error(`Change "${changeName}" not found at ${changeDir}`);
     }
-    
+
+    // Trigger migration if needed
+    const migrationResult = await migrateIfNeeded(changeDir);
+    if (migrationResult?.migrated) {
+      console.log(`Migrated tasks.md → tasks/001-tasks.md`);
+    }
+
     const validator = new Validator(options?.strict || false);
     const report = await validator.validateChangeDeltaSpecs(changeDir);
     

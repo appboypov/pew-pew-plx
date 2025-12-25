@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { getTaskProgressForChange, formatTaskStatus } from '../utils/task-progress.js';
+import { migrateIfNeeded } from '../utils/task-migration.js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { MarkdownParser } from './parsers/markdown-parser.js';
@@ -40,6 +41,13 @@ export class ListCommand {
       const changes: ChangeInfo[] = [];
 
       for (const changeDir of changeDirs) {
+        // Trigger migration if needed
+        const changeFullPath = path.join(changesDir, changeDir);
+        const migrationResult = await migrateIfNeeded(changeFullPath);
+        if (migrationResult?.migrated) {
+          console.log(`Migrated tasks.md → tasks/001-tasks.md`);
+        }
+
         const progress = await getTaskProgressForChange(changesDir, changeDir);
 
         // Try to get tracked issue from proposal.md frontmatter

@@ -30,9 +30,23 @@
 | Feature | OpenSpec | OpenSplx |
 |---------|----------|----------|
 | Command | `openspec` | `openspec` + `plx` alias |
-| Architecture Docs | — | `plx/init-architecture`, `plx/update-architecture` |
+| Task Structure | Single `tasks.md` | `tasks/` directory with numbered files |
+| Architecture Docs | `openspec/project.md` | `ARCHITECTURE.md` |
 | Issue Tracking | — | External issue tracking in proposals |
-| Install | `npm i -g @fission-ai/openspec` | Clone & `pnpm link` (local) |
+| Install | `npm i -g @fission-ai/openspec` | `npm i -g @appboypov/opensplx` |
+
+### Task Directory Structure
+
+OpenSplx uses a `tasks/` directory with numbered task files instead of a single `tasks.md`:
+
+```
+tasks/
+├── 001-<first-task>.md
+├── 002-<second-task>.md
+└── NNN-<last-task>.md
+```
+
+Each task file is scoped for one AI conversation. The apply command auto-detects the next incomplete task and processes only that one. Legacy `tasks.md` files are auto-migrated on first CLI access.
 
 ### PLX Slash Commands
 
@@ -44,10 +58,7 @@ When you run `plx init`, these additional commands are installed:
 ### Quick Start (OpenSplx)
 
 ```bash
-git clone https://github.com/appyboypov/OpenSplx.git
-cd OpenSplx
-pnpm install && pnpm build
-npm link
+npm install -g @appboypov/opensplx
 plx --version  # or openspec --version
 ```
 

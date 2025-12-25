@@ -25,11 +25,17 @@ const proposalReferences = `**Reference**
 
 const applySteps = `**Steps**
 Track these steps as TODOs and complete them one by one.
-1. Read \`changes/<id>/proposal.md\`, \`design.md\` (if present), and \`tasks.md\` to confirm scope and acceptance criteria.
-2. Work through tasks sequentially, keeping edits minimal and focused on the requested change.
-3. Confirm completion before updating statuses—make sure every item in \`tasks.md\` is finished.
-4. Update the checklist after all work is done so each task is marked \`- [x]\` and reflects reality.
-5. Reference \`openspec list\` or \`openspec show <item>\` when additional context is required.`;
+1. Read \`changes/<id>/proposal.md\` and \`design.md\` (if present) to understand scope.
+2. Find the next incomplete task in \`tasks/\` directory:
+   - Scan task files in sequence order (001-*, 002-*, etc.)
+   - Read completed task files for context
+   - Stop at the first task with incomplete checkboxes in its Implementation Checklist
+   - Do NOT read tasks beyond the next incomplete one
+   - If user specified a task file in ARGUMENTS, use that instead
+3. Work through that task's Implementation Checklist, keeping edits minimal.
+4. Mark items complete (\`[x]\`) in that task file only.
+5. Reference \`openspec list\` or \`openspec show <item>\` when additional context is required.
+6. Run apply again in a new conversation for the next task.`;
 
 const applyReferences = `**Reference**
 - Use \`openspec show <id> --json --deltas-only\` if you need additional context from the proposal while implementing.`;

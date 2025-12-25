@@ -1,5 +1,22 @@
 # OpenSplx Changelog
 
+## 0.2.0 - 2025-12-25
+
+### Added
+
+- **Task directory structure**: Replace single `tasks.md` with `tasks/` directory containing numbered task files (`NNN-<name>.md`)
+- **Auto-migration**: Automatically migrate legacy `tasks.md` to `tasks/001-tasks.md` on CLI access
+- **Task file utilities**: New `task-file-parser.ts` for parsing/sorting task files and `task-migration.ts` for migration logic
+- **Task file template**: Structured template with End Goal, Currently, Should, Constraints, Acceptance Criteria, Implementation Checklist, and Notes sections
+
+### Changed
+
+- **Single-task workflow**: Apply command now processes one task per conversation instead of all tasks at once
+- **Task auto-detection**: Automatically find next incomplete task, read completed tasks for context, skip tasks beyond next incomplete
+- **Progress calculation**: Exclude checkboxes under `## Constraints` and `## Acceptance Criteria` from task progress counting
+
+---
+
 ## 0.1.0 - 2024-12-24
 
 Initial release of OpenSplx fork.

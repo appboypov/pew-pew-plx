@@ -4,6 +4,7 @@ import { Validator } from '../core/validation/validator.js';
 import { isInteractive, resolveNoInteractive } from '../utils/interactive.js';
 import { getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
 import { nearestMatches } from '../utils/match.js';
+import { migrateIfNeeded } from '../utils/task-migration.js';
 
 type ItemType = 'change' | 'spec';
 
@@ -131,6 +132,13 @@ export class ValidateCommand {
     const validator = new Validator(opts.strict);
     if (type === 'change') {
       const changeDir = path.join(process.cwd(), 'openspec', 'changes', id);
+
+      // Trigger migration if needed (silent in JSON mode)
+      const migrationResult = await migrateIfNeeded(changeDir);
+      if (migrationResult?.migrated && !opts.json) {
+        console.log(`Migrated tasks.md → tasks/001-tasks.md`);
+      }
+
       const start = Date.now();
       const report = await validator.validateChangeDeltaSpecs(changeDir);
       const durationMs = Date.now() - start;
@@ -196,8 +204,15 @@ export class ValidateCommand {
 
     for (const id of changeIds) {
       queue.push(async () => {
-        const start = Date.now();
         const changeDir = path.join(process.cwd(), 'openspec', 'changes', id);
+
+        // Trigger migration if needed
+        const migrationResult = await migrateIfNeeded(changeDir);
+        if (migrationResult?.migrated) {
+          console.log(`Migrated tasks.md → tasks/001-tasks.md`);
+        }
+
+        const start = Date.now();
         const report = await validator.validateChangeDeltaSpecs(changeDir);
         const durationMs = Date.now() - start;
         return { id, type: 'change' as const, valid: report.valid, issues: report.issues, durationMs };
