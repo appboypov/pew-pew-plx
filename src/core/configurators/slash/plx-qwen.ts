@@ -3,12 +3,14 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.qwen/commands/plx-init-architecture.toml',
-  'update-architecture': '.qwen/commands/plx-update-architecture.toml'
+  'update-architecture': '.qwen/commands/plx-update-architecture.toml',
+  'act-next': '.qwen/commands/plx-act-next.toml'
 };
 
 const DESCRIPTIONS: Record<PlxSlashCommandId, string> = {
   'init-architecture': 'Generate comprehensive ARCHITECTURE.md from codebase analysis.',
-  'update-architecture': 'Refresh ARCHITECTURE.md based on current codebase state.'
+  'update-architecture': 'Refresh ARCHITECTURE.md based on current codebase state.',
+  'act-next': 'Select and display the next prioritized task to work on.'
 };
 
 export class PlxQwenSlashCommandConfigurator extends PlxTomlSlashCommandConfigurator {

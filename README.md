@@ -31,6 +31,8 @@
 |---------|----------|----------|
 | Command | `openspec` | `openspec` + `plx` alias |
 | Task Structure | Single `tasks.md` | `tasks/` directory with numbered files |
+| Task Status | Checkbox-based | YAML frontmatter (`to-do`, `in-progress`, `done`) |
+| Task Selection | Manual | `plx act next` for prioritized selection |
 | Architecture Docs | `openspec/project.md` | `ARCHITECTURE.md` |
 | Issue Tracking | — | External issue tracking in proposals |
 | Install | `npm i -g @fission-ai/openspec` | `npm i -g @appboypov/opensplx` |
@@ -48,10 +50,33 @@ tasks/
 
 Each task file is scoped for one AI conversation. The apply command auto-detects the next incomplete task and processes only that one. Legacy `tasks.md` files are auto-migrated on first CLI access.
 
+### Act Next Command
+
+OpenSplx introduces intelligent task selection with the `act next` command:
+
+```bash
+plx act next                      # Get the next prioritized task
+plx act next --did-complete-previous  # Mark current task done, get next
+plx act next --json               # Machine-readable output
+```
+
+**Prioritization logic:**
+1. Changes with highest completion percentage are prioritized first
+2. When percentages are equal, older proposals (by birthtime) take precedence
+3. Within a change, finds the first task with `status: to-do` or `status: in-progress`
+
+**Task status tracking:** Tasks use YAML frontmatter for status:
+```yaml
+---
+status: to-do  # or: in-progress, done
+---
+```
+
 ### PLX Slash Commands
 
 When you run `plx init`, these additional commands are installed:
 
+- **`/plx/act-next`** - Get the next prioritized task across active changes
 - **`/plx/init-architecture`** - Generate comprehensive `ARCHITECTURE.md` from codebase analysis
 - **`/plx/update-architecture`** - Refresh architecture documentation based on current codebase state
 

@@ -1,5 +1,29 @@
 # OpenSplx Changelog
 
+## 0.3.0 - 2025-12-25
+
+### Added
+
+- **Act next command**: New `openspec act next` CLI command for prioritized task selection across active changes
+  - Prioritizes changes by completion percentage (highest first)
+  - Uses proposal.md birthtime as tiebreaker when percentages equal
+  - Task status tracking via YAML frontmatter (`to-do`, `in-progress`, `done`)
+  - `--did-complete-previous` flag for automatic status transitions
+  - `--json` flag for machine-readable output
+- **PLX act-next slash command**: Add `plx/act-next` slash command to all 20 supported tool configurators
+
+### Changed
+
+- **Architecture documentation**: Replace `project.md` with `ARCHITECTURE.md` for project structure documentation
+
+### Fixed
+
+- CRLF line ending normalization in task status parser
+- Unused imports in change-prioritization and task-status modules
+- Design.md documentation now accurately describes checkbox-based completion calculation
+
+---
+
 ## 0.2.0 - 2025-12-25
 
 ### Added

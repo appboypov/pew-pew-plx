@@ -1,4 +1,4 @@
-export type PlxSlashCommandId = 'init-architecture' | 'update-architecture';
+export type PlxSlashCommandId = 'init-architecture' | 'update-architecture' | 'act-next';
 
 const baseGuardrails = `**Guardrails**
 - Focus on practical, usable documentation that enables feature planning.
@@ -21,9 +21,21 @@ const updateArchitectureSteps = `**Steps**
 4. Preserve user-added content that doesn't conflict with generated sections.
 5. Ensure all sections remain accurate and complete for feature planning.`;
 
+const actNextGuardrails = `**Guardrails**
+- Complete tasks sequentially, marking each done before starting the next.
+- Only transition task status when explicitly using --did-complete-previous flag.
+- Preserve existing task file content when updating status.`;
+
+const actNextSteps = `**Steps**
+1. Run \`openspec act next\` to get the highest-priority task.
+2. Execute the task following its Implementation Checklist.
+3. Mark checklist items complete as you finish them.
+4. When done, run \`openspec act next --did-complete-previous\` to transition and get next task.`;
+
 export const plxSlashCommandBodies: Record<PlxSlashCommandId, string> = {
   'init-architecture': [baseGuardrails, initArchitectureSteps].join('\n\n'),
-  'update-architecture': [baseGuardrails, updateArchitectureSteps].join('\n\n')
+  'update-architecture': [baseGuardrails, updateArchitectureSteps].join('\n\n'),
+  'act-next': [actNextGuardrails, actNextSteps].join('\n\n')
 };
 
 export function getPlxSlashCommandBody(id: PlxSlashCommandId): string {

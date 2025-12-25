@@ -24,7 +24,7 @@ describe('plx-slash-command-templates', () => {
 
   describe('plxSlashCommandBodies', () => {
     it('contains all PLX command IDs', () => {
-      const expectedIds: PlxSlashCommandId[] = ['init-architecture', 'update-architecture'];
+      const expectedIds: PlxSlashCommandId[] = ['init-architecture', 'update-architecture', 'act-next'];
 
       for (const id of expectedIds) {
         expect(plxSlashCommandBodies[id]).toBeDefined();
@@ -44,10 +44,19 @@ describe('plx-slash-command-templates', () => {
       expect(body).toContain('directory structure');
     });
 
-    it('all commands include guardrails about practical documentation', () => {
-      for (const body of Object.values(plxSlashCommandBodies)) {
+    it('architecture commands include guardrails about practical documentation', () => {
+      const architectureCommands: PlxSlashCommandId[] = ['init-architecture', 'update-architecture'];
+      for (const id of architectureCommands) {
+        const body = plxSlashCommandBodies[id];
         expect(body).toContain('practical, usable documentation');
         expect(body).toContain('Document patterns and conventions');
+      }
+    });
+
+    it('all commands include guardrails and steps', () => {
+      for (const body of Object.values(plxSlashCommandBodies)) {
+        expect(body).toContain('**Guardrails**');
+        expect(body).toContain('**Steps**');
       }
     });
   });

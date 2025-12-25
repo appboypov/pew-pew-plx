@@ -3,7 +3,8 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.kilocode/workflows/plx-init-architecture.md',
-  'update-architecture': '.kilocode/workflows/plx-update-architecture.md'
+  'update-architecture': '.kilocode/workflows/plx-update-architecture.md',
+  'act-next': '.kilocode/workflows/plx-act-next.md'
 };
 
 export class PlxKiloCodeSlashCommandConfigurator extends PlxSlashCommandConfigurator {
