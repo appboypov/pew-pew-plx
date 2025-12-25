@@ -172,7 +172,7 @@ project-root/
     └── changes/                # Proposals - what SHOULD change
         ├── [change-name]/
         │   ├── proposal.md     # Why, what, impact
-        │   ├── tasks/          # Implementation checklist (directory)
+        │   ├── tasks/          # Task files (directory)
         │   │   ├── 001-*.md    # First task file
         │   │   ├── 002-*.md    # Second task file
         │   │   └── ...         # Additional task files
