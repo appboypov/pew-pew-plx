@@ -277,7 +277,7 @@ status: to-do
       expect(result!.nextTask!.filename).toBe('003-task.md');
     });
 
-    it('should return null nextTask when all tasks are done', async () => {
+    it('should return null when only change has all tasks complete', async () => {
       const changeId = 'test-change';
       const changeDir = path.join(tempDir, changeId);
       const tasksDir = path.join(changeDir, TASKS_DIRECTORY_NAME);
@@ -297,9 +297,7 @@ status: done
       );
 
       const result = await getPrioritizedChange(tempDir);
-      expect(result).not.toBeNull();
-      expect(result!.inProgressTask).toBeNull();
-      expect(result!.nextTask).toBeNull();
+      expect(result).toBeNull();
     });
 
     it('should include task files in result', async () => {
@@ -329,6 +327,181 @@ status: done
       expect(result!.taskFiles.length).toBe(2);
       expect(result!.taskFiles[0].filename).toBe('001-first.md');
       expect(result!.taskFiles[1].filename).toBe('002-second.md');
+    });
+
+    it('should skip changes with all checkboxes complete', async () => {
+      // Create complete-change with 100% completion
+      const completeChange = path.join(tempDir, 'complete-change');
+      const completeTasks = path.join(completeChange, TASKS_DIRECTORY_NAME);
+      await fs.mkdir(completeTasks, { recursive: true });
+      await fs.writeFile(
+        path.join(completeChange, 'proposal.md'),
+        '# Complete Change'
+      );
+      await fs.writeFile(
+        path.join(completeTasks, '001-task.md'),
+        `# Task
+## Implementation Checklist
+- [x] Done
+- [x] Also done
+`
+      );
+
+      // Create actionable-change with 50% completion
+      const actionableChange = path.join(tempDir, 'actionable-change');
+      const actionableTasks = path.join(actionableChange, TASKS_DIRECTORY_NAME);
+      await fs.mkdir(actionableTasks, { recursive: true });
+      await fs.writeFile(
+        path.join(actionableChange, 'proposal.md'),
+        '# Actionable Change'
+      );
+      await fs.writeFile(
+        path.join(actionableTasks, '001-task.md'),
+        `# Task
+## Implementation Checklist
+- [x] Done
+- [ ] Not done
+`
+      );
+
+      const result = await getPrioritizedChange(tempDir);
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe('actionable-change');
+    });
+
+    it('should skip changes with zero checkboxes', async () => {
+      // Create change with no checkboxes
+      const noCheckboxChange = path.join(tempDir, 'no-checkbox-change');
+      const noCheckboxTasks = path.join(noCheckboxChange, TASKS_DIRECTORY_NAME);
+      await fs.mkdir(noCheckboxTasks, { recursive: true });
+      await fs.writeFile(
+        path.join(noCheckboxChange, 'proposal.md'),
+        '# No Checkbox Change'
+      );
+      await fs.writeFile(
+        path.join(noCheckboxTasks, '001-task.md'),
+        `# Task
+## Implementation Checklist
+No checkboxes here
+`
+      );
+
+      // Create actionable-change with 25% completion
+      const actionableChange = path.join(tempDir, 'actionable-change');
+      const actionableTasks = path.join(actionableChange, TASKS_DIRECTORY_NAME);
+      await fs.mkdir(actionableTasks, { recursive: true });
+      await fs.writeFile(
+        path.join(actionableChange, 'proposal.md'),
+        '# Actionable Change'
+      );
+      await fs.writeFile(
+        path.join(actionableTasks, '001-task.md'),
+        `# Task
+## Implementation Checklist
+- [x] Done
+- [ ] Not done
+- [ ] Not done
+- [ ] Not done
+`
+      );
+
+      const result = await getPrioritizedChange(tempDir);
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe('actionable-change');
+    });
+
+    it('should return null when only non-actionable changes exist', async () => {
+      // Create complete-change with 100% completion
+      const completeChange = path.join(tempDir, 'complete-change');
+      const completeTasks = path.join(completeChange, TASKS_DIRECTORY_NAME);
+      await fs.mkdir(completeTasks, { recursive: true });
+      await fs.writeFile(
+        path.join(completeChange, 'proposal.md'),
+        '# Complete Change'
+      );
+      await fs.writeFile(
+        path.join(completeTasks, '001-task.md'),
+        `# Task
+## Implementation Checklist
+- [x] Done
+`
+      );
+
+      // Create change with no checkboxes
+      const noCheckboxChange = path.join(tempDir, 'no-checkbox-change');
+      const noCheckboxTasks = path.join(noCheckboxChange, TASKS_DIRECTORY_NAME);
+      await fs.mkdir(noCheckboxTasks, { recursive: true });
+      await fs.writeFile(
+        path.join(noCheckboxChange, 'proposal.md'),
+        '# No Checkbox Change'
+      );
+      await fs.writeFile(
+        path.join(noCheckboxTasks, '001-task.md'),
+        `# Task
+No checkboxes
+`
+      );
+
+      const result = await getPrioritizedChange(tempDir);
+      expect(result).toBeNull();
+    });
+
+    it('should prioritize actionable changes by completion percentage', async () => {
+      // Create complete-change (should be skipped)
+      const completeChange = path.join(tempDir, 'complete-change');
+      const completeTasks = path.join(completeChange, TASKS_DIRECTORY_NAME);
+      await fs.mkdir(completeTasks, { recursive: true });
+      await fs.writeFile(
+        path.join(completeChange, 'proposal.md'),
+        '# Complete Change'
+      );
+      await fs.writeFile(
+        path.join(completeTasks, '001-task.md'),
+        `# Task
+## Implementation Checklist
+- [x] Done
+`
+      );
+
+      // Create low-progress-change with 25% completion
+      const lowChange = path.join(tempDir, 'low-progress-change');
+      const lowTasks = path.join(lowChange, TASKS_DIRECTORY_NAME);
+      await fs.mkdir(lowTasks, { recursive: true });
+      await fs.writeFile(path.join(lowChange, 'proposal.md'), '# Low Progress');
+      await fs.writeFile(
+        path.join(lowTasks, '001-task.md'),
+        `# Task
+## Implementation Checklist
+- [x] Done
+- [ ] Not done
+- [ ] Not done
+- [ ] Not done
+`
+      );
+
+      // Create high-progress-change with 75% completion
+      const highChange = path.join(tempDir, 'high-progress-change');
+      const highTasks = path.join(highChange, TASKS_DIRECTORY_NAME);
+      await fs.mkdir(highTasks, { recursive: true });
+      await fs.writeFile(
+        path.join(highChange, 'proposal.md'),
+        '# High Progress'
+      );
+      await fs.writeFile(
+        path.join(highTasks, '001-task.md'),
+        `# Task
+## Implementation Checklist
+- [x] Done
+- [x] Done
+- [x] Done
+- [ ] Not done
+`
+      );
+
+      const result = await getPrioritizedChange(tempDir);
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe('high-progress-change');
+      expect(result!.completionPercentage).toBe(75);
     });
   });
 });

@@ -136,13 +136,25 @@ export async function getPrioritizedChange(
     return null;
   }
 
+  // Filter out non-actionable changes:
+  // - total == 0 (no checkboxes at all)
+  // - completed == total (all checkboxes complete)
+  const actionableChanges = changes.filter((c) => {
+    const { total, completed } = c.taskProgress;
+    return total > 0 && completed < total;
+  });
+
+  if (actionableChanges.length === 0) {
+    return null;
+  }
+
   // Sort by completion percentage (highest first), then by creation date (oldest first)
-  changes.sort((a, b) => {
+  actionableChanges.sort((a, b) => {
     if (b.completionPercentage !== a.completionPercentage) {
       return b.completionPercentage - a.completionPercentage;
     }
     return a.createdAt.getTime() - b.createdAt.getTime();
   });
 
-  return changes[0];
+  return actionableChanges[0];
 }

@@ -73,7 +73,7 @@ status: to-do
       }
     });
 
-    it('shows "All tasks complete" when all tasks are done', async () => {
+    it('shows "No active changes found" when only change is complete', async () => {
       const changeDir = path.join(changesDir, 'test-change');
       const tasksDir = path.join(changeDir, 'tasks');
       await fs.mkdir(tasksDir, { recursive: true });
@@ -101,7 +101,7 @@ status: done
         const output = execSync(`node ${openspecBin} act next 2>&1`, {
           encoding: 'utf-8',
         });
-        expect(output).toContain('All tasks complete');
+        expect(output).toContain('No active changes found');
       } finally {
         process.chdir(originalCwd);
       }
@@ -280,6 +280,54 @@ status: to-do
   });
 
   describe('change prioritization', () => {
+    it('skips completed changes and selects actionable one', async () => {
+      // Create complete-change with 100% completion (should be skipped)
+      const completeChange = path.join(changesDir, 'complete-change');
+      const completeTasks = path.join(completeChange, 'tasks');
+      await fs.mkdir(completeTasks, { recursive: true });
+      await fs.writeFile(
+        path.join(completeChange, 'proposal.md'),
+        '# Change: Complete\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(completeTasks, '001-task.md'),
+        `# Task
+## Implementation Checklist
+- [x] Done
+- [x] Also done
+`
+      );
+
+      // Create actionable-change with 50% completion
+      const actionableChange = path.join(changesDir, 'actionable-change');
+      const actionableTasks = path.join(actionableChange, 'tasks');
+      await fs.mkdir(actionableTasks, { recursive: true });
+      await fs.writeFile(
+        path.join(actionableChange, 'proposal.md'),
+        '# Change: Actionable\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(actionableTasks, '001-task.md'),
+        `# Task
+## Implementation Checklist
+- [x] Done
+- [ ] Not done
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(`node ${openspecBin} act next --json`, {
+          encoding: 'utf-8',
+        });
+        const json = JSON.parse(output);
+        expect(json.changeId).toBe('actionable-change');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
     it('selects change with highest completion percentage', async () => {
       // Create change-a with 25% completion (1/4 tasks)
       const changeA = path.join(changesDir, 'change-a');
