@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 ---
 
 # Task: Verify all acceptance criteria with tests
