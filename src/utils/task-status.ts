@@ -9,6 +9,11 @@ export interface CheckboxCompletionResult {
   completedItems: string[];
 }
 
+export interface CheckboxUncompleteResult {
+  updatedContent: string;
+  uncheckedItems: string[];
+}
+
 const FRONTMATTER_REGEX = /^---\n([\s\S]*?)\n---/;
 const STATUS_LINE_REGEX = /^status:\s*(to-do|in-progress|done)\s*$/m;
 
@@ -172,10 +177,10 @@ export async function completeTaskFully(filePath: string): Promise<string[]> {
  */
 export function uncompleteImplementationChecklist(
   content: string
-): CheckboxCompletionResult {
+): CheckboxUncompleteResult {
   const normalized = normalizeContent(content);
   const lines = normalized.split('\n');
-  const completedItems: string[] = [];
+  const uncheckedItems: string[] = [];
   let inImplementationChecklist = false;
   let inExcludedSection = false;
 
@@ -209,7 +214,7 @@ export function uncompleteImplementationChecklist(
       if (checkedMatch) {
         const prefix = checkedMatch[1];
         const text = checkedMatch[2].trim();
-        completedItems.push(text);
+        uncheckedItems.push(text);
         return `${prefix}[ ]${checkedMatch[2]}`;
       }
     }
@@ -219,7 +224,7 @@ export function uncompleteImplementationChecklist(
 
   return {
     updatedContent: updatedLines.join('\n'),
-    completedItems,
+    uncheckedItems,
   };
 }
 
@@ -231,7 +236,7 @@ export async function undoTaskFully(filePath: string): Promise<string[]> {
   const content = await fs.readFile(filePath, 'utf-8');
 
   // First uncomplete the checkboxes
-  const { updatedContent, completedItems } =
+  const { updatedContent, uncheckedItems } =
     uncompleteImplementationChecklist(content);
 
   // Then update the status
@@ -239,5 +244,5 @@ export async function undoTaskFully(filePath: string): Promise<string[]> {
 
   await fs.writeFile(filePath, finalContent, 'utf-8');
 
-  return completedItems;
+  return uncheckedItems;
 }

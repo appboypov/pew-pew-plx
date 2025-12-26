@@ -117,7 +117,7 @@ export class UndoCommand {
     if (options.json) {
       console.log(JSON.stringify({
         changeId: options.id,
-        undoneTaskCount: undoneTasks.length,
+        undoneTasks,
         skippedTasks,
       }, null, 2));
     } else {
