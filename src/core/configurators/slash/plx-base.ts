@@ -8,7 +8,7 @@ export interface PlxSlashCommandTarget {
   kind: 'slash';
 }
 
-export const ALL_PLX_COMMANDS: PlxSlashCommandId[] = ['init-architecture', 'update-architecture', 'get-task'];
+export const ALL_PLX_COMMANDS: PlxSlashCommandId[] = ['init-architecture', 'update-architecture', 'get-task', 'compact'];
 
 export abstract class PlxSlashCommandConfigurator {
   abstract readonly toolId: string;

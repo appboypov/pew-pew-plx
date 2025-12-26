@@ -4,7 +4,8 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.amazonq/prompts/plx-init-architecture.md',
   'update-architecture': '.amazonq/prompts/plx-update-architecture.md',
-  'get-task': '.amazonq/prompts/plx-get-task.md'
+  'get-task': '.amazonq/prompts/plx-get-task.md',
+  'compact': '.amazonq/prompts/plx-compact.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -20,6 +21,11 @@ description: Refresh ARCHITECTURE.md based on current codebase state.
 <arguments>$ARGUMENTS</arguments>`,
   'get-task': `---
 description: Select and display the next prioritized task to work on.
+---
+
+<arguments>$ARGUMENTS</arguments>`,
+  'compact': `---
+description: Preserve session progress in PROGRESS.md for context continuity.
 ---
 
 <arguments>$ARGUMENTS</arguments>`

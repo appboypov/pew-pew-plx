@@ -8,7 +8,8 @@ import { OPENSPEC_MARKERS } from '../../config.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.codex/prompts/plx-init-architecture.md',
   'update-architecture': '.codex/prompts/plx-update-architecture.md',
-  'get-task': '.codex/prompts/plx-get-task.md'
+  'get-task': '.codex/prompts/plx-get-task.md',
+  'compact': '.codex/prompts/plx-compact.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -26,6 +27,12 @@ argument-hint: (optional context)
 $ARGUMENTS`,
   'get-task': `---
 description: Select and display the next prioritized task to work on.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'compact': `---
+description: Preserve session progress in PROGRESS.md for context continuity.
 argument-hint: (optional context)
 ---
 

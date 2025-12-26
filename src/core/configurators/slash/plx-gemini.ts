@@ -4,13 +4,15 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.gemini/commands/plx/init-architecture.toml',
   'update-architecture': '.gemini/commands/plx/update-architecture.toml',
-  'get-task': '.gemini/commands/plx/get-task.toml'
+  'get-task': '.gemini/commands/plx/get-task.toml',
+  'compact': '.gemini/commands/plx/compact.toml'
 };
 
 const DESCRIPTIONS: Record<PlxSlashCommandId, string> = {
   'init-architecture': 'Generate comprehensive ARCHITECTURE.md from codebase analysis.',
   'update-architecture': 'Refresh ARCHITECTURE.md based on current codebase state.',
-  'get-task': 'Select and display the next prioritized task to work on.'
+  'get-task': 'Select and display the next prioritized task to work on.',
+  'compact': 'Preserve session progress in PROGRESS.md for context continuity.'
 };
 
 export class PlxGeminiSlashCommandConfigurator extends PlxTomlSlashCommandConfigurator {

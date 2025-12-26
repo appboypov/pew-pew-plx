@@ -20,11 +20,20 @@ describe('plx-slash-command-templates', () => {
       expect(body).toContain('existing ARCHITECTURE.md');
       expect(body).toContain('Preserve user-added content');
     });
+
+    it('returns body for compact command', () => {
+      const body = getPlxSlashCommandBody('compact');
+
+      expect(body).toContain('**Guardrails**');
+      expect(body).toContain('**Steps**');
+      expect(body).toContain('PROGRESS.md');
+      expect(body).toContain('.gitignore');
+    });
   });
 
   describe('plxSlashCommandBodies', () => {
     it('contains all PLX command IDs', () => {
-      const expectedIds: PlxSlashCommandId[] = ['init-architecture', 'update-architecture', 'get-task'];
+      const expectedIds: PlxSlashCommandId[] = ['init-architecture', 'update-architecture', 'get-task', 'compact'];
 
       for (const id of expectedIds) {
         expect(plxSlashCommandBodies[id]).toBeDefined();
@@ -58,6 +67,15 @@ describe('plx-slash-command-templates', () => {
         expect(body).toContain('**Guardrails**');
         expect(body).toContain('**Steps**');
       }
+    });
+
+    it('compact command includes context preservation content', () => {
+      const body = plxSlashCommandBodies['compact'];
+
+      expect(body).toContain('PROGRESS.md');
+      expect(body).toContain('.gitignore');
+      expect(body).toContain('Save all files');
+      expect(body).toContain('Context for Next Agent');
     });
   });
 });

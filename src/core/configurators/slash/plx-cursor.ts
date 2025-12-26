@@ -4,7 +4,8 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.cursor/commands/plx-init-architecture.md',
   'update-architecture': '.cursor/commands/plx-update-architecture.md',
-  'get-task': '.cursor/commands/plx-get-task.md'
+  'get-task': '.cursor/commands/plx-get-task.md',
+  'compact': '.cursor/commands/plx-compact.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -25,6 +26,12 @@ name: /plx-get-task
 id: plx-get-task
 category: PLX
 description: Select and display the next prioritized task to work on.
+---`,
+  'compact': `---
+name: /plx-compact
+id: plx-compact
+category: PLX
+description: Preserve session progress in PROGRESS.md for context continuity.
 ---`
 };
 

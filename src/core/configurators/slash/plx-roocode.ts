@@ -4,7 +4,8 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.roo/commands/plx-init-architecture.md',
   'update-architecture': '.roo/commands/plx-update-architecture.md',
-  'get-task': '.roo/commands/plx-get-task.md'
+  'get-task': '.roo/commands/plx-get-task.md',
+  'compact': '.roo/commands/plx-compact.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -16,7 +17,10 @@ Generate comprehensive ARCHITECTURE.md from codebase analysis.`,
 Refresh ARCHITECTURE.md based on current codebase state.`,
   'get-task': `# PLX: Get Task
 
-Select and display the next prioritized task to work on.`
+Select and display the next prioritized task to work on.`,
+  'compact': `# PLX: Compact
+
+Preserve session progress in PROGRESS.md for context continuity.`
 };
 
 export class PlxRooCodeSlashCommandConfigurator extends PlxSlashCommandConfigurator {

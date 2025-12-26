@@ -4,7 +4,8 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.cospec/plx/commands/plx-init-architecture.md',
   'update-architecture': '.cospec/plx/commands/plx-update-architecture.md',
-  'get-task': '.cospec/plx/commands/plx-get-task.md'
+  'get-task': '.cospec/plx/commands/plx-get-task.md',
+  'compact': '.cospec/plx/commands/plx-compact.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -18,6 +19,10 @@ argument-hint: (optional context)
 ---`,
   'get-task': `---
 description: "Select and display the next prioritized task to work on."
+argument-hint: (optional context)
+---`,
+  'compact': `---
+description: "Preserve session progress in PROGRESS.md for context continuity."
 argument-hint: (optional context)
 ---`
 };
