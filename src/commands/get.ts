@@ -83,7 +83,7 @@ export class GetCommand {
     }
 
     // Original prioritization-based flow
-    const prioritizedChange = await getPrioritizedChange(this.changesPath);
+    let prioritizedChange = await getPrioritizedChange(this.changesPath);
 
     if (!prioritizedChange) {
       if (options.json) {
@@ -170,35 +170,46 @@ export class GetCommand {
 
     // Check again if we have a next task after transitions
     if (!nextTask) {
-      if (options.json) {
-        const output: JsonOutput = {
-          changeId: prioritizedChange.id,
-          task: null,
-          taskContent: null,
-        };
-        if (completedTaskInfo) {
-          output.completedTask = completedTaskInfo;
-        }
-        if (autoCompletedTaskInfo) {
-          output.autoCompletedTask = autoCompletedTaskInfo;
-        }
-        if (warning) {
-          output.warning = warning;
-        }
-        console.log(JSON.stringify({ ...output, message: 'All tasks complete' }, null, 2));
+      // Current change is complete - check for other actionable changes
+      const nextPrioritizedChange = await getPrioritizedChange(this.changesPath);
+
+      if (nextPrioritizedChange && nextPrioritizedChange.nextTask) {
+        // Another change has pending work - update to use it
+        prioritizedChange = nextPrioritizedChange;
+        nextTask = nextPrioritizedChange.nextTask;
+        // Continue to task output logic below (auto-transition handled there)
       } else {
-        if (completedTaskInfo) {
-          this.printCompletedTaskInfo(completedTaskInfo);
+        // Truly all tasks complete
+        if (options.json) {
+          const output: JsonOutput = {
+            changeId: prioritizedChange.id,
+            task: null,
+            taskContent: null,
+          };
+          if (completedTaskInfo) {
+            output.completedTask = completedTaskInfo;
+          }
+          if (autoCompletedTaskInfo) {
+            output.autoCompletedTask = autoCompletedTaskInfo;
+          }
+          if (warning) {
+            output.warning = warning;
+          }
+          console.log(JSON.stringify({ ...output, message: 'All tasks complete' }, null, 2));
+        } else {
+          if (completedTaskInfo) {
+            this.printCompletedTaskInfo(completedTaskInfo);
+          }
+          if (autoCompletedTaskInfo) {
+            console.log(chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.name}\n`));
+          }
+          if (warning) {
+            ora().warn(warning);
+          }
+          ora().succeed('All tasks complete');
         }
-        if (autoCompletedTaskInfo) {
-          console.log(chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.name}\n`));
-        }
-        if (warning) {
-          ora().warn(warning);
-        }
-        ora().succeed('All tasks complete');
+        return;
       }
-      return;
     }
 
     // Read task content and check status

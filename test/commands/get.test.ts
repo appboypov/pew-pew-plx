@@ -773,6 +773,55 @@ status: to-do
       }
     });
 
+    it('transitions to next change when current change auto-completes', async () => {
+      // Create change-a: in-progress task with all checkboxes checked (will auto-complete)
+      const changeA = path.join(changesDir, 'change-a');
+      const tasksA = path.join(changeA, 'tasks');
+      await fs.mkdir(tasksA, { recursive: true });
+      await fs.writeFile(path.join(changeA, 'proposal.md'), '# Change A\n\n## Why\nTest\n\n## What Changes\n- Test');
+      await fs.writeFile(path.join(tasksA, '001-task.md'), `---\nstatus: in-progress\n---\n# Task\n## Implementation Checklist\n- [x] Done`);
+
+      // Create change-b: to-do task with incomplete checkboxes (should be selected next)
+      const changeB = path.join(changesDir, 'change-b');
+      const tasksB = path.join(changeB, 'tasks');
+      await fs.mkdir(tasksB, { recursive: true });
+      await fs.writeFile(path.join(changeB, 'proposal.md'), '# Change B\n\n## Why\nTest\n\n## What Changes\n- Test');
+      await fs.writeFile(path.join(tasksB, '001-task.md'), `---\nstatus: to-do\n---\n# Task\n## Implementation Checklist\n- [ ] Not done`);
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(`node ${openspecBin} get task --json`, { encoding: 'utf-8' });
+        const json = JSON.parse(output);
+
+        expect(json.autoCompletedTask).toBeDefined();
+        expect(json.changeId).toBe('change-b');
+        expect(json.task).toBeDefined();
+        expect(json.message).toBeUndefined();
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('shows all tasks complete only when no other changes have pending tasks', async () => {
+      // Single change with in-progress task that will auto-complete
+      const changeA = path.join(changesDir, 'change-a');
+      const tasksA = path.join(changeA, 'tasks');
+      await fs.mkdir(tasksA, { recursive: true });
+      await fs.writeFile(path.join(changeA, 'proposal.md'), '# Change A\n\n## Why\nTest\n\n## What Changes\n- Test');
+      await fs.writeFile(path.join(tasksA, '001-task.md'), `---\nstatus: in-progress\n---\n# Task\n## Implementation Checklist\n- [x] Done`);
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(`node ${openspecBin} get task 2>&1`, { encoding: 'utf-8' });
+        expect(output).toContain('Auto-completed task');
+        expect(output).toContain('All tasks complete');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
     it('auto-completes single in-progress task when all checklist items are checked', async () => {
       // Bug regression test: when a change has only one in-progress task with all items
       // checked (100% checkbox completion), it was filtered out as "non-actionable"
