@@ -202,7 +202,7 @@ export class ZshGenerator implements CompletionGenerator {
 
       // Add command flags
       for (const flag of cmd.flags) {
-        lines.push('    ' + this.generateFlagSpec(flag) + ' \\');
+        lines.push('    ' + this.generateFlagSpec(flag, commandName) + ' \\');
       }
 
       lines.push('    "1: :->subcommand" \\');
@@ -230,7 +230,7 @@ export class ZshGenerator implements CompletionGenerator {
 
       // Add flags
       for (const flag of cmd.flags) {
-        lines.push('    ' + this.generateFlagSpec(flag) + ' \\');
+        lines.push('    ' + this.generateFlagSpec(flag, commandName) + ' \\');
       }
 
       // Add positional argument completion
@@ -270,7 +270,7 @@ export class ZshGenerator implements CompletionGenerator {
 
     // Add flags
     for (const flag of subcmd.flags) {
-      lines.push('    ' + this.generateFlagSpec(flag) + ' \\');
+      lines.push('    ' + this.generateFlagSpec(flag, commandName) + ' \\');
     }
 
     // Add positional argument completion
@@ -292,7 +292,7 @@ export class ZshGenerator implements CompletionGenerator {
   /**
    * Generate flag specification for _arguments
    */
-  private generateFlagSpec(flag: FlagDefinition): string {
+  private generateFlagSpec(flag: FlagDefinition, commandName: string): string {
     const parts: string[] = [];
 
     // Handle mutually exclusive short and long forms
@@ -308,7 +308,11 @@ export class ZshGenerator implements CompletionGenerator {
 
     // Add value completion if flag takes a value
     if (flag.takesValue) {
-      if (flag.values && flag.values.length > 0) {
+      if (flag.valueType) {
+        // Use dynamic completion helper
+        const helperFunc = this.getValueTypeHelper(flag.valueType, commandName);
+        parts.push(`:value:${helperFunc}`);
+      } else if (flag.values && flag.values.length > 0) {
         // Provide specific value completions
         const valueList = flag.values.map(v => this.escapeValue(v)).join(' ');
         parts.push(`:value:(${valueList})`);
@@ -322,6 +326,22 @@ export class ZshGenerator implements CompletionGenerator {
     parts.push("'");
 
     return parts.join('');
+  }
+
+  /**
+   * Get the helper function name for dynamic value completion
+   */
+  private getValueTypeHelper(valueType: string, commandName: string): string {
+    switch (valueType) {
+      case 'change-id':
+        return `_${commandName}_complete_changes`;
+      case 'spec-id':
+        return `_${commandName}_complete_specs`;
+      case 'change-or-spec-id':
+        return `_${commandName}_complete_items`;
+      default:
+        return '';
+    }
   }
 
   /**

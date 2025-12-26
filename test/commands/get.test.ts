@@ -610,4 +610,647 @@ status: to-do
       }
     });
   });
+
+  describe('--id flag', () => {
+    it('retrieves a specific task by ID', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-first-task.md'),
+        `---
+status: to-do
+---
+
+# Task: First Task
+
+## Implementation Checklist
+- [ ] First item
+`
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '002-second-task.md'),
+        `---
+status: to-do
+---
+
+# Task: Second Task
+
+## Implementation Checklist
+- [ ] Second item
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(
+          `node ${openspecBin} get task --id 002-second-task`,
+          { encoding: 'utf-8' }
+        );
+        expect(output).toContain('Task 2: second-task');
+        expect(output).toContain('Second item');
+        expect(output).not.toContain('First item');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('returns error when task not found', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        try {
+          execSync(
+            `node ${openspecBin} get task --id nonexistent --json`,
+            { encoding: 'utf-8' }
+          );
+        } catch (error: any) {
+          const json = JSON.parse(error.stdout);
+          expect(json.error).toContain('Task not found');
+        }
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('retrieves task with full ID format (changeId/taskName)', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-my-task.md'),
+        `---
+status: in-progress
+---
+
+# Task: My Task
+
+## Implementation Checklist
+- [ ] Something
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(
+          `node ${openspecBin} get task --id test-change/001-my-task --json`,
+          { encoding: 'utf-8' }
+        );
+        const json = JSON.parse(output);
+        expect(json.changeId).toBe('test-change');
+        expect(json.task.name).toBe('my-task');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+  });
+
+  describe('--constraints and --acceptance-criteria flags', () => {
+    it('filters to only Constraints section', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-task.md'),
+        `---
+status: in-progress
+---
+
+# Task: Test Task
+
+## Constraints
+- [ ] Must be fast
+- [ ] Must be secure
+
+## Acceptance Criteria
+- [ ] Works correctly
+- [ ] Has tests
+
+## Implementation Checklist
+- [ ] Do something
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(
+          `node ${openspecBin} get task --constraints`,
+          { encoding: 'utf-8' }
+        );
+        expect(output).toContain('Constraints');
+        expect(output).toContain('Must be fast');
+        expect(output).not.toContain('Works correctly');
+        expect(output).not.toContain('Implementation Checklist');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('filters to only Acceptance Criteria section', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-task.md'),
+        `---
+status: in-progress
+---
+
+# Task: Test Task
+
+## Constraints
+- [ ] Must be fast
+
+## Acceptance Criteria
+- [ ] Works correctly
+- [ ] Has tests
+
+## Implementation Checklist
+- [ ] Do something
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(
+          `node ${openspecBin} get task --acceptance-criteria`,
+          { encoding: 'utf-8' }
+        );
+        expect(output).toContain('Acceptance Criteria');
+        expect(output).toContain('Works correctly');
+        expect(output).not.toContain('Must be fast');
+        expect(output).not.toContain('Implementation Checklist');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('shows both sections when both flags are used', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-task.md'),
+        `---
+status: in-progress
+---
+
+# Task: Test Task
+
+## Constraints
+- [ ] Constraint item
+
+## Acceptance Criteria
+- [ ] Acceptance item
+
+## Implementation Checklist
+- [ ] Impl item
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(
+          `node ${openspecBin} get task --constraints --acceptance-criteria`,
+          { encoding: 'utf-8' }
+        );
+        expect(output).toContain('Constraints');
+        expect(output).toContain('Constraint item');
+        expect(output).toContain('Acceptance Criteria');
+        expect(output).toContain('Acceptance item');
+        expect(output).not.toContain('Impl item');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('works with --id flag', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-task.md'),
+        `---
+status: to-do
+---
+
+# Task: Test
+
+## Constraints
+- [ ] Only this
+
+## Implementation Checklist
+- [ ] Not this
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(
+          `node ${openspecBin} get task --id 001-task --constraints`,
+          { encoding: 'utf-8' }
+        );
+        expect(output).toContain('Only this');
+        expect(output).not.toContain('Not this');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+  });
+});
+
+describe('get change command', () => {
+  const projectRoot = process.cwd();
+  const testDir = path.join(projectRoot, 'test-get-change-tmp');
+  const changesDir = path.join(testDir, 'openspec', 'changes');
+  const openspecBin = path.join(projectRoot, 'bin', 'openspec.js');
+
+  beforeEach(async () => {
+    await fs.mkdir(changesDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(testDir, { recursive: true, force: true });
+  });
+
+  it('retrieves a change by ID', async () => {
+    const changeDir = path.join(changesDir, 'my-change');
+    const tasksDir = path.join(changeDir, 'tasks');
+    await fs.mkdir(tasksDir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(changeDir, 'proposal.md'),
+      '# Change: My Change\n\n## Why\nBecause\n\n## What Changes\n- Something'
+    );
+    await fs.writeFile(
+      path.join(changeDir, 'design.md'),
+      '## Design\n\nDesign content here'
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '001-task.md'),
+      '# Task\n## Implementation Checklist\n- [ ] Item'
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(
+        `node ${openspecBin} get change --id my-change`,
+        { encoding: 'utf-8' }
+      );
+      expect(output).toContain('Proposal: my-change');
+      expect(output).toContain('My Change');
+      expect(output).toContain('Design');
+      expect(output).toContain('Design content here');
+      expect(output).toContain('Tasks');
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('returns error when change not found', async () => {
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      try {
+        execSync(
+          `node ${openspecBin} get change --id nonexistent --json`,
+          { encoding: 'utf-8' }
+        );
+      } catch (error: any) {
+        const json = JSON.parse(error.stdout);
+        expect(json.error).toContain('Change not found');
+      }
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('outputs JSON format', async () => {
+    const changeDir = path.join(changesDir, 'test-change');
+    const tasksDir = path.join(changeDir, 'tasks');
+    await fs.mkdir(tasksDir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(changeDir, 'proposal.md'),
+      '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '001-task.md'),
+      '# Task\n## Implementation Checklist\n- [ ] Item'
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(
+        `node ${openspecBin} get change --id test-change --json`,
+        { encoding: 'utf-8' }
+      );
+      const json = JSON.parse(output);
+      expect(json.changeId).toBe('test-change');
+      expect(json.proposal).toContain('Test');
+      expect(json.tasks).toHaveLength(1);
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+});
+
+describe('get spec command', () => {
+  const projectRoot = process.cwd();
+  const testDir = path.join(projectRoot, 'test-get-spec-tmp');
+  const specsDir = path.join(testDir, 'openspec', 'specs');
+  const openspecBin = path.join(projectRoot, 'bin', 'openspec.js');
+
+  beforeEach(async () => {
+    await fs.mkdir(specsDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(testDir, { recursive: true, force: true });
+  });
+
+  it('retrieves a spec by ID', async () => {
+    const specDir = path.join(specsDir, 'user-auth');
+    await fs.mkdir(specDir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(specDir, 'spec.md'),
+      '# Spec: User Authentication\n\n## Requirements\n- Users can log in'
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(
+        `node ${openspecBin} get spec --id user-auth`,
+        { encoding: 'utf-8' }
+      );
+      expect(output).toContain('Spec: user-auth');
+      expect(output).toContain('User Authentication');
+      expect(output).toContain('Users can log in');
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('returns error when spec not found', async () => {
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      try {
+        execSync(
+          `node ${openspecBin} get spec --id nonexistent --json`,
+          { encoding: 'utf-8' }
+        );
+      } catch (error: any) {
+        const json = JSON.parse(error.stdout);
+        expect(json.error).toContain('Spec not found');
+      }
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('outputs JSON format', async () => {
+    const specDir = path.join(specsDir, 'test-spec');
+    await fs.mkdir(specDir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(specDir, 'spec.md'),
+      '# Spec: Test\n\n## Requirements\n- Requirement 1'
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(
+        `node ${openspecBin} get spec --id test-spec --json`,
+        { encoding: 'utf-8' }
+      );
+      const json = JSON.parse(output);
+      expect(json.specId).toBe('test-spec');
+      expect(json.content).toContain('Requirement 1');
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+});
+
+describe('get tasks command', () => {
+  const projectRoot = process.cwd();
+  const testDir = path.join(projectRoot, 'test-get-tasks-tmp');
+  const changesDir = path.join(testDir, 'openspec', 'changes');
+  const openspecBin = path.join(projectRoot, 'bin', 'openspec.js');
+
+  beforeEach(async () => {
+    await fs.mkdir(changesDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(testDir, { recursive: true, force: true });
+  });
+
+  it('lists all open tasks', async () => {
+    const change1Dir = path.join(changesDir, 'change-one');
+    const tasks1Dir = path.join(change1Dir, 'tasks');
+    await fs.mkdir(tasks1Dir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(change1Dir, 'proposal.md'),
+      '# Change: One\n\n## Why\nTest\n\n## What Changes\n- Test'
+    );
+    await fs.writeFile(
+      path.join(tasks1Dir, '001-task-a.md'),
+      `---
+status: in-progress
+---
+# Task A`
+    );
+    await fs.writeFile(
+      path.join(tasks1Dir, '002-task-b.md'),
+      `---
+status: to-do
+---
+# Task B`
+    );
+
+    const change2Dir = path.join(changesDir, 'change-two');
+    const tasks2Dir = path.join(change2Dir, 'tasks');
+    await fs.mkdir(tasks2Dir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(change2Dir, 'proposal.md'),
+      '# Change: Two\n\n## Why\nTest\n\n## What Changes\n- Test'
+    );
+    await fs.writeFile(
+      path.join(tasks2Dir, '001-task-c.md'),
+      `---
+status: to-do
+---
+# Task C`
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(`node ${openspecBin} get tasks --json`, {
+        encoding: 'utf-8',
+      });
+      const json = JSON.parse(output);
+      expect(json.tasks).toHaveLength(3);
+      expect(json.tasks.map((t: { name: string }) => t.name)).toContain('task-a');
+      expect(json.tasks.map((t: { name: string }) => t.name)).toContain('task-b');
+      expect(json.tasks.map((t: { name: string }) => t.name)).toContain('task-c');
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('lists tasks for a specific change', async () => {
+    const changeDir = path.join(changesDir, 'my-change');
+    const tasksDir = path.join(changeDir, 'tasks');
+    await fs.mkdir(tasksDir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(changeDir, 'proposal.md'),
+      '# Change: My\n\n## Why\nTest\n\n## What Changes\n- Test'
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '001-first.md'),
+      `---
+status: done
+---
+# First`
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '002-second.md'),
+      `---
+status: in-progress
+---
+# Second`
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(
+        `node ${openspecBin} get tasks --id my-change --json`,
+        { encoding: 'utf-8' }
+      );
+      const json = JSON.parse(output);
+      expect(json.changeId).toBe('my-change');
+      expect(json.tasks).toHaveLength(2);
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('shows info when no open tasks exist', async () => {
+    const changeDir = path.join(changesDir, 'complete-change');
+    const tasksDir = path.join(changeDir, 'tasks');
+    await fs.mkdir(tasksDir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(changeDir, 'proposal.md'),
+      '# Change: Complete\n\n## Why\nTest\n\n## What Changes\n- Test'
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '001-done.md'),
+      `---
+status: done
+---
+# Done`
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(`node ${openspecBin} get tasks --json`, {
+        encoding: 'utf-8',
+      });
+      const json = JSON.parse(output);
+      expect(json.tasks).toHaveLength(0);
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('displays table format for text output', async () => {
+    const changeDir = path.join(changesDir, 'test-change');
+    const tasksDir = path.join(changeDir, 'tasks');
+    await fs.mkdir(tasksDir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(changeDir, 'proposal.md'),
+      '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '001-my-task.md'),
+      `---
+status: in-progress
+---
+# My Task`
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(`node ${openspecBin} get tasks`, {
+        encoding: 'utf-8',
+      });
+      expect(output).toContain('Open Tasks');
+      expect(output).toContain('my-task');
+      expect(output).toContain('in-progress');
+      expect(output).toContain('test-change');
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
 });

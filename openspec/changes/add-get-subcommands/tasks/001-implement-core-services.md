@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 ---
 
 # Task: Implement core services for item retrieval and content filtering
@@ -41,20 +41,20 @@ Create the foundational services that enable retrieving tasks, changes, and spec
 
 ## Implementation Checklist
 
-- [ ] 1.1 Create `src/utils/markdown-sections.ts` with `extractSection` function
-- [ ] 1.2 Add `listSections` function to markdown-sections utility
-- [ ] 1.3 Create `src/services/content-filter.ts` with ContentFilterService class
-- [ ] 1.4 Implement `filterSections` method in ContentFilterService
-- [ ] 1.5 Implement `filterMultipleTasks` method for aggregating from multiple tasks
-- [ ] 1.6 Create `src/services/item-retrieval.ts` with ItemRetrievalService class
-- [ ] 1.7 Implement `getTaskById` method
-- [ ] 1.8 Implement `getChangeById` method
-- [ ] 1.9 Implement `getSpecById` method
-- [ ] 1.10 Implement `getTasksForChange` method
-- [ ] 1.11 Implement `getAllOpenTasks` method
-- [ ] 1.12 Add unit tests for markdown-sections utility
-- [ ] 1.13 Add unit tests for ContentFilterService
-- [ ] 1.14 Add unit tests for ItemRetrievalService
+- [x] 1.1 Create `src/utils/markdown-sections.ts` with `extractSection` function
+- [x] 1.2 Add `listSections` function to markdown-sections utility
+- [x] 1.3 Create `src/services/content-filter.ts` with ContentFilterService class
+- [x] 1.4 Implement `filterSections` method in ContentFilterService
+- [x] 1.5 Implement `filterMultipleTasks` method for aggregating from multiple tasks
+- [x] 1.6 Create `src/services/item-retrieval.ts` with ItemRetrievalService class
+- [x] 1.7 Implement `getTaskById` method
+- [x] 1.8 Implement `getChangeById` method
+- [x] 1.9 Implement `getSpecById` method
+- [x] 1.10 Implement `getTasksForChange` method
+- [x] 1.11 Implement `getAllOpenTasks` method
+- [x] 1.12 Add unit tests for markdown-sections utility
+- [x] 1.13 Add unit tests for ContentFilterService
+- [x] 1.14 Add unit tests for ItemRetrievalService
 
 ## Notes
 

@@ -446,6 +446,36 @@ No checkboxes
       expect(result).toBeNull();
     });
 
+    it('should detect in-progress task when archive directory exists', async () => {
+      // Create archive directory (should be ignored)
+      const archiveDir = path.join(tempDir, 'archive');
+      await fs.mkdir(archiveDir, { recursive: true });
+
+      // Create a real change with in-progress task
+      const changeId = 'test-change';
+      const changeDir = path.join(tempDir, changeId);
+      const tasksDir = path.join(changeDir, TASKS_DIRECTORY_NAME);
+      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.writeFile(path.join(changeDir, 'proposal.md'), '# Proposal');
+
+      await fs.writeFile(
+        path.join(tasksDir, '001-task.md'),
+        `---
+status: in-progress
+---
+
+# Task 1
+## Implementation Checklist
+- [ ] Not done
+`
+      );
+
+      const result = await getPrioritizedChange(tempDir);
+      expect(result).not.toBeNull();
+      expect(result!.inProgressTask).not.toBeNull();
+      expect(result!.inProgressTask!.filename).toBe('001-task.md');
+    });
+
     it('should prioritize actionable changes by completion percentage', async () => {
       // Create complete-change (should be skipped)
       const completeChange = path.join(tempDir, 'complete-change');

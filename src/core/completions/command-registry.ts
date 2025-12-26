@@ -361,4 +361,74 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
       },
     ],
   },
+  {
+    name: 'get',
+    description: 'Retrieve project artifacts',
+    flags: [],
+    subcommands: [
+      {
+        name: 'task',
+        description: 'Show the next task from the highest-priority change',
+        flags: [
+          {
+            name: 'id',
+            description: 'Retrieve a specific task by ID',
+            takesValue: true,
+          },
+          {
+            name: 'did-complete-previous',
+            description: 'Complete the in-progress task and advance to next',
+          },
+          {
+            name: 'constraints',
+            description: 'Show only Constraints section',
+          },
+          {
+            name: 'acceptance-criteria',
+            description: 'Show only Acceptance Criteria section',
+          },
+          COMMON_FLAGS.json,
+        ],
+      },
+      {
+        name: 'change',
+        description: 'Retrieve a change proposal by ID',
+        flags: [
+          {
+            name: 'id',
+            description: 'Change ID to retrieve',
+            takesValue: true,
+            valueType: 'change-id',
+          },
+          COMMON_FLAGS.json,
+        ],
+      },
+      {
+        name: 'spec',
+        description: 'Retrieve a spec by ID',
+        flags: [
+          {
+            name: 'id',
+            description: 'Spec ID to retrieve',
+            takesValue: true,
+            valueType: 'spec-id',
+          },
+          COMMON_FLAGS.json,
+        ],
+      },
+      {
+        name: 'tasks',
+        description: 'List all open tasks or tasks for a specific change',
+        flags: [
+          {
+            name: 'id',
+            description: 'List tasks for a specific change',
+            takesValue: true,
+            valueType: 'change-id',
+          },
+          COMMON_FLAGS.json,
+        ],
+      },
+    ],
+  },
 ];

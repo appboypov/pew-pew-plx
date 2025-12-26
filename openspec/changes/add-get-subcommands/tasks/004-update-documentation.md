@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 ---
 
 # Task: Update AGENTS.md template with get commands documentation
@@ -21,27 +21,27 @@ The AGENTS.md template includes documentation for all new get commands so AI age
 
 ## Constraints
 
-- [ ] Integrate into existing CLI Commands section (not new section)
-- [ ] Ensure template escaping is correct for backticks
-- [ ] Documentation must be concise
+- [x] Integrate into existing CLI Commands section (not new section)
+- [x] Ensure template escaping is correct for backticks
+- [x] Documentation must be concise
 
 ## Acceptance Criteria
 
-- [ ] `openspec get task`, `get change`, `get spec`, `get tasks` documented
-- [ ] Filter flags (`--constraints`, `--acceptance-criteria`) explained
-- [ ] Usage examples included
-- [ ] `plx init` creates AGENTS.md with new commands
-- [ ] `plx update` updates existing projects
+- [x] `openspec get task`, `get change`, `get spec`, `get tasks` documented
+- [x] Filter flags (`--constraints`, `--acceptance-criteria`) explained
+- [x] Usage examples included
+- [x] `plx init` creates AGENTS.md with new commands
+- [x] `plx update` updates existing projects
 
 ## Implementation Checklist
 
-- [ ] 4.1 Add get task command with --id and filter flags to CLI Commands section
-- [ ] 4.2 Add get change command documentation
-- [ ] 4.3 Add get spec command documentation
-- [ ] 4.4 Add get tasks command documentation
-- [ ] 4.5 Add usage examples for common workflows
-- [ ] 4.6 Test with fresh `plx init` project
-- [ ] 4.7 Test with `plx update` on existing project
+- [x] 4.1 Add get task command with --id and filter flags to CLI Commands section
+- [x] 4.2 Add get change command documentation
+- [x] 4.3 Add get spec command documentation
+- [x] 4.4 Add get tasks command documentation
+- [x] 4.5 Add usage examples for common workflows
+- [x] 4.6 Test with fresh `plx init` project
+- [x] 4.7 Test with `plx update` on existing project
 
 ## Notes
 

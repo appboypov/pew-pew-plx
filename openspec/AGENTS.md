@@ -146,6 +146,17 @@ openspec validate              # Bulk validation mode
 # Debugging
 openspec show [change] --json --deltas-only
 openspec validate [change] --strict
+
+# Retrieve tasks and items
+openspec get task                          # Get next task from highest-priority change
+openspec get task --id <task-id>           # Get specific task by ID
+openspec get task --did-complete-previous  # Complete current task and get next
+openspec get task --constraints            # Show only Constraints section
+openspec get task --acceptance-criteria    # Show only Acceptance Criteria section
+openspec get change --id <change-id>       # Retrieve change by ID
+openspec get spec --id <spec-id>           # Retrieve spec by ID
+openspec get tasks                         # List all open tasks
+openspec get tasks --id <change-id>        # List tasks for specific change
 ```
 
 ### Command Flags
@@ -156,6 +167,9 @@ openspec validate [change] --strict
 - `--no-interactive` - Disable prompts
 - `--skip-specs` - Archive without spec updates
 - `--yes`/`-y` - Skip confirmation prompts (non-interactive archive)
+- `--did-complete-previous` - Complete current task and advance to next
+- `--constraints` - Show only Constraints section (get task)
+- `--acceptance-criteria` - Show only Acceptance Criteria section (get task)
 
 ## Directory Structure
 

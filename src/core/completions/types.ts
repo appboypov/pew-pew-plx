@@ -28,6 +28,14 @@ export interface FlagDefinition {
    * Possible values for the flag (for completion suggestions)
    */
   values?: string[];
+
+  /**
+   * Type of value for dynamic completion (like positionalType but for flag values)
+   * - 'change-id': Complete with active change IDs
+   * - 'spec-id': Complete with spec IDs
+   * - 'change-or-spec-id': Complete with both changes and specs
+   */
+  valueType?: 'change-id' | 'spec-id' | 'change-or-spec-id';
 }
 
 /**

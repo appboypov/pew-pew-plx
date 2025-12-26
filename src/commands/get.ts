@@ -13,9 +13,29 @@ import {
   completeTaskFully,
 } from '../utils/task-status.js';
 import { TaskFileInfo } from '../utils/task-progress.js';
+import { ItemRetrievalService } from '../services/item-retrieval.js';
+import { ContentFilterService } from '../services/content-filter.js';
 
 interface TaskOptions {
+  id?: string;
   didCompletePrevious?: boolean;
+  constraints?: boolean;
+  acceptanceCriteria?: boolean;
+  json?: boolean;
+}
+
+interface ChangeOptions {
+  id: string;
+  json?: boolean;
+}
+
+interface SpecOptions {
+  id: string;
+  json?: boolean;
+}
+
+interface TasksOptions {
+  id?: string;
   json?: boolean;
 }
 
@@ -44,12 +64,23 @@ interface JsonOutput {
 
 export class GetCommand {
   private changesPath: string;
+  private itemRetrievalService: ItemRetrievalService;
+  private contentFilterService: ContentFilterService;
 
   constructor() {
     this.changesPath = path.join(process.cwd(), 'openspec', 'changes');
+    this.itemRetrievalService = new ItemRetrievalService();
+    this.contentFilterService = new ContentFilterService();
   }
 
   async task(options: TaskOptions = {}): Promise<void> {
+    // Handle ID-based retrieval
+    if (options.id) {
+      await this.taskById(options);
+      return;
+    }
+
+    // Original prioritization-based flow
     const prioritizedChange = await getPrioritizedChange(this.changesPath);
 
     if (!prioritizedChange) {
@@ -140,8 +171,11 @@ export class GetCommand {
     }
 
     // Read task content
-    const taskContent = await fs.readFile(nextTask.filepath, 'utf-8');
+    let taskContent = await fs.readFile(nextTask.filepath, 'utf-8');
     const taskStatus = parseStatus(taskContent);
+
+    // Apply content filtering if requested
+    taskContent = this.applyContentFiltering(taskContent, options);
 
     if (options.json) {
       const output: JsonOutput = {
@@ -196,6 +230,63 @@ export class GetCommand {
     }
   }
 
+  private async taskById(options: TaskOptions): Promise<void> {
+    const result = await this.itemRetrievalService.getTaskById(options.id!);
+
+    if (!result) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: `Task not found: ${options.id}` }));
+      } else {
+        ora().fail(`Task not found: ${options.id}`);
+      }
+      process.exitCode = 1;
+      return;
+    }
+
+    const { task, content, changeId } = result;
+    const taskStatus = parseStatus(content);
+
+    // Apply content filtering if requested
+    const filteredContent = this.applyContentFiltering(content, options);
+
+    if (options.json) {
+      console.log(JSON.stringify({
+        changeId,
+        task: {
+          filename: task.filename,
+          filepath: task.filepath,
+          sequence: task.sequence,
+          name: task.name,
+          status: taskStatus,
+        },
+        taskContent: filteredContent,
+      }, null, 2));
+    } else {
+      console.log(
+        chalk.bold.cyan(`\n═══ Task ${task.sequence}: ${task.name} ═══\n`)
+      );
+      console.log(filteredContent);
+    }
+  }
+
+  private applyContentFiltering(content: string, options: TaskOptions): string {
+    const sections: string[] = [];
+
+    if (options.constraints) {
+      sections.push('Constraints');
+    }
+    if (options.acceptanceCriteria) {
+      sections.push('Acceptance Criteria');
+    }
+
+    if (sections.length === 0) {
+      return content;
+    }
+
+    const filtered = this.contentFilterService.filterSections(content, sections);
+    return filtered || content;
+  }
+
   private printCompletedTaskInfo(info: CompletedTaskInfo): void {
     console.log(chalk.green(`\n✓ Completed task: ${info.name}`));
     if (info.completedItems.length > 0) {
@@ -248,6 +339,183 @@ export class GetCommand {
     if (docs.design) {
       console.log(chalk.bold.blue(`\n═══ Design ═══\n`));
       console.log(docs.design);
+    }
+  }
+
+  async change(options: ChangeOptions): Promise<void> {
+    const result = await this.itemRetrievalService.getChangeById(options.id);
+
+    if (!result) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: `Change not found: ${options.id}` }));
+      } else {
+        ora().fail(`Change not found: ${options.id}`);
+      }
+      process.exitCode = 1;
+      return;
+    }
+
+    const { proposal, design, tasks } = result;
+
+    if (options.json) {
+      console.log(JSON.stringify({
+        changeId: options.id,
+        proposal,
+        design,
+        tasks: tasks.map(t => ({
+          filename: t.filename,
+          sequence: t.sequence,
+          name: t.name,
+        })),
+      }, null, 2));
+    } else {
+      console.log(chalk.bold.blue(`\n═══ Proposal: ${options.id} ═══\n`));
+      console.log(proposal);
+
+      if (design) {
+        console.log(chalk.bold.blue(`\n═══ Design ═══\n`));
+        console.log(design);
+      }
+
+      if (tasks.length > 0) {
+        console.log(chalk.bold.blue(`\n═══ Tasks ═══\n`));
+        for (const task of tasks) {
+          console.log(`  ${task.sequence}. ${task.name}`);
+        }
+      }
+    }
+  }
+
+  async spec(options: SpecOptions): Promise<void> {
+    const content = await this.itemRetrievalService.getSpecById(options.id);
+
+    if (!content) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: `Spec not found: ${options.id}` }));
+      } else {
+        ora().fail(`Spec not found: ${options.id}`);
+      }
+      process.exitCode = 1;
+      return;
+    }
+
+    if (options.json) {
+      console.log(JSON.stringify({
+        specId: options.id,
+        content,
+      }, null, 2));
+    } else {
+      console.log(chalk.bold.magenta(`\n═══ Spec: ${options.id} ═══\n`));
+      console.log(content);
+    }
+  }
+
+  async tasks(options: TasksOptions = {}): Promise<void> {
+    if (options.id) {
+      // List tasks for a specific change
+      const tasks = await this.itemRetrievalService.getTasksForChange(options.id);
+
+      if (tasks.length === 0) {
+        if (options.json) {
+          console.log(JSON.stringify({ changeId: options.id, tasks: [] }));
+        } else {
+          ora().info(`No tasks found for change: ${options.id}`);
+        }
+        return;
+      }
+
+      if (options.json) {
+        const taskData = [];
+        for (const task of tasks) {
+          const content = await fs.readFile(task.filepath, 'utf-8');
+          const status = parseStatus(content);
+          taskData.push({
+            id: `${options.id}/${task.name}`,
+            name: task.name,
+            status,
+            changeId: options.id,
+          });
+        }
+        console.log(JSON.stringify({ changeId: options.id, tasks: taskData }, null, 2));
+      } else {
+        console.log(chalk.bold.cyan(`\n═══ Tasks for: ${options.id} ═══\n`));
+        this.printTaskTable(tasks, options.id);
+      }
+    } else {
+      // List all open tasks
+      const openTasks = await this.itemRetrievalService.getAllOpenTasks();
+
+      if (openTasks.length === 0) {
+        if (options.json) {
+          console.log(JSON.stringify({ tasks: [] }));
+        } else {
+          ora().info('No open tasks found');
+        }
+        return;
+      }
+
+      if (options.json) {
+        console.log(JSON.stringify({
+          tasks: openTasks.map(t => ({
+            id: t.taskId,
+            name: t.task.name,
+            status: t.status,
+            changeId: t.changeId,
+          })),
+        }, null, 2));
+      } else {
+        console.log(chalk.bold.cyan('\n═══ Open Tasks ═══\n'));
+        this.printOpenTaskTable(openTasks);
+      }
+    }
+  }
+
+  private async printTaskTable(tasks: TaskFileInfo[], changeId: string): Promise<void> {
+    // Header
+    console.log(
+      chalk.dim('  ') +
+      chalk.bold.white('ID'.padEnd(30)) +
+      chalk.bold.white('Name'.padEnd(30)) +
+      chalk.bold.white('Status')
+    );
+    console.log(chalk.dim('  ' + '─'.repeat(70)));
+
+    for (const task of tasks) {
+      const content = await fs.readFile(task.filepath, 'utf-8');
+      const status = parseStatus(content);
+      const taskId = `${changeId}/${task.name}`;
+      const statusColor = status === 'in-progress' ? chalk.yellow : status === 'done' ? chalk.green : chalk.gray;
+
+      console.log(
+        chalk.dim('  ') +
+        chalk.white(taskId.padEnd(30)) +
+        chalk.white(task.name.padEnd(30)) +
+        statusColor(status)
+      );
+    }
+  }
+
+  private printOpenTaskTable(tasks: { taskId: string; changeId: string; task: TaskFileInfo; status: TaskStatus }[]): void {
+    // Header
+    console.log(
+      chalk.dim('  ') +
+      chalk.bold.white('ID'.padEnd(35)) +
+      chalk.bold.white('Name'.padEnd(25)) +
+      chalk.bold.white('Status'.padEnd(15)) +
+      chalk.bold.white('Change')
+    );
+    console.log(chalk.dim('  ' + '─'.repeat(85)));
+
+    for (const { taskId, task, status, changeId } of tasks) {
+      const statusColor = status === 'in-progress' ? chalk.yellow : chalk.gray;
+
+      console.log(
+        chalk.dim('  ') +
+        chalk.white(taskId.padEnd(35)) +
+        chalk.white(task.name.padEnd(25)) +
+        statusColor(status.padEnd(15)) +
+        chalk.blue(changeId)
+      );
     }
   }
 }

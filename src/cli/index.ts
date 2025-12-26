@@ -328,12 +328,63 @@ const getCmd = program
 getCmd
   .command('task')
   .description('Show the next task from the highest-priority change')
+  .option('--id <id>', 'Retrieve a specific task by ID')
   .option('--did-complete-previous', 'Complete the in-progress task and advance to next')
+  .option('--constraints', 'Show only Constraints section')
+  .option('--acceptance-criteria', 'Show only Acceptance Criteria section')
   .option('--json', 'Output as JSON')
-  .action(async (options?: { didCompletePrevious?: boolean; json?: boolean }) => {
+  .action(async (options?: { id?: string; didCompletePrevious?: boolean; constraints?: boolean; acceptanceCriteria?: boolean; json?: boolean }) => {
     try {
       const getCommand = new GetCommand();
       await getCommand.task(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+getCmd
+  .command('change')
+  .description('Retrieve a change proposal by ID')
+  .requiredOption('--id <id>', 'Change ID to retrieve')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const getCommand = new GetCommand();
+      await getCommand.change(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+getCmd
+  .command('spec')
+  .description('Retrieve a spec by ID')
+  .requiredOption('--id <id>', 'Spec ID to retrieve')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const getCommand = new GetCommand();
+      await getCommand.spec(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+getCmd
+  .command('tasks')
+  .description('List all open tasks or tasks for a specific change')
+  .option('--id <id>', 'List tasks for a specific change')
+  .option('--json', 'Output as JSON')
+  .action(async (options?: { id?: string; json?: boolean }) => {
+    try {
+      const getCommand = new GetCommand();
+      await getCommand.tasks(options);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);
