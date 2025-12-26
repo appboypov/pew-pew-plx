@@ -10,6 +10,9 @@ import {
   DEFAULT_TASK_STATUS,
   completeImplementationChecklist,
   completeTaskFully,
+  uncompleteImplementationChecklist,
+  undoTaskFully,
+  CheckboxUncompleteResult,
 } from '../../src/utils/task-status.js';
 
 describe('task-status', () => {
@@ -379,6 +382,179 @@ status: in-progress
 
       const content = await fs.readFile(filePath, 'utf-8');
       expect(content).toContain('status: done');
+    });
+  });
+
+  describe('uncompleteImplementationChecklist', () => {
+    it('unchecks checked items in Implementation Checklist', () => {
+      const content = `---
+status: done
+---
+
+# Task
+
+## Implementation Checklist
+- [x] First item
+- [ ] Already unchecked
+- [x] Third item
+
+## Notes
+Some notes`;
+      const result = uncompleteImplementationChecklist(content);
+      expect(result.uncheckedItems).toEqual(['First item', 'Third item']);
+      expect(result.updatedContent).toContain('[ ] First item');
+      expect(result.updatedContent).toContain('[ ] Third item');
+      expect(result.updatedContent).toContain('[ ] Already unchecked');
+    });
+
+    it('handles uppercase [X] checkbox pattern', () => {
+      const content = `## Implementation Checklist
+- [X] Uppercase checked
+- [x] Lowercase checked`;
+      const result = uncompleteImplementationChecklist(content);
+      expect(result.uncheckedItems).toEqual(['Uppercase checked', 'Lowercase checked']);
+      expect(result.updatedContent).toContain('[ ] Uppercase checked');
+      expect(result.updatedContent).toContain('[ ] Lowercase checked');
+    });
+
+    it('does NOT modify checkboxes in Constraints section', () => {
+      const content = `## Implementation Checklist
+- [x] Implementation item
+
+## Constraints
+- [x] Constraint item
+
+## Notes`;
+      const result = uncompleteImplementationChecklist(content);
+      expect(result.uncheckedItems).toEqual(['Implementation item']);
+      expect(result.updatedContent).toContain('[ ] Implementation item');
+      expect(result.updatedContent).toContain('## Constraints\n- [x] Constraint item');
+    });
+
+    it('does NOT modify checkboxes in Acceptance Criteria section', () => {
+      const content = `## Implementation Checklist
+- [x] Implementation item
+
+## Acceptance Criteria
+- [x] Acceptance item
+
+## Notes`;
+      const result = uncompleteImplementationChecklist(content);
+      expect(result.uncheckedItems).toEqual(['Implementation item']);
+      expect(result.updatedContent).toContain('[ ] Implementation item');
+      expect(result.updatedContent).toContain('## Acceptance Criteria\n- [x] Acceptance item');
+    });
+
+    it('returns empty uncheckedItems when no items to uncheck', () => {
+      const content = `## Implementation Checklist
+- [ ] Already unchecked
+- [ ] Also unchecked`;
+      const result = uncompleteImplementationChecklist(content);
+      expect(result.uncheckedItems).toEqual([]);
+    });
+
+    it('handles content without Implementation Checklist section', () => {
+      const content = `## Notes
+- [x] This should not be touched`;
+      const result = uncompleteImplementationChecklist(content);
+      expect(result.uncheckedItems).toEqual([]);
+      expect(result.updatedContent).toContain('- [x] This should not be touched');
+    });
+
+    it('resumes unchecking after exiting excluded sections', () => {
+      const content = `## Implementation Checklist
+- [x] First impl item
+
+## Constraints
+- [x] Constraint
+
+## Implementation Checklist
+- [x] Second impl item
+
+## Acceptance Criteria
+- [x] Acceptance`;
+      const result = uncompleteImplementationChecklist(content);
+      expect(result.uncheckedItems).toContain('First impl item');
+      expect(result.uncheckedItems).toContain('Second impl item');
+      expect(result.updatedContent).toContain('## Constraints\n- [x] Constraint');
+      expect(result.updatedContent).toContain('## Acceptance Criteria\n- [x] Acceptance');
+    });
+  });
+
+  describe('undoTaskFully', () => {
+    let tempDir: string;
+
+    beforeEach(async () => {
+      tempDir = path.join(os.tmpdir(), `openspec-undo-test-${Date.now()}`);
+      await fs.mkdir(tempDir, { recursive: true });
+    });
+
+    afterEach(async () => {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    });
+
+    it('unchecks checkboxes and updates status to to-do', async () => {
+      const filePath = path.join(tempDir, '001-task.md');
+      await fs.writeFile(filePath, `---
+status: done
+---
+
+# Task: Test
+
+## Implementation Checklist
+- [x] First item
+- [x] Second item
+
+## Constraints
+- [x] Should not be touched`);
+
+      const uncheckedItems = await undoTaskFully(filePath);
+
+      expect(uncheckedItems).toEqual(['First item', 'Second item']);
+
+      const content = await fs.readFile(filePath, 'utf-8');
+      expect(content).toContain('status: to-do');
+      expect(content).toContain('[ ] First item');
+      expect(content).toContain('[ ] Second item');
+      expect(content).toContain('## Constraints\n- [x] Should not be touched');
+    });
+
+    it('returns empty array when no items to uncheck', async () => {
+      const filePath = path.join(tempDir, '001-task.md');
+      await fs.writeFile(filePath, `---
+status: in-progress
+---
+
+# Task: Test
+
+## Implementation Checklist
+- [ ] Already unchecked`);
+
+      const uncheckedItems = await undoTaskFully(filePath);
+
+      expect(uncheckedItems).toEqual([]);
+
+      const content = await fs.readFile(filePath, 'utf-8');
+      expect(content).toContain('status: to-do');
+    });
+
+    it('handles both [x] and [X] patterns', async () => {
+      const filePath = path.join(tempDir, '001-task.md');
+      await fs.writeFile(filePath, `---
+status: done
+---
+
+## Implementation Checklist
+- [x] Lowercase
+- [X] Uppercase`);
+
+      const uncheckedItems = await undoTaskFully(filePath);
+
+      expect(uncheckedItems).toEqual(['Lowercase', 'Uppercase']);
+
+      const content = await fs.readFile(filePath, 'utf-8');
+      expect(content).toContain('[ ] Lowercase');
+      expect(content).toContain('[ ] Uppercase');
     });
   });
 });

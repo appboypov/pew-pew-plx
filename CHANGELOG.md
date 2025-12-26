@@ -8,6 +8,13 @@
 
 ### Added
 
+- **Complete and undo commands**: New CLI commands for explicit task/change management
+  - `complete task --id <task-id>` - Mark task as done, check all Implementation Checklist items
+  - `complete change --id <change-id>` - Complete all tasks in a change
+  - `undo task --id <task-id>` - Revert task to to-do, uncheck Implementation Checklist items
+  - `undo change --id <change-id>` - Revert all tasks in a change to to-do
+- **Auto-transition on retrieval**: `get task` and `get task --id` now auto-transition to-do tasks to in-progress when retrieved
+  - Includes `transitionedToInProgress` field in JSON output
 - **Automatic task completion detection**: `plx get task` now auto-detects when the current in-progress task has all Implementation Checklist items checked
   - Automatically marks task as `done` and advances to next `to-do` task
   - Skips change documents on auto-completion (same behavior as `--did-complete-previous`)

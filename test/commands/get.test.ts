@@ -1102,6 +1102,173 @@ status: in-progress
     });
   });
 
+  describe('auto-transition on retrieval', () => {
+    it('auto-transitions to-do task to in-progress when retrieved via prioritization', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-first-task.md'),
+        `---
+status: to-do
+---
+
+# Task: First Task
+
+## Implementation Checklist
+- [ ] Do something
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(`node ${openspecBin} get task --json`, {
+          encoding: 'utf-8',
+        });
+        const json = JSON.parse(output);
+
+        expect(json.task.status).toBe('in-progress');
+        expect(json.transitionedToInProgress).toBe(true);
+
+        // Verify file was updated
+        const taskContent = await fs.readFile(
+          path.join(tasksDir, '001-first-task.md'),
+          'utf-8'
+        );
+        expect(taskContent).toContain('status: in-progress');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('auto-transitions to-do task to in-progress when retrieved by --id', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-my-task.md'),
+        `---
+status: to-do
+---
+
+# Task: My Task
+
+## Implementation Checklist
+- [ ] Something
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(
+          `node ${openspecBin} get task --id 001-my-task --json`,
+          { encoding: 'utf-8' }
+        );
+        const json = JSON.parse(output);
+
+        expect(json.task.status).toBe('in-progress');
+        expect(json.transitionedToInProgress).toBe(true);
+
+        // Verify file was updated
+        const taskContent = await fs.readFile(
+          path.join(tasksDir, '001-my-task.md'),
+          'utf-8'
+        );
+        expect(taskContent).toContain('status: in-progress');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('does NOT transition already in-progress tasks', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-task.md'),
+        `---
+status: in-progress
+---
+
+# Task: Test
+
+## Implementation Checklist
+- [ ] Something
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(`node ${openspecBin} get task --json`, {
+          encoding: 'utf-8',
+        });
+        const json = JSON.parse(output);
+
+        expect(json.task.status).toBe('in-progress');
+        // transitionedToInProgress is only included when true
+        expect(json.transitionedToInProgress).toBeUndefined();
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('does not include transitionedToInProgress when not transitioned (--id retrieval)', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-task.md'),
+        `---
+status: in-progress
+---
+
+# Task: Test
+
+## Implementation Checklist
+- [ ] Something
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(
+          `node ${openspecBin} get task --id 001-task --json`,
+          { encoding: 'utf-8' }
+        );
+        const json = JSON.parse(output);
+
+        // transitionedToInProgress is only included when true
+        expect(json.transitionedToInProgress).toBeUndefined();
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+  });
+
   describe('--constraints and --acceptance-criteria flags', () => {
     it('filters to only Constraints section', async () => {
       const changeDir = path.join(changesDir, 'test-change');

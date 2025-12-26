@@ -36,6 +36,8 @@
 | Item Retrieval | — | `get change`, `get spec`, `get tasks` by ID |
 | Content Filtering | — | `--constraints`, `--acceptance-criteria` flags |
 | Auto-completion | — | Detects fully checked tasks, auto-advances |
+| Auto-transition | — | `get task` auto-transitions to-do → in-progress |
+| Complete/Undo | — | `complete task`, `complete change`, `undo task`, `undo change` |
 | Architecture Docs | `openspec/project.md` | `ARCHITECTURE.md` |
 | Issue Tracking | — | External issue tracking in proposals |
 | Install | `npm i -g @fission-ai/openspec` | `npm i -g @appboypov/opensplx` |
@@ -88,9 +90,27 @@ status: to-do  # or: in-progress, done
 
 **Checkbox auto-completion:** When using `--did-complete-previous`, all checkboxes in the `## Implementation Checklist` section are automatically marked as complete. Checkboxes in `## Constraints` and `## Acceptance Criteria` sections are preserved unchanged.
 
+**Auto-transition:** When retrieving a task via `plx get task` or `plx get task --id`, tasks with `status: to-do` are automatically transitioned to `in-progress`. JSON output includes a `transitionedToInProgress` field when this occurs.
+
 **Automatic task completion:** When running `plx get task`, if the current in-progress task has all Implementation Checklist items checked, it is automatically marked as `done` and the next `to-do` task is marked as `in-progress`. The output shows the new task without repeating change documents. JSON output includes an `autoCompletedTask` field when this occurs.
 
 **Content filtering:** Use `--constraints` and `--acceptance-criteria` to filter task output to specific sections. Combine flags to show multiple sections.
+
+### Complete and Undo Commands
+
+OpenSplx provides explicit commands for task and change completion:
+
+```bash
+# Complete tasks and changes
+plx complete task --id 001-implement     # Mark task as done, check all Implementation Checklist items
+plx complete change --id add-feature     # Complete all tasks in a change
+
+# Undo completion
+plx undo task --id 001-implement         # Revert task to to-do, uncheck Implementation Checklist items
+plx undo change --id add-feature         # Revert all tasks in a change to to-do
+
+# All commands support --json for machine-readable output
+```
 
 ### PLX Slash Commands
 
