@@ -2,13 +2,27 @@
 
 ## [Unreleased]
 
+---
+
+## 0.4.0 - 2025-12-26
+
+### Added
+
+- **Get subcommands**: New subcommands for retrieving items by ID
+  - `get change --id <change-id>` - Retrieve change proposal by ID
+  - `get spec --id <spec-id>` - Retrieve spec by ID
+  - `get tasks` - List all open tasks or tasks for specific change
+  - `get task --id <task-id>` - Retrieve specific task by filename
+- **Content filtering**: Filter `get task` output to specific sections
+  - `--constraints` - Show only Constraints section
+  - `--acceptance-criteria` - Show only Acceptance Criteria section
+- **Dynamic shell completion**: `--id` flags provide autocomplete suggestions for change and spec IDs
+- **Services layer**: New `ItemRetrievalService` and `ContentFilterService` for domain logic
+
 ### Changed
 
 - **BREAKING**: Renamed `plx act next` command to `plx get task`
 - **BREAKING**: Renamed `PlxSlashCommandId` value `'act-next'` to `'get-task'`
-
-### Added
-
 - `--did-complete-previous` now automatically marks all `## Implementation Checklist` checkboxes as complete
 - Completed task info (name + completed checkbox items) is output when using `--did-complete-previous`
 

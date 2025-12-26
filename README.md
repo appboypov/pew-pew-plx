@@ -33,6 +33,8 @@
 | Task Structure | Single `tasks.md` | `tasks/` directory with numbered files |
 | Task Status | Checkbox-based | YAML frontmatter (`to-do`, `in-progress`, `done`) |
 | Task Selection | Manual | `plx get task` for prioritized selection |
+| Item Retrieval | — | `get change`, `get spec`, `get tasks` by ID |
+| Content Filtering | — | `--constraints`, `--acceptance-criteria` flags |
 | Architecture Docs | `openspec/project.md` | `ARCHITECTURE.md` |
 | Issue Tracking | — | External issue tracking in proposals |
 | Install | `npm i -g @fission-ai/openspec` | `npm i -g @appboypov/opensplx` |
@@ -50,14 +52,25 @@ tasks/
 
 Each task file is scoped for one AI conversation. The apply command auto-detects the next incomplete task and processes only that one. Legacy `tasks.md` files are auto-migrated on first CLI access.
 
-### Get Task Command
+### Get Command
 
-OpenSplx introduces intelligent task selection with the `get task` command:
+OpenSplx extends the `get` command with subcommands for retrieving project artifacts:
 
 ```bash
-plx get task                      # Get the next prioritized task
+# Task retrieval and workflow
+plx get task                          # Get the next prioritized task
+plx get task --id 001-implement       # Get specific task by filename
 plx get task --did-complete-previous  # Mark current task done, get next
-plx get task --json               # Machine-readable output
+plx get task --constraints            # Show only Constraints section
+plx get task --acceptance-criteria    # Show only Acceptance Criteria section
+
+# Item retrieval by ID
+plx get change --id add-feature       # Retrieve change proposal by ID
+plx get spec --id user-auth           # Retrieve spec by ID
+plx get tasks                         # List all open tasks
+plx get tasks --id add-feature        # List tasks for specific change
+
+# All commands support --json for machine-readable output
 ```
 
 **Prioritization logic:**
@@ -73,6 +86,8 @@ status: to-do  # or: in-progress, done
 ```
 
 **Checkbox auto-completion:** When using `--did-complete-previous`, all checkboxes in the `## Implementation Checklist` section are automatically marked as complete. Checkboxes in `## Constraints` and `## Acceptance Criteria` sections are preserved unchanged.
+
+**Content filtering:** Use `--constraints` and `--acceptance-criteria` to filter task output to specific sections. Combine flags to show multiple sections.
 
 ### PLX Slash Commands
 

@@ -51,6 +51,10 @@ OpenSplx/
 │   │   ├── list.ts         # List changes/specs
 │   │   ├── update.ts       # Update OpenSpec files
 │   │   ├── view.ts         # Interactive dashboard
+│   ├── services/           # Domain services
+│   │   ├── content-filter.ts # Markdown section filtering
+│   │   └── item-retrieval.ts # ID-based item retrieval
+│   ├── core/               # Core business logic
 │   │   ├── completions/    # Shell completion generators
 │   │   ├── configurators/  # AI tool configurators
 │   │   ├── converters/     # Format converters (JSON)
@@ -67,6 +71,7 @@ OpenSplx/
 │       ├── item-discovery.ts # Find specs/changes
 │       ├── match.ts        # Pattern matching utilities
 │       ├── shell-detection.ts # Detect user's shell
+│       ├── markdown-sections.ts # Extract sections from markdown
 │       ├── task-file-parser.ts # Parse task filenames (NNN-name.md)
 │       ├── task-migration.ts # Legacy tasks.md migration
 │       ├── task-progress.ts # Task completion tracking
@@ -102,7 +107,7 @@ Each command class encapsulates its own logic:
 - `ChangeCommand` - Change management
 - `CompletionCommand` - Shell completions
 - `ConfigCommand` - Global configuration
-- `GetCommand` - Retrieve project artifacts (tasks)
+- `GetCommand` - Retrieve project artifacts (tasks, changes, specs)
 
 ### Registry Pattern
 
@@ -176,6 +181,21 @@ Tracked issues are:
 - Displayed in `openspec list` output alongside change names
 - Included in `openspec show --json` output
 - Reported when archiving changes
+
+### Service Layer
+
+Domain services encapsulate business logic for reuse across commands:
+
+- **ItemRetrievalService** - Retrieves tasks, changes, and specs by ID
+  - `getTaskById(id)` - Find task across all changes
+  - `getChangeById(id)` - Get change proposal with tasks
+  - `getSpecById(id)` - Get spec content
+  - `getTasksForChange(id)` - List tasks for a change
+  - `getAllOpenTasks()` - List all non-done tasks
+
+- **ContentFilterService** - Extracts markdown sections
+  - `filterSections(content, sections)` - Extract named sections
+  - `filterMultipleTasks(contents, sections)` - Aggregate from multiple tasks
 
 ### Template System
 
@@ -470,8 +490,18 @@ The `openspec get task` command selects the highest-priority change using:
 
 Changes with 0 tasks or 100% completion are filtered out as non-actionable.
 
-### Get Task Flow
+### Get Command Flow
 
+The `get` command provides subcommands for retrieving project artifacts:
+
+| Subcommand | Description |
+|------------|-------------|
+| `get task` | Get next prioritized task or specific task by ID |
+| `get change --id <id>` | Retrieve change proposal by ID |
+| `get spec --id <id>` | Retrieve spec by ID |
+| `get tasks` | List all open tasks or tasks for specific change |
+
+**Get Task Flow:**
 ```
 User runs: openspec get task
     ↓
@@ -482,7 +512,7 @@ Find next task (in-progress or first to-do)
 Display proposal.md, design.md (optional), and task content
 ```
 
-With `--did-complete-previous`:
+**With `--did-complete-previous`:**
 ```
 Mark in-progress task as 'done'
     ↓
@@ -492,6 +522,15 @@ Find next to-do task → mark as 'in-progress'
     ↓
 Display next task (without proposal/design)
 ```
+
+**Content Filtering:**
+
+The `get task` command supports content filtering:
+- `--constraints` - Show only Constraints section
+- `--acceptance-criteria` - Show only Acceptance Criteria section
+- `--id <task-id>` - Retrieve specific task by filename (without extension)
+
+These use `ContentFilterService` which extracts sections via `markdown-sections.ts`.
 
 ## Fork-Specific Features (OpenSplx)
 
@@ -505,7 +544,8 @@ OpenSplx extends OpenSpec with:
    - `/plx/get-task` - Get next prioritized task and execute workflow
 4. **PlxSlashCommandRegistry**: Separate registry for PLX-specific commands
 5. **Extended Templates**: Architecture template generation
-6. **Get Command**: `openspec get task` for automated task retrieval and completion
+6. **Get Command**: Extended with subcommands for item retrieval (`get task`, `get change`, `get spec`, `get tasks`) and content filtering (`--constraints`, `--acceptance-criteria`)
+7. **Services Layer**: Domain services for item retrieval and content filtering
 
 ## Extending the System
 
