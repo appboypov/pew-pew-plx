@@ -12,7 +12,7 @@ import {
   TaskStatus,
   completeTaskFully,
 } from '../utils/task-status.js';
-import { TaskFileInfo } from '../utils/task-progress.js';
+import { TaskFileInfo, countTasksFromContent } from '../utils/task-progress.js';
 import { ItemRetrievalService } from '../services/item-retrieval.js';
 import { ContentFilterService } from '../services/content-filter.js';
 
@@ -59,6 +59,7 @@ interface JsonOutput {
     design?: string;
   };
   completedTask?: CompletedTaskInfo;
+  autoCompletedTask?: { name: string };
   warning?: string;
 }
 
@@ -112,6 +113,29 @@ export class GetCommand {
     let warning: string | undefined;
     let nextTask: TaskFileInfo | null = prioritizedChange.nextTask;
     let completedTaskInfo: CompletedTaskInfo | undefined;
+    let autoCompletedTaskInfo: { name: string } | undefined;
+
+    // Check for auto-completion of in-progress task
+    if (prioritizedChange.inProgressTask) {
+      const inProgressContent = await fs.readFile(
+        prioritizedChange.inProgressTask.filepath,
+        'utf-8'
+      );
+      const progress = countTasksFromContent(inProgressContent);
+
+      // Auto-complete if all checklist items are checked AND there's at least one item
+      if (progress.total > 0 && progress.completed === progress.total) {
+        // Mark in-progress task as done (checkboxes already checked)
+        await setTaskStatus(prioritizedChange.inProgressTask.filepath, 'done');
+        autoCompletedTaskInfo = { name: prioritizedChange.inProgressTask.name };
+
+        // Find and mark next to-do task as in-progress
+        nextTask = await this.findNextTodoTask(prioritizedChange);
+        if (nextTask) {
+          await setTaskStatus(nextTask.filepath, 'in-progress');
+        }
+      }
+    }
 
     if (options.didCompletePrevious) {
       // Handle --did-complete-previous flag
@@ -154,6 +178,9 @@ export class GetCommand {
         if (completedTaskInfo) {
           output.completedTask = completedTaskInfo;
         }
+        if (autoCompletedTaskInfo) {
+          output.autoCompletedTask = autoCompletedTaskInfo;
+        }
         if (warning) {
           output.warning = warning;
         }
@@ -161,6 +188,9 @@ export class GetCommand {
       } else {
         if (completedTaskInfo) {
           this.printCompletedTaskInfo(completedTaskInfo);
+        }
+        if (autoCompletedTaskInfo) {
+          console.log(chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.name}\n`));
         }
         if (warning) {
           ora().warn(warning);
@@ -190,8 +220,8 @@ export class GetCommand {
         taskContent,
       };
 
-      // Include change documents unless --did-complete-previous was used
-      if (!options.didCompletePrevious) {
+      // Include change documents unless --did-complete-previous or auto-completed
+      if (!options.didCompletePrevious && !autoCompletedTaskInfo) {
         output.changeDocuments = await this.readChangeDocuments(
           prioritizedChange.id
         );
@@ -199,6 +229,10 @@ export class GetCommand {
 
       if (completedTaskInfo) {
         output.completedTask = completedTaskInfo;
+      }
+
+      if (autoCompletedTaskInfo) {
+        output.autoCompletedTask = autoCompletedTaskInfo;
       }
 
       if (warning) {
@@ -212,13 +246,17 @@ export class GetCommand {
         this.printCompletedTaskInfo(completedTaskInfo);
       }
 
+      if (autoCompletedTaskInfo) {
+        console.log(chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.name}\n`));
+      }
+
       if (warning) {
         ora().warn(warning);
         console.log();
       }
 
-      // Show change documents unless --did-complete-previous was used
-      if (!options.didCompletePrevious) {
+      // Show change documents unless --did-complete-previous or auto-completed
+      if (!options.didCompletePrevious && !autoCompletedTaskInfo) {
         await this.printChangeDocuments(prioritizedChange.id);
       }
 

@@ -450,6 +450,382 @@ status: to-do
     });
   });
 
+  describe('auto-completion', () => {
+    it('auto-completes in-progress task when all checklist items are checked', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(changeDir, 'design.md'),
+        '## Design\n\nTest design content'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-first-task.md'),
+        `---
+status: in-progress
+---
+
+# Task: First Task
+
+## Implementation Checklist
+- [x] Item one
+- [x] Item two
+`
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '002-second-task.md'),
+        `---
+status: to-do
+---
+
+# Task: Second Task
+
+## Implementation Checklist
+- [ ] Second item
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(`node ${openspecBin} get task`, {
+          encoding: 'utf-8',
+        });
+
+        // Should show auto-completed message
+        expect(output).toContain('Auto-completed task: first-task');
+
+        // Should show second task
+        expect(output).toContain('Task 2: second-task');
+        expect(output).toContain('Second item');
+
+        // Should NOT show proposal/design (change documents excluded after auto-complete)
+        expect(output).not.toContain('Proposal:');
+
+        // Verify first task is now done
+        const firstTaskContent = await fs.readFile(
+          path.join(tasksDir, '001-first-task.md'),
+          'utf-8'
+        );
+        expect(firstTaskContent).toContain('status: done');
+
+        // Verify second task is now in-progress
+        const secondTaskContent = await fs.readFile(
+          path.join(tasksDir, '002-second-task.md'),
+          'utf-8'
+        );
+        expect(secondTaskContent).toContain('status: in-progress');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('displays task normally when partially complete', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-first-task.md'),
+        `---
+status: in-progress
+---
+
+# Task: First Task
+
+## Implementation Checklist
+- [x] Done item
+- [ ] Not done item
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(`node ${openspecBin} get task`, {
+          encoding: 'utf-8',
+        });
+
+        // Should show the in-progress task (not auto-completed)
+        expect(output).toContain('Task 1: first-task');
+        expect(output).toContain('Not done item');
+
+        // Should NOT show auto-completed message
+        expect(output).not.toContain('Auto-completed');
+
+        // Should show proposal (change documents included)
+        expect(output).toContain('Proposal: test-change');
+
+        // Verify task is still in-progress
+        const taskContent = await fs.readFile(
+          path.join(tasksDir, '001-first-task.md'),
+          'utf-8'
+        );
+        expect(taskContent).toContain('status: in-progress');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('does not auto-complete task with zero checklist items', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      // Task with zero checklist items AND a second task with incomplete items
+      // (so the change is not filtered out by prioritization)
+      await fs.writeFile(
+        path.join(tasksDir, '001-first-task.md'),
+        `---
+status: in-progress
+---
+
+# Task: First Task
+
+## Notes
+No checklist items in this task.
+`
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '002-second-task.md'),
+        `---
+status: to-do
+---
+
+# Task: Second Task
+
+## Implementation Checklist
+- [ ] Not done yet
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(`node ${openspecBin} get task`, {
+          encoding: 'utf-8',
+        });
+
+        // Should show the in-progress task (first-task has no checkboxes, so not auto-completed)
+        expect(output).toContain('Task 1: first-task');
+
+        // Should NOT show auto-completed message
+        expect(output).not.toContain('Auto-completed');
+
+        // Verify task is still in-progress
+        const taskContent = await fs.readFile(
+          path.join(tasksDir, '001-first-task.md'),
+          'utf-8'
+        );
+        expect(taskContent).toContain('status: in-progress');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('shows all tasks complete when auto-completing final to-do task', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      // First task is done
+      await fs.writeFile(
+        path.join(tasksDir, '001-first-task.md'),
+        `---
+status: done
+---
+
+# Task: First Task
+
+## Implementation Checklist
+- [x] Done
+`
+      );
+      // Second task is in-progress with all items checked (will be auto-completed)
+      await fs.writeFile(
+        path.join(tasksDir, '002-second-task.md'),
+        `---
+status: in-progress
+---
+
+# Task: Second Task
+
+## Implementation Checklist
+- [x] Done
+`
+      );
+      // Third task is to-do with unchecked items (makes change actionable for prioritization)
+      await fs.writeFile(
+        path.join(tasksDir, '003-third-task.md'),
+        `---
+status: to-do
+---
+
+# Task: Third Task
+
+## Implementation Checklist
+- [ ] Not done
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(`node ${openspecBin} get task`, {
+          encoding: 'utf-8',
+        });
+
+        // Should show auto-completed message
+        expect(output).toContain('Auto-completed task: second-task');
+
+        // Should show third task (the next task after auto-completion)
+        expect(output).toContain('Task 3: third-task');
+
+        // Verify second task is now done
+        const secondTaskContent = await fs.readFile(
+          path.join(tasksDir, '002-second-task.md'),
+          'utf-8'
+        );
+        expect(secondTaskContent).toContain('status: done');
+
+        // Verify third task is now in-progress
+        const thirdTaskContent = await fs.readFile(
+          path.join(tasksDir, '003-third-task.md'),
+          'utf-8'
+        );
+        expect(thirdTaskContent).toContain('status: in-progress');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('includes autoCompletedTask in JSON output', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-first-task.md'),
+        `---
+status: in-progress
+---
+
+# Task: First Task
+
+## Implementation Checklist
+- [x] Done
+`
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '002-second-task.md'),
+        `---
+status: to-do
+---
+
+# Task: Second Task
+
+## Implementation Checklist
+- [ ] Not done
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(`node ${openspecBin} get task --json`, {
+          encoding: 'utf-8',
+        });
+        const json = JSON.parse(output);
+
+        // Should include autoCompletedTask
+        expect(json.autoCompletedTask).toBeDefined();
+        expect(json.autoCompletedTask.name).toBe('first-task');
+
+        // Should have task info for second task
+        expect(json.task).toBeDefined();
+        expect(json.task.name).toBe('second-task');
+
+        // Should NOT include changeDocuments
+        expect(json.changeDocuments).toBeUndefined();
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('auto-completes single in-progress task when all checklist items are checked', async () => {
+      // Bug regression test: when a change has only one in-progress task with all items
+      // checked (100% checkbox completion), it was filtered out as "non-actionable"
+      // before auto-completion could run, leaving the task stuck in in-progress status.
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      // Single in-progress task with all checkboxes checked
+      await fs.writeFile(
+        path.join(tasksDir, '001-only-task.md'),
+        `---
+status: in-progress
+---
+
+# Task: Only Task
+
+## Implementation Checklist
+- [x] Step one
+- [x] Step two
+`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        // Use 2>&1 to capture both stdout and stderr (ora outputs to stderr)
+        const output = execSync(`node ${openspecBin} get task 2>&1`, {
+          encoding: 'utf-8',
+        });
+
+        // Should show auto-completed message
+        expect(output).toContain('Auto-completed task: only-task');
+
+        // Should show all tasks complete
+        expect(output).toContain('All tasks complete');
+
+        // Verify task is now done
+        const taskContent = await fs.readFile(
+          path.join(tasksDir, '001-only-task.md'),
+          'utf-8'
+        );
+        expect(taskContent).toContain('status: done');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+  });
+
   describe('change prioritization', () => {
     it('skips completed changes and selects actionable one', async () => {
       // Create complete-change with 100% completion (should be skipped)
