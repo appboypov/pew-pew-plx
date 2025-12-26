@@ -4,6 +4,21 @@
 
 ---
 
+## 0.5.0 - 2025-12-26
+
+### Added
+
+- **Automatic task completion detection**: `plx get task` now auto-detects when the current in-progress task has all Implementation Checklist items checked
+  - Automatically marks task as `done` and advances to next `to-do` task
+  - Skips change documents on auto-completion (same behavior as `--did-complete-previous`)
+  - Includes `autoCompletedTask` field in JSON output
+
+### Fixed
+
+- Change prioritization filter now keeps changes with in-progress tasks, allowing auto-completion to run even at 100% checkbox completion
+
+---
+
 ## 0.4.0 - 2025-12-26
 
 ### Added

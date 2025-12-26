@@ -137,11 +137,12 @@ export async function getPrioritizedChange(
   }
 
   // Filter out non-actionable changes:
-  // - total == 0 (no checkboxes at all)
-  // - completed == total (all checkboxes complete)
+  // - total == 0 (no checkboxes at all) AND no in-progress task
+  // - completed == total (all checkboxes complete) AND no in-progress task
+  // Keep changes with in-progress tasks so auto-completion can run
   const actionableChanges = changes.filter((c) => {
     const { total, completed } = c.taskProgress;
-    return total > 0 && completed < total;
+    return c.inProgressTask !== null || (total > 0 && completed < total);
   });
 
   if (actionableChanges.length === 0) {

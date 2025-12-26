@@ -488,7 +488,7 @@ The `openspec get task` command selects the highest-priority change using:
 1. **Completion Percentage** (highest first): Changes closer to completion get priority
 2. **Creation Date** (oldest first): Tiebreaker when percentages are equal
 
-Changes with 0 tasks or 100% completion are filtered out as non-actionable.
+Changes with 0 tasks and no in-progress task are filtered out as non-actionable. Changes with an in-progress task are kept to allow auto-completion to run.
 
 ### Get Command Flow
 
@@ -510,6 +510,17 @@ getPrioritizedChange() → find highest-priority change
 Find next task (in-progress or first to-do)
     ↓
 Display proposal.md, design.md (optional), and task content
+```
+
+**Automatic Task Completion:**
+```
+Check if in-progress task has all Implementation Checklist items checked
+    ↓
+If all checked: mark task as 'done', find next to-do task → mark as 'in-progress'
+    ↓
+Display next task (without proposal/design)
+    ↓
+Include 'autoCompletedTask' in JSON output
 ```
 
 **With `--did-complete-previous`:**
@@ -545,7 +556,8 @@ OpenSplx extends OpenSpec with:
 4. **PlxSlashCommandRegistry**: Separate registry for PLX-specific commands
 5. **Extended Templates**: Architecture template generation
 6. **Get Command**: Extended with subcommands for item retrieval (`get task`, `get change`, `get spec`, `get tasks`) and content filtering (`--constraints`, `--acceptance-criteria`)
-7. **Services Layer**: Domain services for item retrieval and content filtering
+7. **Automatic Task Completion**: Detects when in-progress task has all Implementation Checklist items checked and auto-advances to next task
+8. **Services Layer**: Domain services for item retrieval and content filtering
 
 ## Extending the System
 
