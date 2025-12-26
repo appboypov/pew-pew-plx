@@ -36,11 +36,13 @@ OpenSplx/
 │   │   └── index.ts        # CLI program definition (Commander.js)
 │   ├── commands/           # Top-level command implementations
 │   │   ├── change.ts       # Change management subcommands
+│   │   ├── complete.ts     # Complete task/change commands
 │   │   ├── completion.ts   # Shell completion commands
 │   │   ├── config.ts       # Configuration commands
 │   │   ├── get.ts          # Artifact retrieval (get task)
 │   │   ├── show.ts         # Item display command
 │   │   ├── spec.ts         # Spec management commands
+│   │   ├── undo.ts         # Undo task/change commands
 │   │   └── validate.ts     # Validation command
 │   ├── core/               # Core business logic
 │   │   ├── archive.ts      # Archive completed changes
@@ -108,6 +110,8 @@ Each command class encapsulates its own logic:
 - `CompletionCommand` - Shell completions
 - `ConfigCommand` - Global configuration
 - `GetCommand` - Retrieve project artifacts (tasks, changes, specs)
+- `CompleteCommand` - Mark tasks/changes as done
+- `UndoCommand` - Revert tasks/changes to to-do status
 
 ### Registry Pattern
 
@@ -509,8 +513,13 @@ getPrioritizedChange() → find highest-priority change
     ↓
 Find next task (in-progress or first to-do)
     ↓
+Auto-transition to-do → in-progress (if needed)
+    ↓
 Display proposal.md, design.md (optional), and task content
 ```
+
+**Auto-Transition:**
+When retrieving a task via `get task` or `get task --id`, tasks with `status: to-do` are automatically transitioned to `in-progress`. JSON output includes a `transitionedToInProgress` field when this occurs.
 
 **Automatic Task Completion:**
 ```
@@ -543,6 +552,49 @@ The `get task` command supports content filtering:
 
 These use `ContentFilterService` which extracts sections via `markdown-sections.ts`.
 
+### Complete and Undo Commands
+
+The CLI provides explicit commands for task/change completion and undo:
+
+| Command | Description |
+|---------|-------------|
+| `complete task --id <id>` | Mark task as done, check all Implementation Checklist items |
+| `complete change --id <id>` | Complete all tasks in a change |
+| `undo task --id <id>` | Revert task to to-do, uncheck Implementation Checklist items |
+| `undo change --id <id>` | Revert all tasks in a change to to-do |
+
+**Complete Task Flow:**
+```
+User runs: openspec complete task --id <task-id>
+    ↓
+ItemRetrievalService.getTaskById() → find task
+    ↓
+Check status (if 'done' → warn and exit)
+    ↓
+completeTaskFully() → set status to 'done', check Implementation Checklist items
+    ↓
+Output result (JSON includes completedItems array)
+```
+
+**Undo Task Flow:**
+```
+User runs: openspec undo task --id <task-id>
+    ↓
+ItemRetrievalService.getTaskById() → find task
+    ↓
+Check status (if 'to-do' → warn and exit)
+    ↓
+undoTaskFully() → set status to 'to-do', uncheck Implementation Checklist items
+    ↓
+Output result (JSON includes uncheckedItems array)
+```
+
+Task status utilities in `src/utils/task-status.ts`:
+- `completeTaskFully(filePath)` - Mark done + check checkboxes
+- `undoTaskFully(filePath)` - Mark to-do + uncheck checkboxes
+- `completeImplementationChecklist(content)` - Check Implementation Checklist items only
+- `uncompleteImplementationChecklist(content)` - Uncheck Implementation Checklist items only
+
 ## Fork-Specific Features (OpenSplx)
 
 OpenSplx extends OpenSpec with:
@@ -557,7 +609,9 @@ OpenSplx extends OpenSpec with:
 5. **Extended Templates**: Architecture template generation
 6. **Get Command**: Extended with subcommands for item retrieval (`get task`, `get change`, `get spec`, `get tasks`) and content filtering (`--constraints`, `--acceptance-criteria`)
 7. **Automatic Task Completion**: Detects when in-progress task has all Implementation Checklist items checked and auto-advances to next task
-8. **Services Layer**: Domain services for item retrieval and content filtering
+8. **Auto-Transition**: `get task` auto-transitions to-do tasks to in-progress when retrieved
+9. **Complete/Undo Commands**: Explicit commands for task/change completion and undo (`complete task`, `complete change`, `undo task`, `undo change`)
+10. **Services Layer**: Domain services for item retrieval and content filtering
 
 ## Extending the System
 
