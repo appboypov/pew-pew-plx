@@ -50,10 +50,10 @@ Skip proposal for:
 Track these steps as TODOs and complete them one by one.
 1. **Read proposal.md** - Understand what's being built
 2. **Read design.md** (if exists) - Review technical decisions
-3. **Read task files** - Get implementation checklist from \`tasks/\` directory
-4. **Implement tasks sequentially** - Complete task files in order (001-*, 002-*, etc.)
-5. **Confirm completion** - Ensure every item in each task file is finished before updating statuses
-6. **Update checklist** - After all work is done, set every task to \`- [x]\` so the list reflects reality
+3. **Get next task** - Run \`openspec get task\` to retrieve the next task (auto-transitions to in-progress)
+4. **Implement task** - Work through the Implementation Checklist, marking items as you complete them
+5. **Complete task** - Run \`openspec get task\` (auto-completes if all items checked) or \`openspec complete task --id <id>\`
+6. **Repeat** - Continue until all tasks are done
 7. **Approval gate** - Do not start implementation until the proposal is reviewed and approved
 
 ### Stage 3: Archiving Changes
@@ -76,7 +76,7 @@ After deployment, create separate PR to:
 - Always check if capability already exists
 - Prefer modifying existing specs over creating duplicates
 - Use \`openspec show [spec]\` to review current state
-- If request is ambiguous, ask 1–2 clarifying questions before scaffolding
+- If request is ambiguous, gather 1–2 clarifications (using your question tool if available) before scaffolding
 
 ### Search Guidance
 - Enumerate specs: \`openspec spec list --long\` (or \`--json\` for scripts)
@@ -157,6 +157,14 @@ openspec get change --id <change-id>       # Retrieve change by ID
 openspec get spec --id <spec-id>           # Retrieve spec by ID
 openspec get tasks                         # List all open tasks
 openspec get tasks --id <change-id>        # List tasks for specific change
+
+# Complete tasks and changes
+openspec complete task --id <task-id>      # Mark task as done, check Implementation Checklist items
+openspec complete change --id <change-id>  # Complete all tasks in a change
+
+# Undo task/change completion
+openspec undo task --id <task-id>          # Revert task to to-do, uncheck Implementation Checklist items
+openspec undo change --id <change-id>      # Revert all tasks in a change to to-do
 \`\`\`
 
 ### Command Flags
@@ -263,6 +271,10 @@ Each task file uses format \`NNN-<kebab-case-name>.md\` (e.g., \`001-implement-c
 
 Example \`tasks/001-implement-feature.md\`:
 \`\`\`markdown
+---
+status: to-do
+---
+
 # Task: Implement feature
 
 ## End Goal
@@ -418,7 +430,7 @@ openspec list
 CHANGE=add-two-factor-auth
 mkdir -p openspec/changes/$CHANGE/{specs/auth,tasks}
 printf "## Why\\n...\\n\\n## What Changes\\n- ...\\n\\n## Impact\\n- ...\\n" > openspec/changes/$CHANGE/proposal.md
-printf "# Task: Implement feature\\n\\n## End Goal\\n...\\n\\n## Implementation Checklist\\n- [ ] 1.1 ...\\n" > openspec/changes/$CHANGE/tasks/001-implement.md
+printf "---\\nstatus: to-do\\n---\\n\\n# Task: Implement feature\\n\\n## End Goal\\n...\\n\\n## Implementation Checklist\\n- [ ] 1.1 ...\\n" > openspec/changes/$CHANGE/tasks/001-implement.md
 
 # 3) Add deltas (example)
 cat > openspec/changes/$CHANGE/specs/auth/spec.md << 'EOF'
@@ -523,7 +535,7 @@ Only add complexity with:
 1. Read ARCHITECTURE.md first
 2. Check related specs
 3. Review recent archives
-4. Ask for clarification
+4. Request clarification (use your question tool if available)
 
 ## Quick Reference
 
