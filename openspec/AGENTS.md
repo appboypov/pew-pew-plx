@@ -148,8 +148,8 @@ openspec show [change] --json --deltas-only
 openspec validate [change] --strict
 
 # Retrieve tasks and items
-openspec get task                          # Get next task from highest-priority change
-openspec get task --id <task-id>           # Get specific task by ID
+openspec get task                          # Get next task (auto-transitions to-do → in-progress)
+openspec get task --id <task-id>           # Get specific task by ID (auto-transitions to-do → in-progress)
 openspec get task --did-complete-previous  # Complete current task and get next
 openspec get task --constraints            # Show only Constraints section
 openspec get task --acceptance-criteria    # Show only Acceptance Criteria section
@@ -157,6 +157,14 @@ openspec get change --id <change-id>       # Retrieve change by ID
 openspec get spec --id <spec-id>           # Retrieve spec by ID
 openspec get tasks                         # List all open tasks
 openspec get tasks --id <change-id>        # List tasks for specific change
+
+# Complete tasks and changes
+openspec complete task --id <task-id>      # Mark task as done, check Implementation Checklist items
+openspec complete change --id <change-id>  # Complete all tasks in a change
+
+# Undo task/change completion
+openspec undo task --id <task-id>          # Revert task to to-do, uncheck Implementation Checklist items
+openspec undo change --id <change-id>      # Revert all tasks in a change to to-do
 ```
 
 ### Command Flags

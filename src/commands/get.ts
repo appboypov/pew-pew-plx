@@ -60,6 +60,7 @@ interface JsonOutput {
   };
   completedTask?: CompletedTaskInfo;
   autoCompletedTask?: { name: string };
+  transitionedToInProgress?: boolean;
   warning?: string;
 }
 
@@ -200,9 +201,19 @@ export class GetCommand {
       return;
     }
 
-    // Read task content
+    // Read task content and check status
     let taskContent = await fs.readFile(nextTask.filepath, 'utf-8');
-    const taskStatus = parseStatus(taskContent);
+    let taskStatus = parseStatus(taskContent);
+    let transitionedToInProgress = false;
+
+    // Auto-transition to-do tasks to in-progress when retrieved
+    if (taskStatus === 'to-do') {
+      await setTaskStatus(nextTask.filepath, 'in-progress');
+      taskStatus = 'in-progress';
+      transitionedToInProgress = true;
+      // Re-read content after status change
+      taskContent = await fs.readFile(nextTask.filepath, 'utf-8');
+    }
 
     // Apply content filtering if requested
     taskContent = this.applyContentFiltering(taskContent, options);
@@ -235,6 +246,10 @@ export class GetCommand {
         output.autoCompletedTask = autoCompletedTaskInfo;
       }
 
+      if (transitionedToInProgress) {
+        output.transitionedToInProgress = true;
+      }
+
       if (warning) {
         output.warning = warning;
       }
@@ -248,6 +263,10 @@ export class GetCommand {
 
       if (autoCompletedTaskInfo) {
         console.log(chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.name}\n`));
+      }
+
+      if (transitionedToInProgress) {
+        console.log(chalk.blue(`→ Transitioned to in-progress: ${nextTask.name}`));
       }
 
       if (warning) {
@@ -282,13 +301,26 @@ export class GetCommand {
     }
 
     const { task, content, changeId } = result;
-    const taskStatus = parseStatus(content);
+    let taskStatus = parseStatus(content);
+    let transitionedToInProgress = false;
+
+    // Auto-transition to-do tasks to in-progress when retrieved
+    if (taskStatus === 'to-do') {
+      await setTaskStatus(task.filepath, 'in-progress');
+      taskStatus = 'in-progress';
+      transitionedToInProgress = true;
+    }
+
+    // Re-read content after potential status change
+    const updatedContent = transitionedToInProgress
+      ? await fs.readFile(task.filepath, 'utf-8')
+      : content;
 
     // Apply content filtering if requested
-    const filteredContent = this.applyContentFiltering(content, options);
+    const filteredContent = this.applyContentFiltering(updatedContent, options);
 
     if (options.json) {
-      console.log(JSON.stringify({
+      const output: any = {
         changeId,
         task: {
           filename: task.filename,
@@ -298,8 +330,15 @@ export class GetCommand {
           status: taskStatus,
         },
         taskContent: filteredContent,
-      }, null, 2));
+      };
+      if (transitionedToInProgress) {
+        output.transitionedToInProgress = true;
+      }
+      console.log(JSON.stringify(output, null, 2));
     } else {
+      if (transitionedToInProgress) {
+        console.log(chalk.blue(`\n→ Transitioned to in-progress: ${task.name}`));
+      }
       console.log(
         chalk.bold.cyan(`\n═══ Task ${task.sequence}: ${task.name} ═══\n`)
       );

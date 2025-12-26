@@ -164,3 +164,80 @@ export async function completeTaskFully(filePath: string): Promise<string[]> {
 
   return completedItems;
 }
+
+/**
+ * Marks all checked checkboxes in the Implementation Checklist as uncomplete.
+ * Does NOT modify checkboxes under ## Constraints or ## Acceptance Criteria.
+ * Handles both [x] and [X] checkbox patterns.
+ */
+export function uncompleteImplementationChecklist(
+  content: string
+): CheckboxCompletionResult {
+  const normalized = normalizeContent(content);
+  const lines = normalized.split('\n');
+  const completedItems: string[] = [];
+  let inImplementationChecklist = false;
+  let inExcludedSection = false;
+
+  const updatedLines = lines.map((line) => {
+    // Check for section headers
+    if (line.match(/^##\s+Implementation\s+Checklist\s*$/i)) {
+      inImplementationChecklist = true;
+      inExcludedSection = false;
+      return line;
+    }
+
+    if (
+      line.match(/^##\s+Constraints\s*$/i) ||
+      line.match(/^##\s+Acceptance\s+Criteria\s*$/i)
+    ) {
+      inExcludedSection = true;
+      inImplementationChecklist = false;
+      return line;
+    }
+
+    // Any other ## header exits both sections
+    if (line.match(/^##\s+/)) {
+      inImplementationChecklist = false;
+      inExcludedSection = false;
+      return line;
+    }
+
+    // Only process checkboxes in Implementation Checklist, not in excluded sections
+    if (inImplementationChecklist && !inExcludedSection) {
+      const checkedMatch = line.match(/^(\s*[-*]\s+)\[[xX]\](.*)$/);
+      if (checkedMatch) {
+        const prefix = checkedMatch[1];
+        const text = checkedMatch[2].trim();
+        completedItems.push(text);
+        return `${prefix}[ ]${checkedMatch[2]}`;
+      }
+    }
+
+    return line;
+  });
+
+  return {
+    updatedContent: updatedLines.join('\n'),
+    completedItems,
+  };
+}
+
+/**
+ * Undoes a task: updates status to 'to-do' and marks all Implementation Checklist items uncomplete.
+ * Returns list of checkbox items that were unchecked.
+ */
+export async function undoTaskFully(filePath: string): Promise<string[]> {
+  const content = await fs.readFile(filePath, 'utf-8');
+
+  // First uncomplete the checkboxes
+  const { updatedContent, completedItems } =
+    uncompleteImplementationChecklist(content);
+
+  // Then update the status
+  const finalContent = updateStatus(updatedContent, 'to-do');
+
+  await fs.writeFile(filePath, finalContent, 'utf-8');
+
+  return completedItems;
+}

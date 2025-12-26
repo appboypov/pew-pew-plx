@@ -15,6 +15,8 @@ import { ShowCommand } from '../commands/show.js';
 import { CompletionCommand } from '../commands/completion.js';
 import { registerConfigCommand } from '../commands/config.js';
 import { GetCommand } from '../commands/get.js';
+import { CompleteCommand } from '../commands/complete.js';
+import { UndoCommand } from '../commands/undo.js';
 
 // Import command name detection utility
 import { commandName } from '../utils/command-name.js';
@@ -385,6 +387,80 @@ getCmd
     try {
       const getCommand = new GetCommand();
       await getCommand.tasks(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Complete command with subcommands
+const completeCmd = program
+  .command('complete')
+  .description('Mark tasks or changes as complete');
+
+completeCmd
+  .command('task')
+  .description('Mark a task as complete')
+  .requiredOption('--id <id>', 'Task ID to complete')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const completeCommand = new CompleteCommand();
+      await completeCommand.task(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+completeCmd
+  .command('change')
+  .description('Mark all tasks in a change as complete')
+  .requiredOption('--id <id>', 'Change ID to complete')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const completeCommand = new CompleteCommand();
+      await completeCommand.change(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Undo command with subcommands
+const undoCmd = program
+  .command('undo')
+  .description('Revert tasks or changes to to-do status');
+
+undoCmd
+  .command('task')
+  .description('Revert a task to to-do status')
+  .requiredOption('--id <id>', 'Task ID to undo')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const undoCommand = new UndoCommand();
+      await undoCommand.task(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+undoCmd
+  .command('change')
+  .description('Revert all tasks in a change to to-do status')
+  .requiredOption('--id <id>', 'Change ID to undo')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const undoCommand = new UndoCommand();
+      await undoCommand.change(options);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);
