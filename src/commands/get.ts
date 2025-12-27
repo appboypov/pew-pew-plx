@@ -15,6 +15,7 @@ import {
 import { TaskFileInfo, countTasksFromContent } from '../utils/task-progress.js';
 import { ItemRetrievalService } from '../services/item-retrieval.js';
 import { ContentFilterService } from '../services/content-filter.js';
+import { getTaskId } from '../services/task-id.js';
 
 interface TaskOptions {
   id?: string;
@@ -40,17 +41,17 @@ interface TasksOptions {
 }
 
 interface CompletedTaskInfo {
-  name: string;
+  id: string;
   completedItems: string[];
 }
 
 interface JsonOutput {
   changeId: string;
   task: {
+    id: string;
     filename: string;
     filepath: string;
     sequence: number;
-    name: string;
     status: TaskStatus;
   } | null;
   taskContent: string | null;
@@ -59,7 +60,7 @@ interface JsonOutput {
     design?: string;
   };
   completedTask?: CompletedTaskInfo;
-  autoCompletedTask?: { name: string };
+  autoCompletedTask?: { id: string };
   transitionedToInProgress?: boolean;
   warning?: string;
 }
@@ -114,7 +115,7 @@ export class GetCommand {
     let warning: string | undefined;
     let nextTask: TaskFileInfo | null = prioritizedChange.nextTask;
     let completedTaskInfo: CompletedTaskInfo | undefined;
-    let autoCompletedTaskInfo: { name: string } | undefined;
+    let autoCompletedTaskInfo: { id: string } | undefined;
 
     // Check for auto-completion of in-progress task
     if (prioritizedChange.inProgressTask) {
@@ -128,7 +129,9 @@ export class GetCommand {
       if (progress.total > 0 && progress.completed === progress.total) {
         // Mark in-progress task as done (checkboxes already checked)
         await setTaskStatus(prioritizedChange.inProgressTask.filepath, 'done');
-        autoCompletedTaskInfo = { name: prioritizedChange.inProgressTask.name };
+        autoCompletedTaskInfo = {
+          id: getTaskId(prioritizedChange.inProgressTask),
+        };
 
         // Find and mark next to-do task as in-progress
         nextTask = await this.findNextTodoTask(prioritizedChange);
@@ -146,7 +149,7 @@ export class GetCommand {
           prioritizedChange.inProgressTask.filepath
         );
         completedTaskInfo = {
-          name: prioritizedChange.inProgressTask.name,
+          id: getTaskId(prioritizedChange.inProgressTask),
           completedItems,
         };
 
@@ -201,7 +204,7 @@ export class GetCommand {
             this.printCompletedTaskInfo(completedTaskInfo);
           }
           if (autoCompletedTaskInfo) {
-            console.log(chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.name}\n`));
+            console.log(chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.id}\n`));
           }
           if (warning) {
             ora().warn(warning);
@@ -233,10 +236,10 @@ export class GetCommand {
       const output: JsonOutput = {
         changeId: prioritizedChange.id,
         task: {
+          id: getTaskId(nextTask),
           filename: nextTask.filename,
           filepath: nextTask.filepath,
           sequence: nextTask.sequence,
-          name: nextTask.name,
           status: taskStatus,
         },
         taskContent,
@@ -273,11 +276,11 @@ export class GetCommand {
       }
 
       if (autoCompletedTaskInfo) {
-        console.log(chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.name}\n`));
+        console.log(chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.id}\n`));
       }
 
       if (transitionedToInProgress) {
-        console.log(chalk.blue(`→ Transitioned to in-progress: ${nextTask.name}`));
+        console.log(chalk.blue(`→ Transitioned to in-progress: ${getTaskId(nextTask)}`));
       }
 
       if (warning) {
@@ -292,7 +295,7 @@ export class GetCommand {
 
       // Print task header
       console.log(
-        chalk.bold.cyan(`\n═══ Task ${nextTask.sequence}: ${nextTask.name} ═══\n`)
+        chalk.bold.cyan(`\n═══ Task ${nextTask.sequence}: ${getTaskId(nextTask)} ═══\n`)
       );
       console.log(taskContent);
     }
@@ -334,10 +337,10 @@ export class GetCommand {
       const output: any = {
         changeId,
         task: {
+          id: getTaskId(task),
           filename: task.filename,
           filepath: task.filepath,
           sequence: task.sequence,
-          name: task.name,
           status: taskStatus,
         },
         taskContent: filteredContent,
@@ -348,10 +351,10 @@ export class GetCommand {
       console.log(JSON.stringify(output, null, 2));
     } else {
       if (transitionedToInProgress) {
-        console.log(chalk.blue(`\n→ Transitioned to in-progress: ${task.name}`));
+        console.log(chalk.blue(`\n→ Transitioned to in-progress: ${getTaskId(task)}`));
       }
       console.log(
-        chalk.bold.cyan(`\n═══ Task ${task.sequence}: ${task.name} ═══\n`)
+        chalk.bold.cyan(`\n═══ Task ${task.sequence}: ${getTaskId(task)} ═══\n`)
       );
       console.log(filteredContent);
     }
@@ -376,7 +379,7 @@ export class GetCommand {
   }
 
   private printCompletedTaskInfo(info: CompletedTaskInfo): void {
-    console.log(chalk.green(`\n✓ Completed task: ${info.name}`));
+    console.log(chalk.green(`\n✓ Completed task: ${info.id}`));
     if (info.completedItems.length > 0) {
       console.log(chalk.dim('  Marked complete:'));
       for (const item of info.completedItems) {
@@ -451,9 +454,9 @@ export class GetCommand {
         proposal,
         design,
         tasks: tasks.map(t => ({
+          id: getTaskId(t),
           filename: t.filename,
           sequence: t.sequence,
-          name: t.name,
         })),
       }, null, 2));
     } else {
@@ -468,7 +471,7 @@ export class GetCommand {
       if (tasks.length > 0) {
         console.log(chalk.bold.blue(`\n═══ Tasks ═══\n`));
         for (const task of tasks) {
-          console.log(`  ${task.sequence}. ${task.name}`);
+          console.log(`  ${task.sequence}. ${getTaskId(task)}`);
         }
       }
     }
@@ -518,8 +521,7 @@ export class GetCommand {
           const content = await fs.readFile(task.filepath, 'utf-8');
           const status = parseStatus(content);
           taskData.push({
-            id: `${options.id}/${task.name}`,
-            name: task.name,
+            id: getTaskId(task),
             status,
             changeId: options.id,
           });
@@ -546,7 +548,6 @@ export class GetCommand {
         console.log(JSON.stringify({
           tasks: openTasks.map(t => ({
             id: t.taskId,
-            name: t.task.name,
             status: t.status,
             changeId: t.changeId,
           })),
@@ -563,21 +564,19 @@ export class GetCommand {
     console.log(
       chalk.dim('  ') +
       chalk.bold.white('ID'.padEnd(30)) +
-      chalk.bold.white('Name'.padEnd(30)) +
       chalk.bold.white('Status')
     );
-    console.log(chalk.dim('  ' + '─'.repeat(70)));
+    console.log(chalk.dim('  ' + '─'.repeat(45)));
 
     for (const task of tasks) {
       const content = await fs.readFile(task.filepath, 'utf-8');
       const status = parseStatus(content);
-      const taskId = `${changeId}/${task.name}`;
+      const taskId = task.filename.replace('.md', '');
       const statusColor = status === 'in-progress' ? chalk.yellow : status === 'done' ? chalk.green : chalk.gray;
 
       console.log(
         chalk.dim('  ') +
         chalk.white(taskId.padEnd(30)) +
-        chalk.white(task.name.padEnd(30)) +
         statusColor(status)
       );
     }
@@ -587,20 +586,18 @@ export class GetCommand {
     // Header
     console.log(
       chalk.dim('  ') +
-      chalk.bold.white('ID'.padEnd(35)) +
-      chalk.bold.white('Name'.padEnd(25)) +
+      chalk.bold.white('ID'.padEnd(50)) +
       chalk.bold.white('Status'.padEnd(15)) +
       chalk.bold.white('Change')
     );
-    console.log(chalk.dim('  ' + '─'.repeat(85)));
+    console.log(chalk.dim('  ' + '─'.repeat(80)));
 
-    for (const { taskId, task, status, changeId } of tasks) {
+    for (const { taskId, status, changeId } of tasks) {
       const statusColor = status === 'in-progress' ? chalk.yellow : chalk.gray;
 
       console.log(
         chalk.dim('  ') +
-        chalk.white(taskId.padEnd(35)) +
-        chalk.white(task.name.padEnd(25)) +
+        chalk.white(taskId.padEnd(50)) +
         statusColor(status.padEnd(15)) +
         chalk.blue(changeId)
       );

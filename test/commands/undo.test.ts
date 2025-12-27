@@ -286,7 +286,7 @@ status: done
       const json = JSON.parse(output);
 
       expect(json.undoneTasks).toHaveLength(1);
-      expect(json.skippedTasks).toContain('todo');
+      expect(json.skippedTasks).toContain('001-todo');
     } finally {
       process.chdir(originalCwd);
     }
@@ -379,7 +379,7 @@ status: done
       );
       const json = JSON.parse(output);
 
-      expect(json.undoneTasks[0].taskId).toBe('test-change/task');
+      expect(json.undoneTasks[0].taskId).toBe('001-task');
       expect(json.undoneTasks[0].name).toBe('task');
       expect(json.undoneTasks[0].previousStatus).toBe('done');
       expect(json.undoneTasks[0].uncheckedItems).toContain('Checked item');

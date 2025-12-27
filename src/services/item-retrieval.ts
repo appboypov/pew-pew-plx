@@ -11,6 +11,7 @@ import {
   TaskFileInfo,
   TASKS_DIRECTORY_NAME,
 } from '../utils/task-progress.js';
+import { getTaskIdFromFilename } from './task-id.js';
 
 export interface TaskWithContext {
   task: TaskFileInfo;
@@ -226,7 +227,7 @@ export class ItemRetrievalService {
               };
 
               openTasks.push({
-                taskId: `${changeId}/${parsed.name}`,
+                taskId: getTaskIdFromFilename(filename),
                 changeId,
                 task,
                 status,

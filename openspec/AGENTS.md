@@ -51,9 +51,9 @@ Track these steps as TODOs and complete them one by one.
 1. **Read proposal.md** - Understand what's being built
 2. **Read design.md** (if exists) - Review technical decisions
 3. **Get next task** - Run `openspec get task` to retrieve the next task (auto-transitions to in-progress)
-4. **Implement task** - Work through the Implementation Checklist, marking items as you complete them
-5. **Complete task** - Run `openspec get task` (auto-completes if all items checked) or `openspec complete task --id <id>`
-6. **Repeat** - Continue until all tasks are done
+4. **Implement task** - Work through the Implementation Checklist
+5. **Complete task** - Run `openspec complete task --id <id>` to mark the task as done
+6. **Stop and await user confirmation** - Do not proceed to the next task until the user requests it
 7. **Approval gate** - Do not start implementation until the proposal is reviewed and approved
 
 ### Stage 3: Archiving Changes
