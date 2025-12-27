@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { parseStatus, completeTaskFully, TaskStatus } from '../utils/task-status.js';
 import { ItemRetrievalService } from '../services/item-retrieval.js';
+import { getTaskId } from '../services/task-id.js';
 
 interface TaskOptions {
   id: string;
@@ -47,28 +48,30 @@ export class CompleteCommand {
     if (previousStatus === 'done') {
       if (options.json) {
         console.log(JSON.stringify({
-          taskId: options.id,
+          taskId: getTaskId(task),
           changeId,
           warning: 'Task already complete',
         }));
       } else {
-        ora().warn(`Task already complete: ${task.name}`);
+        ora().warn(`Task already complete: ${getTaskId(task)}`);
       }
       return;
     }
 
     const completedItems = await completeTaskFully(task.filepath);
 
+    const taskId = getTaskId(task);
+
     if (options.json) {
       console.log(JSON.stringify({
-        taskId: options.id,
+        taskId,
         changeId,
         previousStatus,
         newStatus: 'done',
         completedItems,
       }, null, 2));
     } else {
-      console.log(chalk.green(`\n✓ Completed task: ${task.name}`));
+      console.log(chalk.green(`\n✓ Completed task: ${taskId}`));
       if (completedItems.length > 0) {
         console.log(chalk.dim('  Marked complete:'));
         for (const item of completedItems) {
@@ -101,13 +104,13 @@ export class CompleteCommand {
       const status = parseStatus(content);
 
       if (status === 'done') {
-        skippedTasks.push(task.name);
+        skippedTasks.push(getTaskId(task));
         continue;
       }
 
       const completedItems = await completeTaskFully(task.filepath);
       completedTasks.push({
-        taskId: `${options.id}/${task.name}`,
+        taskId: getTaskId(task),
         name: task.name,
         previousStatus: status,
         completedItems,
@@ -124,14 +127,14 @@ export class CompleteCommand {
       if (completedTasks.length > 0) {
         console.log(chalk.green(`\n✓ Completed ${completedTasks.length} task(s) in change: ${options.id}`));
         for (const task of completedTasks) {
-          console.log(chalk.dim(`    • ${task.name}`));
+          console.log(chalk.dim(`    • ${task.taskId}`));
         }
       }
 
       if (skippedTasks.length > 0) {
         console.log(chalk.yellow(`\n⚠ Skipped ${skippedTasks.length} already-complete task(s):`));
-        for (const name of skippedTasks) {
-          console.log(chalk.dim(`    • ${name}`));
+        for (const taskId of skippedTasks) {
+          console.log(chalk.dim(`    • ${taskId}`));
         }
       }
 

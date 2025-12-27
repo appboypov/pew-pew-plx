@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { parseStatus, undoTaskFully, TaskStatus } from '../utils/task-status.js';
 import { ItemRetrievalService } from '../services/item-retrieval.js';
+import { getTaskId } from '../services/task-id.js';
 
 interface TaskOptions {
   id: string;
@@ -47,28 +48,30 @@ export class UndoCommand {
     if (previousStatus === 'to-do') {
       if (options.json) {
         console.log(JSON.stringify({
-          taskId: options.id,
+          taskId: getTaskId(task),
           changeId,
           warning: 'Task already in to-do state',
         }));
       } else {
-        ora().warn(`Task already in to-do state: ${task.name}`);
+        ora().warn(`Task already in to-do state: ${getTaskId(task)}`);
       }
       return;
     }
 
     const uncheckedItems = await undoTaskFully(task.filepath);
 
+    const taskId = getTaskId(task);
+
     if (options.json) {
       console.log(JSON.stringify({
-        taskId: options.id,
+        taskId,
         changeId,
         previousStatus,
         newStatus: 'to-do',
         uncheckedItems,
       }, null, 2));
     } else {
-      console.log(chalk.yellow(`\n↩ Reverted task: ${task.name}`));
+      console.log(chalk.yellow(`\n↩ Reverted task: ${taskId}`));
       if (uncheckedItems.length > 0) {
         console.log(chalk.dim('  Unchecked items:'));
         for (const item of uncheckedItems) {
@@ -101,13 +104,13 @@ export class UndoCommand {
       const status = parseStatus(content);
 
       if (status === 'to-do') {
-        skippedTasks.push(task.name);
+        skippedTasks.push(getTaskId(task));
         continue;
       }
 
       const uncheckedItems = await undoTaskFully(task.filepath);
       undoneTasks.push({
-        taskId: `${options.id}/${task.name}`,
+        taskId: getTaskId(task),
         name: task.name,
         previousStatus: status,
         uncheckedItems,
@@ -124,14 +127,14 @@ export class UndoCommand {
       if (undoneTasks.length > 0) {
         console.log(chalk.yellow(`\n↩ Reverted ${undoneTasks.length} task(s) in change: ${options.id}`));
         for (const task of undoneTasks) {
-          console.log(chalk.dim(`    • ${task.name}`));
+          console.log(chalk.dim(`    • ${task.taskId}`));
         }
       }
 
       if (skippedTasks.length > 0) {
         console.log(chalk.gray(`\n⚠ Skipped ${skippedTasks.length} already to-do task(s):`));
-        for (const name of skippedTasks) {
-          console.log(chalk.dim(`    • ${name}`));
+        for (const taskId of skippedTasks) {
+          console.log(chalk.dim(`    • ${taskId}`));
         }
       }
 

@@ -194,8 +194,8 @@ status: in-progress
       expect(result).toHaveLength(2);
 
       const taskIds = result.map((t) => t.taskId);
-      expect(taskIds).toContain('change-a/todo');
-      expect(taskIds).toContain('change-b/wip');
+      expect(taskIds).toContain('002-todo');
+      expect(taskIds).toContain('001-wip');
     });
 
     it('should return empty array when no open tasks exist', async () => {

@@ -286,7 +286,7 @@ status: to-do
       const json = JSON.parse(output);
 
       expect(json.completedTasks).toHaveLength(1);
-      expect(json.skippedTasks).toContain('done');
+      expect(json.skippedTasks).toContain('001-done');
     } finally {
       process.chdir(originalCwd);
     }

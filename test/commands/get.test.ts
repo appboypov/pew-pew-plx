@@ -66,7 +66,7 @@ status: to-do
         expect(output).toContain('Proposal: test-change');
         expect(output).toContain('Design');
         expect(output).toContain('Test design content');
-        expect(output).toContain('Task 1: first-task');
+        expect(output).toContain('Task 1: 001-first-task');
         expect(output).toContain('Do something');
       } finally {
         process.chdir(originalCwd);
@@ -142,7 +142,7 @@ status: in-progress
         expect(json.task).toBeDefined();
         expect(json.task.filename).toBe('001-first-task.md');
         expect(json.task.sequence).toBe(1);
-        expect(json.task.name).toBe('first-task');
+        expect(json.task.id).toBe('001-first-task');
         expect(json.task.status).toBe('in-progress');
         expect(json.taskContent).toContain('First Task');
         expect(json.changeDocuments).toBeDefined();
@@ -211,7 +211,7 @@ status: to-do
         );
 
         // Should show second task
-        expect(output).toContain('Task 2: second-task');
+        expect(output).toContain('Task 2: 002-second-task');
         expect(output).toContain('Do something else');
 
         // Should NOT show proposal (only task with --did-complete-previous)
@@ -265,7 +265,7 @@ status: to-do
           { encoding: 'utf-8' }
         );
         expect(output).toContain('No in-progress task found');
-        expect(output).toContain('Task 1: first-task');
+        expect(output).toContain('Task 1: 001-first-task');
 
         // Verify task is now in-progress
         const taskContent = await fs.readFile(
@@ -391,7 +391,7 @@ status: to-do
         const json = JSON.parse(output);
 
         expect(json.completedTask).toBeDefined();
-        expect(json.completedTask.name).toBe('first-task');
+        expect(json.completedTask.id).toBe('001-first-task');
         expect(json.completedTask.completedItems).toContain('First item');
         expect(json.completedTask.completedItems).toContain('Second item');
       } finally {
@@ -441,7 +441,7 @@ status: to-do
           { encoding: 'utf-8' }
         );
 
-        expect(output).toContain('Completed task: first-task');
+        expect(output).toContain('Completed task: 001-first-task');
         expect(output).toContain('Marked complete:');
         expect(output).toContain('First item');
       } finally {
@@ -498,10 +498,10 @@ status: to-do
         });
 
         // Should show auto-completed message
-        expect(output).toContain('Auto-completed task: first-task');
+        expect(output).toContain('Auto-completed task: 001-first-task');
 
         // Should show second task
-        expect(output).toContain('Task 2: second-task');
+        expect(output).toContain('Task 2: 002-second-task');
         expect(output).toContain('Second item');
 
         // Should NOT show proposal/design (change documents excluded after auto-complete)
@@ -556,7 +556,7 @@ status: in-progress
         });
 
         // Should show the in-progress task (not auto-completed)
-        expect(output).toContain('Task 1: first-task');
+        expect(output).toContain('Task 1: 001-first-task');
         expect(output).toContain('Not done item');
 
         // Should NOT show auto-completed message
@@ -620,7 +620,7 @@ status: to-do
         });
 
         // Should show the in-progress task (first-task has no checkboxes, so not auto-completed)
-        expect(output).toContain('Task 1: first-task');
+        expect(output).toContain('Task 1: 001-first-task');
 
         // Should NOT show auto-completed message
         expect(output).not.toContain('Auto-completed');
@@ -693,10 +693,10 @@ status: to-do
         });
 
         // Should show auto-completed message
-        expect(output).toContain('Auto-completed task: second-task');
+        expect(output).toContain('Auto-completed task: 002-second-task');
 
         // Should show third task (the next task after auto-completion)
-        expect(output).toContain('Task 3: third-task');
+        expect(output).toContain('Task 3: 003-third-task');
 
         // Verify second task is now done
         const secondTaskContent = await fs.readFile(
@@ -760,11 +760,11 @@ status: to-do
 
         // Should include autoCompletedTask
         expect(json.autoCompletedTask).toBeDefined();
-        expect(json.autoCompletedTask.name).toBe('first-task');
+        expect(json.autoCompletedTask.id).toBe('001-first-task');
 
         // Should have task info for second task
         expect(json.task).toBeDefined();
-        expect(json.task.name).toBe('second-task');
+        expect(json.task.id).toBe('002-second-task');
 
         // Should NOT include changeDocuments
         expect(json.changeDocuments).toBeUndefined();
@@ -858,7 +858,7 @@ status: in-progress
         });
 
         // Should show auto-completed message
-        expect(output).toContain('Auto-completed task: only-task');
+        expect(output).toContain('Auto-completed task: 001-only-task');
 
         // Should show all tasks complete
         expect(output).toContain('All tasks complete');
@@ -1078,7 +1078,7 @@ status: to-do
           `node ${openspecBin} get task --id 002-second-task`,
           { encoding: 'utf-8' }
         );
-        expect(output).toContain('Task 2: second-task');
+        expect(output).toContain('Task 2: 002-second-task');
         expect(output).toContain('Second item');
         expect(output).not.toContain('First item');
       } finally {
@@ -1144,7 +1144,7 @@ status: in-progress
         );
         const json = JSON.parse(output);
         expect(json.changeId).toBe('test-change');
-        expect(json.task.name).toBe('my-task');
+        expect(json.task.id).toBe('001-my-task');
       } finally {
         process.chdir(originalCwd);
       }
@@ -1737,9 +1737,9 @@ status: to-do
       });
       const json = JSON.parse(output);
       expect(json.tasks).toHaveLength(3);
-      expect(json.tasks.map((t: { name: string }) => t.name)).toContain('task-a');
-      expect(json.tasks.map((t: { name: string }) => t.name)).toContain('task-b');
-      expect(json.tasks.map((t: { name: string }) => t.name)).toContain('task-c');
+      expect(json.tasks.map((t: { id: string }) => t.id)).toContain('001-task-a');
+      expect(json.tasks.map((t: { id: string }) => t.id)).toContain('002-task-b');
+      expect(json.tasks.map((t: { id: string }) => t.id)).toContain('001-task-c');
     } finally {
       process.chdir(originalCwd);
     }
@@ -1844,5 +1844,206 @@ status: in-progress
     } finally {
       process.chdir(originalCwd);
     }
+  });
+
+  describe('task ID format', () => {
+    it('includes full filename (with sequence prefix) as ID in JSON output', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-first-task.md'),
+        `---
+status: in-progress
+---
+# First Task`
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '002-second-task.md'),
+        `---
+status: to-do
+---
+# Second Task`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(`node ${openspecBin} get tasks --json`, {
+          encoding: 'utf-8',
+        });
+        const json = JSON.parse(output);
+
+        // IDs should be full filenames without .md (e.g., "001-first-task")
+        const ids = json.tasks.map((t: { id: string }) => t.id);
+        expect(ids).toContain('001-first-task');
+        expect(ids).toContain('002-second-task');
+
+        // IDs should NOT contain change ID prefix
+        expect(ids.every((id: string) => !id.includes('/'))).toBe(true);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('displays full filename as ID in text output table', async () => {
+      const changeDir = path.join(changesDir, 'my-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: My\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '003-my-task.md'),
+        `---
+status: to-do
+---
+# My Task`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(`node ${openspecBin} get tasks`, {
+          encoding: 'utf-8',
+        });
+
+        // Should display "003-my-task" (full filename without .md)
+        expect(output).toContain('003-my-task');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('task ID from get tasks can be used with complete command', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-completable-task.md'),
+        `---
+status: in-progress
+---
+# Completable Task
+
+## Implementation Checklist
+- [ ] Item one
+- [ ] Item two`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+
+        // Get the task ID from get tasks
+        const listOutput = execSync(`node ${openspecBin} get tasks --json`, {
+          encoding: 'utf-8',
+        });
+        const json = JSON.parse(listOutput);
+        const taskId = json.tasks[0].id;
+
+        // The ID should be usable with complete command
+        const completeOutput = execSync(
+          `node ${openspecBin} complete task --id ${taskId} --json`,
+          { encoding: 'utf-8' }
+        );
+        const completeJson = JSON.parse(completeOutput);
+        expect(completeJson.newStatus).toBe('done');
+        expect(completeJson.taskId).toBe('001-completable-task');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('task ID from get tasks can be used with undo command', async () => {
+      const changeDir = path.join(changesDir, 'test-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-undoable-task.md'),
+        `---
+status: done
+---
+# Undoable Task
+
+## Implementation Checklist
+- [x] Done item`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+
+        // The task ID should work with undo command
+        const undoOutput = execSync(
+          `node ${openspecBin} undo task --id 001-undoable-task --json`,
+          { encoding: 'utf-8' }
+        );
+        const undoJson = JSON.parse(undoOutput);
+        expect(undoJson.newStatus).toBe('to-do');
+        expect(undoJson.taskId).toBe('001-undoable-task');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('includes full filename as ID in tasks list for specific change', async () => {
+      const changeDir = path.join(changesDir, 'specific-change');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(changeDir, 'proposal.md'),
+        '# Change: Specific\n\n## Why\nTest\n\n## What Changes\n- Test'
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '001-task-one.md'),
+        `---
+status: to-do
+---
+# Task One`
+      );
+      await fs.writeFile(
+        path.join(tasksDir, '002-task-two.md'),
+        `---
+status: to-do
+---
+# Task Two`
+      );
+
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(testDir);
+        const output = execSync(
+          `node ${openspecBin} get tasks --id specific-change --json`,
+          { encoding: 'utf-8' }
+        );
+        const json = JSON.parse(output);
+
+        // IDs should be full filenames without .md
+        const ids = json.tasks.map((t: { id: string }) => t.id);
+        expect(ids).toContain('001-task-one');
+        expect(ids).toContain('002-task-two');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
   });
 });
