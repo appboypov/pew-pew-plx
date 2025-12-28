@@ -373,7 +373,7 @@ export class ArchiveCommand {
     }
 
     // Build choices with progress inline to avoid duplicate lists
-    let choices: Array<{ name: string; value: string }> = changeDirs.map(name => ({ name, value: name }));
+    let choices: Array<{ name: string; value: string }>;
     try {
       const progressList: Array<{ id: string; status: string }> = [];
       for (const id of changeDirs) {
@@ -433,7 +433,7 @@ export class ArchiveCommand {
     }
 
     // Build choices with progress inline
-    let choices: Array<{ name: string; value: string }> = reviewDirs.map(name => ({ name, value: name }));
+    let choices: Array<{ name: string; value: string }>;
     try {
       const progressList: Array<{ id: string; status: string }> = [];
       for (const id of reviewDirs) {
