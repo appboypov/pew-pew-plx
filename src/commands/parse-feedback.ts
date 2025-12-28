@@ -1,6 +1,5 @@
 import chalk from 'chalk';
 import ora from 'ora';
-import { input, select } from '@inquirer/prompts';
 import { FeedbackScannerService } from '../services/feedback-scanner.js';
 import { getActiveReviewIds, getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
 import { isInteractive } from '../utils/interactive.js';
@@ -50,6 +49,7 @@ export class ParseFeedbackCommand {
     // If no parent specified, prompt interactively or fail
     if (!parentType || !parentId) {
       if (interactive) {
+        const { select } = await import('@inquirer/prompts');
         const parentTypeChoice = await select<ReviewParent>({
           message: 'What are you reviewing?',
           choices: [
@@ -83,6 +83,7 @@ export class ParseFeedbackCommand {
             choices: specs.map((id) => ({ name: id, value: id })),
           });
         } else {
+          const { input } = await import('@inquirer/prompts');
           parentId = await input({
             message: 'Enter the task ID:',
             validate: (value) => value.trim() ? true : 'Task ID is required',
@@ -107,6 +108,7 @@ export class ParseFeedbackCommand {
     // Prompt for review name if not provided
     if (!reviewName) {
       if (interactive) {
+        const { input } = await import('@inquirer/prompts');
         reviewName = await input({
           message: 'Enter a name for this review:',
           validate: (value) => {

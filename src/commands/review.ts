@@ -2,7 +2,6 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import chalk from 'chalk';
 import ora from 'ora';
-import { select } from '@inquirer/prompts';
 import { getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
 import { isInteractive } from '../utils/interactive.js';
 import { ReviewParent } from '../core/schemas/index.js';
@@ -44,6 +43,7 @@ export class ReviewCommand {
     // If no parent specified, prompt interactively or fail
     if (!parentType || !parentId) {
       if (interactive) {
+        const { select } = await import('@inquirer/prompts');
         const parentTypeChoice = await select<ReviewParent>({
           message: 'What would you like to review?',
           choices: [
