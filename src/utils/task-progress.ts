@@ -27,15 +27,27 @@ export interface ChangeTaskStructure {
 
 /**
  * Counts tasks from markdown content, excluding checkboxes under
- * ## Constraints and ## Acceptance Criteria sections.
+ * ## Constraints and ## Acceptance Criteria sections, and inside code blocks.
  */
 export function countTasksFromContent(content: string): TaskProgress {
   const lines = content.split('\n');
   let total = 0;
   let completed = 0;
   let inExcludedSection = false;
+  let inCodeBlock = false;
 
   for (const line of lines) {
+    // Toggle code block state on fence lines
+    if (line.match(/^```/)) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
+
+    // Skip everything inside code blocks
+    if (inCodeBlock) {
+      continue;
+    }
+
     // Check for section headers
     if (line.match(/^##\s+Constraints\s*$/i) || line.match(/^##\s+Acceptance\s+Criteria\s*$/i)) {
       inExcludedSection = true;

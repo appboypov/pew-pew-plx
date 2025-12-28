@@ -83,6 +83,40 @@ describe('task-progress', () => {
       expect(result.total).toBe(0);
       expect(result.completed).toBe(0);
     });
+
+    it('should ignore checkboxes inside code blocks', () => {
+      const content = `## Implementation Checklist
+- [x] Real task
+
+## Notes
+\`\`\`markdown
+## Review Checklist
+- [ ] This should be ignored
+- [ ] This too
+\`\`\`
+`;
+      const result = countTasksFromContent(content);
+      expect(result.total).toBe(1);
+      expect(result.completed).toBe(1);
+    });
+
+    it('should ignore section headers inside code blocks', () => {
+      const content = `## Constraints
+- [ ] Ignored constraint
+
+## Implementation Checklist
+- [x] Counted task
+
+## Notes
+\`\`\`
+## Implementation Checklist
+- [ ] Fake task inside code block
+\`\`\`
+`;
+      const result = countTasksFromContent(content);
+      expect(result.total).toBe(1);
+      expect(result.completed).toBe(1);
+    });
   });
 
   describe('getTaskStructureForChange', () => {
