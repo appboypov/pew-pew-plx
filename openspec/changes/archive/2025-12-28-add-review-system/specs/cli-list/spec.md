@@ -1,6 +1,6 @@
 # List Command Specification
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Review Listing Mode
 

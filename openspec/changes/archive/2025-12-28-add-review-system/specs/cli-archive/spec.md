@@ -1,6 +1,6 @@
 # CLI Archive Command Specification
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Review Archive Support
 
