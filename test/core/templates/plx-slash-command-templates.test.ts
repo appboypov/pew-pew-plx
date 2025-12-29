@@ -3,24 +3,6 @@ import { getPlxSlashCommandBody, plxSlashCommandBodies, PlxSlashCommandId } from
 
 describe('plx-slash-command-templates', () => {
   describe('getPlxSlashCommandBody', () => {
-    it('returns body for init-architecture command', () => {
-      const body = getPlxSlashCommandBody('init-architecture');
-
-      expect(body).toContain('**Guardrails**');
-      expect(body).toContain('**Steps**');
-      expect(body).toContain('manifest files');
-      expect(body).toContain('ARCHITECTURE.md');
-    });
-
-    it('returns body for update-architecture command', () => {
-      const body = getPlxSlashCommandBody('update-architecture');
-
-      expect(body).toContain('**Guardrails**');
-      expect(body).toContain('**Steps**');
-      expect(body).toContain('existing ARCHITECTURE.md');
-      expect(body).toContain('Preserve user-added content');
-    });
-
     it('returns body for compact command', () => {
       const body = getPlxSlashCommandBody('compact');
 
@@ -34,13 +16,12 @@ describe('plx-slash-command-templates', () => {
   describe('plxSlashCommandBodies', () => {
     it('contains all PLX command IDs', () => {
       const expectedIds: PlxSlashCommandId[] = [
-        'init-architecture',
-        'update-architecture',
         'get-task',
         'compact',
         'review',
         'refine-architecture',
         'refine-review',
+        'refine-release',
         'parse-feedback',
         'prepare-release'
       ];
@@ -49,26 +30,6 @@ describe('plx-slash-command-templates', () => {
         expect(plxSlashCommandBodies[id]).toBeDefined();
         expect(typeof plxSlashCommandBodies[id]).toBe('string');
         expect(plxSlashCommandBodies[id].length).toBeGreaterThan(0);
-      }
-    });
-
-    it('init-architecture contains generic language (no specific frameworks)', () => {
-      const body = plxSlashCommandBodies['init-architecture'];
-
-      expect(body).not.toContain('package.json');
-      expect(body).not.toContain('pubspec.yaml');
-      expect(body).not.toContain('src/');
-
-      expect(body).toContain('manifest files');
-      expect(body).toContain('directory structure');
-    });
-
-    it('architecture commands include guardrails about practical documentation', () => {
-      const architectureCommands: PlxSlashCommandId[] = ['init-architecture', 'update-architecture'];
-      for (const id of architectureCommands) {
-        const body = plxSlashCommandBodies[id];
-        expect(body).toContain('practical, usable documentation');
-        expect(body).toContain('Document patterns and conventions');
       }
     });
 
@@ -96,18 +57,30 @@ describe('plx-slash-command-templates', () => {
       expect(body).toContain('plx parse feedback');
     });
 
+    it('review command references @REVIEW.md', () => {
+      const body = plxSlashCommandBodies['review'];
+      expect(body).toContain('@REVIEW.md');
+    });
+
     it('refine-architecture command includes architecture content', () => {
       const body = plxSlashCommandBodies['refine-architecture'];
 
-      expect(body).toContain('ARCHITECTURE.md');
+      expect(body).toContain('@ARCHITECTURE.md');
       expect(body).toContain('Preserve user content');
     });
 
     it('refine-review command includes review template content', () => {
       const body = plxSlashCommandBodies['refine-review'];
 
-      expect(body).toContain('REVIEW.md');
+      expect(body).toContain('@REVIEW.md');
       expect(body).toContain('Preserve existing guidelines');
+    });
+
+    it('refine-release command includes release template content', () => {
+      const body = plxSlashCommandBodies['refine-release'];
+
+      expect(body).toContain('@RELEASE.md');
+      expect(body).toContain('Preserve existing release configuration');
     });
 
     it('parse-feedback command includes feedback parsing content', () => {
@@ -125,6 +98,14 @@ describe('plx-slash-command-templates', () => {
       expect(body).toContain('changelog');
       expect(body).toContain('readme');
       expect(body).toContain('architecture');
+    });
+
+    it('prepare-release command references documentation files', () => {
+      const body = plxSlashCommandBodies['prepare-release'];
+
+      expect(body).toContain('@README.md');
+      expect(body).toContain('@CHANGELOG.md');
+      expect(body).toContain('@ARCHITECTURE.md');
     });
   });
 });

@@ -2,30 +2,17 @@ import { PlxSlashCommandConfigurator } from './plx-base.js';
 import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
-  'init-architecture': '.opencode/command/plx-init-architecture.md',
-  'update-architecture': '.opencode/command/plx-update-architecture.md',
   'get-task': '.opencode/command/plx-get-task.md',
   'compact': '.opencode/command/plx-compact.md',
   'review': '.opencode/command/plx-review.md',
   'refine-architecture': '.opencode/command/plx-refine-architecture.md',
   'refine-review': '.opencode/command/plx-refine-review.md',
+  'refine-release': '.opencode/command/plx-refine-release.md',
   'parse-feedback': '.opencode/command/plx-parse-feedback.md',
   'prepare-release': '.opencode/command/plx-prepare-release.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
-  'init-architecture': `---
-description: Generate comprehensive ARCHITECTURE.md from codebase analysis.
-argument-hint: (optional context)
----
-
-$ARGUMENTS`,
-  'update-architecture': `---
-description: Refresh ARCHITECTURE.md based on current codebase state.
-argument-hint: (optional context)
----
-
-$ARGUMENTS`,
   'get-task': `---
 description: Select and display the next prioritized task to work on.
 argument-hint: (optional context)
@@ -52,6 +39,12 @@ argument-hint: (optional context)
 $ARGUMENTS`,
   'refine-review': `---
 description: Create or update REVIEW.md.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'refine-release': `---
+description: Create or update RELEASE.md.
 argument-hint: (optional context)
 ---
 

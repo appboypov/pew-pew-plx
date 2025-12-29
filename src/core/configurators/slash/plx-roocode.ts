@@ -2,24 +2,17 @@ import { PlxSlashCommandConfigurator } from './plx-base.js';
 import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
-  'init-architecture': '.roo/commands/plx-init-architecture.md',
-  'update-architecture': '.roo/commands/plx-update-architecture.md',
   'get-task': '.roo/commands/plx-get-task.md',
   'compact': '.roo/commands/plx-compact.md',
   'review': '.roo/commands/plx-review.md',
   'refine-architecture': '.roo/commands/plx-refine-architecture.md',
   'refine-review': '.roo/commands/plx-refine-review.md',
+  'refine-release': '.roo/commands/plx-refine-release.md',
   'parse-feedback': '.roo/commands/plx-parse-feedback.md',
   'prepare-release': '.roo/commands/plx-prepare-release.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
-  'init-architecture': `# PLX: Init Architecture
-
-Generate comprehensive ARCHITECTURE.md from codebase analysis.`,
-  'update-architecture': `# PLX: Update Architecture
-
-Refresh ARCHITECTURE.md based on current codebase state.`,
   'get-task': `# PLX: Get Task
 
 Select and display the next prioritized task to work on.`,
@@ -35,6 +28,9 @@ Create or update ARCHITECTURE.md.`,
   'refine-review': `# PLX: Refine Review
 
 Create or update REVIEW.md.`,
+  'refine-release': `# PLX: Refine Release
+
+Create or update RELEASE.md.`,
   'parse-feedback': `# PLX: Parse Feedback
 
 Parse feedback markers and generate review tasks.`,

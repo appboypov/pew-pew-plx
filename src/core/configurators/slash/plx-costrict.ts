@@ -2,26 +2,17 @@ import { PlxSlashCommandConfigurator } from './plx-base.js';
 import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
-  'init-architecture': '.cospec/plx/commands/plx-init-architecture.md',
-  'update-architecture': '.cospec/plx/commands/plx-update-architecture.md',
   'get-task': '.cospec/plx/commands/plx-get-task.md',
   'compact': '.cospec/plx/commands/plx-compact.md',
   'review': '.cospec/plx/commands/plx-review.md',
   'refine-architecture': '.cospec/plx/commands/plx-refine-architecture.md',
   'refine-review': '.cospec/plx/commands/plx-refine-review.md',
+  'refine-release': '.cospec/plx/commands/plx-refine-release.md',
   'parse-feedback': '.cospec/plx/commands/plx-parse-feedback.md',
   'prepare-release': '.cospec/plx/commands/plx-prepare-release.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
-  'init-architecture': `---
-description: "Generate comprehensive ARCHITECTURE.md from codebase analysis."
-argument-hint: (optional context)
----`,
-  'update-architecture': `---
-description: "Refresh ARCHITECTURE.md based on current codebase state."
-argument-hint: (optional context)
----`,
   'get-task': `---
 description: "Select and display the next prioritized task to work on."
 argument-hint: (optional context)
@@ -40,6 +31,10 @@ argument-hint: (optional context)
 ---`,
   'refine-review': `---
 description: "Create or update REVIEW.md."
+argument-hint: (optional context)
+---`,
+  'refine-release': `---
+description: "Create or update RELEASE.md."
 argument-hint: (optional context)
 ---`,
   'parse-feedback': `---

@@ -2,13 +2,12 @@ import { PlxSlashCommandConfigurator } from './plx-base.js';
 import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
-  'init-architecture': '.kilocode/workflows/plx-init-architecture.md',
-  'update-architecture': '.kilocode/workflows/plx-update-architecture.md',
   'get-task': '.kilocode/workflows/plx-get-task.md',
   'compact': '.kilocode/workflows/plx-compact.md',
   'review': '.kilocode/workflows/plx-review.md',
   'refine-architecture': '.kilocode/workflows/plx-refine-architecture.md',
   'refine-review': '.kilocode/workflows/plx-refine-review.md',
+  'refine-release': '.kilocode/workflows/plx-refine-release.md',
   'parse-feedback': '.kilocode/workflows/plx-parse-feedback.md',
   'prepare-release': '.kilocode/workflows/plx-prepare-release.md'
 };

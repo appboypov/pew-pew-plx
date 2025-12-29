@@ -6,30 +6,17 @@ import { FileSystemUtils } from '../../../utils/file-system.js';
 import { PLX_MARKERS } from '../../config.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
-  'init-architecture': '.codex/prompts/plx-init-architecture.md',
-  'update-architecture': '.codex/prompts/plx-update-architecture.md',
   'get-task': '.codex/prompts/plx-get-task.md',
   'compact': '.codex/prompts/plx-compact.md',
   'review': '.codex/prompts/plx-review.md',
   'refine-architecture': '.codex/prompts/plx-refine-architecture.md',
   'refine-review': '.codex/prompts/plx-refine-review.md',
+  'refine-release': '.codex/prompts/plx-refine-release.md',
   'parse-feedback': '.codex/prompts/plx-parse-feedback.md',
   'prepare-release': '.codex/prompts/plx-prepare-release.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
-  'init-architecture': `---
-description: Generate comprehensive ARCHITECTURE.md from codebase analysis.
-argument-hint: (optional context)
----
-
-$ARGUMENTS`,
-  'update-architecture': `---
-description: Refresh ARCHITECTURE.md based on current codebase state.
-argument-hint: (optional context)
----
-
-$ARGUMENTS`,
   'get-task': `---
 description: Select and display the next prioritized task to work on.
 argument-hint: (optional context)
@@ -56,6 +43,12 @@ argument-hint: (optional context)
 $ARGUMENTS`,
   'refine-review': `---
 description: Create or update REVIEW.md.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'refine-release': `---
+description: Create or update RELEASE.md.
 argument-hint: (optional context)
 ---
 
