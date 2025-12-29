@@ -8,7 +8,7 @@ import { PLX_MARKERS } from "../../config.js";
 // Use POSIX-style paths for consistent logging across platforms.
 const FILE_PATHS: Record<SlashCommandId, string> = {
   proposal: ".codex/prompts/plx-proposal.md",
-  apply: ".codex/prompts/plx-apply.md",
+  implement: ".codex/prompts/plx-implement.md",
   archive: ".codex/prompts/plx-archive.md",
 };
 
@@ -30,7 +30,7 @@ argument-hint: request or feature description
 ---
 
 $ARGUMENTS`,
-      apply: `---
+      implement: `---
 description: Implement an approved PLX change and keep tasks in sync.
 argument-hint: change-id
 ---

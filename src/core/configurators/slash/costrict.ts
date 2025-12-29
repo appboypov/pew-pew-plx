@@ -3,7 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS = {
   proposal: '.cospec/plx/commands/plx-proposal.md',
-  apply: '.cospec/plx/commands/plx-apply.md',
+  implement: '.cospec/plx/commands/plx-implement.md',
   archive: '.cospec/plx/commands/plx-archive.md',
 } as const satisfies Record<SlashCommandId, string>;
 
@@ -12,7 +12,7 @@ const FRONTMATTER = {
 description: "Scaffold a new PLX change and validate strictly."
 argument-hint: feature description or request
 ---`,
-  apply: `---
+  implement: `---
 description: "Implement an approved PLX change and keep tasks in sync."
 argument-hint: change-id
 ---`,

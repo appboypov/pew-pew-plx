@@ -14,13 +14,13 @@ import { SlashCommandId } from '../../templates/index.js';
  */
 const FILE_PATHS: Record<SlashCommandId, string> = {
   proposal: '.qwen/commands/plx-proposal.toml',
-  apply: '.qwen/commands/plx-apply.toml',
+  implement: '.qwen/commands/plx-implement.toml',
   archive: '.qwen/commands/plx-archive.toml'
 };
 
 const DESCRIPTIONS: Record<SlashCommandId, string> = {
   proposal: 'Scaffold a new PLX change and validate strictly.',
-  apply: 'Implement an approved PLX change and keep tasks in sync.',
+  implement: 'Implement an approved PLX change and keep tasks in sync.',
   archive: 'Archive a deployed PLX change and update specs.'
 };
 
@@ -30,7 +30,7 @@ const DESCRIPTIONS: Record<SlashCommandId, string> = {
  *
  * The slash commands include:
  * - /plx-proposal: Create a PLX change proposal
- * - /plx-apply: Apply an approved PLX change
+ * - /plx-implement: Implement an approved PLX change
  * - /plx-archive: Archive a deployed PLX change
  */
 export class QwenSlashCommandConfigurator extends TomlSlashCommandConfigurator {

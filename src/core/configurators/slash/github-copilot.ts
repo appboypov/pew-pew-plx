@@ -3,7 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   proposal: '.github/prompts/plx-proposal.prompt.md',
-  apply: '.github/prompts/plx-apply.prompt.md',
+  implement: '.github/prompts/plx-implement.prompt.md',
   archive: '.github/prompts/plx-archive.prompt.md'
 };
 
@@ -13,7 +13,7 @@ description: Scaffold a new PLX change and validate strictly.
 ---
 
 $ARGUMENTS`,
-  apply: `---
+  implement: `---
 description: Implement an approved PLX change and keep tasks in sync.
 ---
 

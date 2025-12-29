@@ -3,7 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   proposal: '.augment/commands/plx-proposal.md',
-  apply: '.augment/commands/plx-apply.md',
+  implement: '.augment/commands/plx-implement.md',
   archive: '.augment/commands/plx-archive.md'
 };
 
@@ -12,7 +12,7 @@ const FRONTMATTER: Record<SlashCommandId, string> = {
 description: Scaffold a new Pew Pew Plx change and validate strictly.
 argument-hint: feature description or request
 ---`,
-  apply: `---
+  implement: `---
 description: Implement an approved Pew Pew Plx change and keep tasks in sync.
 argument-hint: change-id
 ---`,

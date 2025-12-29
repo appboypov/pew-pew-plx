@@ -150,11 +150,11 @@ Old slash content
   });
 
   it('should refresh existing Qwen slash command files', async () => {
-    const applyPath = path.join(
+    const implementPath = path.join(
       testDir,
-      '.qwen/commands/plx-apply.toml'
+      '.qwen/commands/plx-implement.toml'
     );
-    await fs.mkdir(path.dirname(applyPath), { recursive: true });
+    await fs.mkdir(path.dirname(implementPath), { recursive: true });
     const initialContent = `description = "Implement an approved PLX change and keep tasks in sync."
 
 prompt = """
@@ -163,13 +163,13 @@ Old body
 <!-- PLX:END -->
 """
 `;
-    await fs.writeFile(applyPath, initialContent);
+    await fs.writeFile(implementPath, initialContent);
 
     const consoleSpy = vi.spyOn(console, 'log');
 
     await updateCommand.execute(testDir);
 
-    const updated = await fs.readFile(applyPath, 'utf-8');
+    const updated = await fs.readFile(implementPath, 'utf-8');
     expect(updated).toContain('description = "Implement an approved PLX change and keep tasks in sync."');
     expect(updated).toContain('prompt = """');
     expect(updated).toContain('<!-- PLX:START -->');
@@ -182,21 +182,21 @@ Old body
     );
     expect(logMessage).toContain('AGENTS.md (created)');
     expect(logMessage).toContain(
-      'Updated slash commands: .qwen/commands/plx-apply.toml'
+      'Updated slash commands: .qwen/commands/plx-implement.toml'
     );
 
     consoleSpy.mockRestore();
   });
 
   it('should not create missing Qwen slash command files on update', async () => {
-    const applyPath = path.join(
+    const implementPath = path.join(
       testDir,
-      '.qwen/commands/plx-apply.toml'
+      '.qwen/commands/plx-implement.toml'
     );
 
-    await fs.mkdir(path.dirname(applyPath), { recursive: true });
+    await fs.mkdir(path.dirname(implementPath), { recursive: true });
     await fs.writeFile(
-      applyPath,
+      implementPath,
       `description = "Old description"
 
 prompt = """
@@ -209,9 +209,9 @@ Old content
 
     await updateCommand.execute(testDir);
 
-    const updatedApply = await fs.readFile(applyPath, 'utf-8');
-    expect(updatedApply).toContain('Work through that task');
-    expect(updatedApply).not.toContain('Old content');
+    const updatedImplement = await fs.readFile(implementPath, 'utf-8');
+    expect(updatedImplement).toContain('Work through that task');
+    expect(updatedImplement).not.toContain('Old content');
 
     const proposalPath = path.join(
       testDir,
@@ -334,11 +334,11 @@ Old slash content
   });
 
   it('should refresh existing Cursor slash command files', async () => {
-    const cursorPath = path.join(testDir, '.cursor/commands/plx-apply.md');
+    const cursorPath = path.join(testDir, '.cursor/commands/plx-implement.md');
     await fs.mkdir(path.dirname(cursorPath), { recursive: true });
     const initialContent = `---
-name: /plx-apply
-id: plx-apply
+name: /plx-implement
+id: plx-implement
 category: PLX
 description: Old description
 ---
@@ -352,7 +352,7 @@ Old body
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(cursorPath, 'utf-8');
-    expect(updated).toContain('id: plx-apply');
+    expect(updated).toContain('id: plx-implement');
     expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
 
@@ -362,7 +362,7 @@ Old body
     );
     expect(logMessage).toContain('AGENTS.md (created)');
     expect(logMessage).toContain(
-      'Updated slash commands: .cursor/commands/plx-apply.md'
+      'Updated slash commands: .cursor/commands/plx-implement.md'
     );
 
     consoleSpy.mockRestore();
@@ -371,12 +371,12 @@ Old body
   it('should refresh existing OpenCode slash command files', async () => {
     const openCodePath = path.join(
       testDir,
-      '.opencode/command/plx-apply.md'
+      '.opencode/command/plx-implement.md'
     );
     await fs.mkdir(path.dirname(openCodePath), { recursive: true });
     const initialContent = `---
-name: /plx-apply
-id: plx-apply
+name: /plx-implement
+id: plx-implement
 category: PLX
 description: Old description
 ---
@@ -390,7 +390,7 @@ Old body
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(openCodePath, 'utf-8');
-    expect(updated).toContain('id: plx-apply');
+    expect(updated).toContain('id: plx-implement');
     expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
 
@@ -400,7 +400,7 @@ Old body
     );
     expect(logMessage).toContain('AGENTS.md (created)');
     expect(logMessage).toContain(
-      'Updated slash commands: .opencode/command/plx-apply.md'
+      'Updated slash commands: .opencode/command/plx-implement.md'
     );
 
     consoleSpy.mockRestore();
@@ -409,7 +409,7 @@ Old body
   it('should refresh existing Kilo Code workflows', async () => {
     const kilocodePath = path.join(
       testDir,
-      '.kilocode/workflows/plx-apply.md'
+      '.kilocode/workflows/plx-implement.md'
     );
     await fs.mkdir(path.dirname(kilocodePath), { recursive: true });
     const initialContent = `<!-- PLX:START -->
@@ -428,7 +428,7 @@ Old body
 
     const [logMessage] = consoleSpy.mock.calls[0];
     expect(logMessage).toContain(
-      'Updated slash commands: .kilocode/workflows/plx-apply.md'
+      'Updated slash commands: .kilocode/workflows/plx-implement.md'
     );
 
     consoleSpy.mockRestore();
@@ -437,10 +437,10 @@ Old body
   it('should refresh existing Windsurf workflows', async () => {
     const wsPath = path.join(
       testDir,
-      '.windsurf/workflows/plx-apply.md'
+      '.windsurf/workflows/plx-implement.md'
     );
     await fs.mkdir(path.dirname(wsPath), { recursive: true });
-    const initialContent = `## PLX: Apply (Windsurf)
+    const initialContent = `## PLX: Implement (Windsurf)
 Intro
 <!-- PLX:START -->
 Old body
@@ -454,11 +454,11 @@ Old body
     const updated = await fs.readFile(wsPath, 'utf-8');
     expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
-    expect(updated).toContain('## PLX: Apply (Windsurf)');
+    expect(updated).toContain('## PLX: Implement (Windsurf)');
 
     const [logMessage] = consoleSpy.mock.calls[0];
     expect(logMessage).toContain(
-      'Updated slash commands: .windsurf/workflows/plx-apply.md'
+      'Updated slash commands: .windsurf/workflows/plx-implement.md'
     );
     consoleSpy.mockRestore();
   });
@@ -466,7 +466,7 @@ Old body
   it('should refresh existing Antigravity workflows', async () => {
     const agPath = path.join(
       testDir,
-      '.agent/workflows/plx-apply.md'
+      '.agent/workflows/plx-implement.md'
     );
     await fs.mkdir(path.dirname(agPath), { recursive: true });
     const initialContent = `---
@@ -490,7 +490,7 @@ Old body
 
     const [logMessage] = consoleSpy.mock.calls[0];
     expect(logMessage).toContain(
-      'Updated slash commands: .agent/workflows/plx-apply.md'
+      'Updated slash commands: .agent/workflows/plx-implement.md'
     );
     consoleSpy.mockRestore();
   });
@@ -498,7 +498,7 @@ Old body
   it('should refresh existing Codex prompts', async () => {
     const codexPath = path.join(
       testDir,
-      '.codex/prompts/plx-apply.md'
+      '.codex/prompts/plx-implement.md'
     );
     await fs.mkdir(path.dirname(codexPath), { recursive: true });
     const initialContent = `---\ndescription: Old description\nargument-hint: old-hint\n---\n\n$ARGUMENTS\n<!-- PLX:START -->\nOld body\n<!-- PLX:END -->`;
@@ -518,22 +518,22 @@ Old body
 
     const [logMessage] = consoleSpy.mock.calls[0];
     expect(logMessage).toContain(
-      'Updated slash commands: .codex/prompts/plx-apply.md'
+      'Updated slash commands: .codex/prompts/plx-implement.md'
     );
 
     consoleSpy.mockRestore();
   });
 
   it('should not create missing Codex prompts on update', async () => {
-    const codexApply = path.join(
+    const codexImplement = path.join(
       testDir,
-      '.codex/prompts/plx-apply.md'
+      '.codex/prompts/plx-implement.md'
     );
 
-    // Only create apply; leave proposal and archive missing
-    await fs.mkdir(path.dirname(codexApply), { recursive: true });
+    // Only create implement; leave proposal and archive missing
+    await fs.mkdir(path.dirname(codexImplement), { recursive: true });
     await fs.writeFile(
-      codexApply,
+      codexImplement,
       '---\ndescription: Old\nargument-hint: old\n---\n\n$ARGUMENTS\n<!-- PLX:START -->\nOld\n<!-- PLX:END -->'
     );
 
@@ -556,7 +556,7 @@ Old body
   it('should refresh existing GitHub Copilot prompts', async () => {
     const ghPath = path.join(
       testDir,
-      '.github/prompts/plx-apply.prompt.md'
+      '.github/prompts/plx-implement.prompt.md'
     );
     await fs.mkdir(path.dirname(ghPath), { recursive: true });
     const initialContent = `---
@@ -581,22 +581,22 @@ Old body
 
     const [logMessage] = consoleSpy.mock.calls[0];
     expect(logMessage).toContain(
-      'Updated slash commands: .github/prompts/plx-apply.prompt.md'
+      'Updated slash commands: .github/prompts/plx-implement.prompt.md'
     );
 
     consoleSpy.mockRestore();
   });
 
   it('should not create missing GitHub Copilot prompts on update', async () => {
-    const ghApply = path.join(
+    const ghImplement = path.join(
       testDir,
-      '.github/prompts/plx-apply.prompt.md'
+      '.github/prompts/plx-implement.prompt.md'
     );
 
-    // Only create apply; leave proposal and archive missing
-    await fs.mkdir(path.dirname(ghApply), { recursive: true });
+    // Only create implement; leave proposal and archive missing
+    await fs.mkdir(path.dirname(ghImplement), { recursive: true });
     await fs.writeFile(
-      ghApply,
+      ghImplement,
       '---\ndescription: Old\n---\n\n$ARGUMENTS\n<!-- PLX:START -->\nOld\n<!-- PLX:END -->'
     );
 
@@ -644,16 +644,16 @@ Old Gemini body
     expect(updated).toContain('<!-- PLX:END -->');
     expect(updated).not.toContain('Old Gemini body');
 
-    const geminiApply = path.join(
+    const geminiImplement = path.join(
       testDir,
-      '.gemini/commands/plx/apply.toml'
+      '.gemini/commands/plx/implement.toml'
     );
     const geminiArchive = path.join(
       testDir,
       '.gemini/commands/plx/archive.toml'
     );
 
-    await expect(FileSystemUtils.fileExists(geminiApply)).resolves.toBe(false);
+    await expect(FileSystemUtils.fileExists(geminiImplement)).resolves.toBe(false);
     await expect(FileSystemUtils.fileExists(geminiArchive)).resolves.toBe(false);
 
     const [logMessage] = consoleSpy.mock.calls[0];
@@ -691,16 +691,16 @@ Old IFlow body
     expect(updated).toContain('<!-- PLX:END -->');
     expect(updated).not.toContain('Old IFlow body');
 
-    const iflowApply = path.join(
+    const iflowImplement = path.join(
       testDir,
-      '.iflow/commands/plx-apply.md'
+      '.iflow/commands/plx-implement.md'
     );
     const iflowArchive = path.join(
       testDir,
       '.iflow/commands/plx-archive.md'
     );
 
-    await expect(FileSystemUtils.fileExists(iflowApply)).resolves.toBe(false);
+    await expect(FileSystemUtils.fileExists(iflowImplement)).resolves.toBe(false);
     await expect(FileSystemUtils.fileExists(iflowArchive)).resolves.toBe(false);
 
     const [logMessage] = consoleSpy.mock.calls[0];
@@ -748,14 +748,14 @@ Old body
   });
 
   it('should not create missing Factory slash command files on update', async () => {
-    const factoryApply = path.join(
+    const factoryImplement = path.join(
       testDir,
-      '.factory/commands/plx-apply.md'
+      '.factory/commands/plx-implement.md'
     );
 
-    await fs.mkdir(path.dirname(factoryApply), { recursive: true });
+    await fs.mkdir(path.dirname(factoryImplement), { recursive: true });
     await fs.writeFile(
-      factoryApply,
+      factoryImplement,
       `---
 description: Old
 argument-hint: old
@@ -784,14 +784,14 @@ Old body
   it('should refresh existing Amazon Q Developer prompts', async () => {
     const aqPath = path.join(
       testDir,
-      '.amazonq/prompts/plx-apply.md'
+      '.amazonq/prompts/plx-implement.md'
     );
     await fs.mkdir(path.dirname(aqPath), { recursive: true });
     const initialContent = `---
 description: Implement an approved PLX change and keep tasks in sync.
 ---
 
-The user wants to apply the following change. Use the plx instructions to implement the approved change.
+The user wants to implement the following change. Use the plx instructions to implement the approved change.
 
 <ChangeId>
   $ARGUMENTS
@@ -806,29 +806,29 @@ Old body
     await updateCommand.execute(testDir);
 
     const updatedContent = await fs.readFile(aqPath, 'utf-8');
-    expect(updatedContent).toContain('**Guardrails**');
+    expect(updatedContent).toContain('Work through that task');
     expect(updatedContent).toContain('<!-- PLX:START -->');
     expect(updatedContent).toContain('<!-- PLX:END -->');
     expect(updatedContent).not.toContain('Old body');
 
     expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('.amazonq/prompts/plx-apply.md')
+      expect.stringContaining('.amazonq/prompts/plx-implement.md')
     );
 
     consoleSpy.mockRestore();
   });
 
   it('should not create missing Amazon Q Developer prompts on update', async () => {
-    const aqApply = path.join(
+    const aqImplement = path.join(
       testDir,
-      '.amazonq/prompts/plx-apply.md'
+      '.amazonq/prompts/plx-implement.md'
     );
 
-    // Only create apply; leave proposal and archive missing
-    await fs.mkdir(path.dirname(aqApply), { recursive: true });
+    // Only create implement; leave proposal and archive missing
+    await fs.mkdir(path.dirname(aqImplement), { recursive: true });
     await fs.writeFile(
-      aqApply,
-      '---\ndescription: Old\n---\n\nThe user wants to apply the following change.\n\n<ChangeId>\n  $ARGUMENTS\n</ChangeId>\n<!-- PLX:START -->\nOld\n<!-- PLX:END -->'
+      aqImplement,
+      '---\ndescription: Old\n---\n\nThe user wants to implement the following change.\n\n<ChangeId>\n  $ARGUMENTS\n</ChangeId>\n<!-- PLX:START -->\nOld\n<!-- PLX:END -->'
     );
 
     await updateCommand.execute(testDir);
@@ -850,7 +850,7 @@ Old body
   it('should refresh existing Auggie slash command files', async () => {
     const auggiePath = path.join(
       testDir,
-      '.augment/commands/plx-apply.md'
+      '.augment/commands/plx-implement.md'
     );
     await fs.mkdir(path.dirname(auggiePath), { recursive: true });
     const initialContent = `---
@@ -867,28 +867,28 @@ Old body
     await updateCommand.execute(testDir);
 
     const updatedContent = await fs.readFile(auggiePath, 'utf-8');
-    expect(updatedContent).toContain('**Guardrails**');
+    expect(updatedContent).toContain('Work through that task');
     expect(updatedContent).toContain('<!-- PLX:START -->');
     expect(updatedContent).toContain('<!-- PLX:END -->');
     expect(updatedContent).not.toContain('Old body');
 
     expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('.augment/commands/plx-apply.md')
+      expect.stringContaining('.augment/commands/plx-implement.md')
     );
 
     consoleSpy.mockRestore();
   });
 
   it('should not create missing Auggie slash command files on update', async () => {
-    const auggieApply = path.join(
+    const auggieImplement = path.join(
       testDir,
-      '.augment/commands/plx-apply.md'
+      '.augment/commands/plx-implement.md'
     );
 
-    // Only create apply; leave proposal and archive missing
-    await fs.mkdir(path.dirname(auggieApply), { recursive: true });
+    // Only create implement; leave proposal and archive missing
+    await fs.mkdir(path.dirname(auggieImplement), { recursive: true });
     await fs.writeFile(
-      auggieApply,
+      auggieImplement,
       '---\ndescription: Old\nargument-hint: old\n---\n<!-- PLX:START -->\nOld\n<!-- PLX:END -->'
     );
 
@@ -950,20 +950,20 @@ Old slash content
   });
 
   it('should not create missing CodeBuddy slash command files on update', async () => {
-    const codeBuddyApply = path.join(
+    const codeBuddyImplement = path.join(
       testDir,
-      '.codebuddy/commands/plx/apply.md'
+      '.codebuddy/commands/plx/implement.md'
     );
 
-    // Only create apply; leave proposal and archive missing
-    await fs.mkdir(path.dirname(codeBuddyApply), { recursive: true });
+    // Only create implement; leave proposal and archive missing
+    await fs.mkdir(path.dirname(codeBuddyImplement), { recursive: true });
     await fs.writeFile(
-      codeBuddyApply,
+      codeBuddyImplement,
       `---
-name: Pew Pew Plx: Apply
+name: Pew Pew Plx: Implement
 description: Old description
 category: Pew Pew Plx
-tags: [plx, apply]
+tags: [plx, implement]
 ---
 <!-- PLX:START -->
 Old body
@@ -1028,20 +1028,20 @@ Old slash content
   });
 
   it('should not create missing Crush slash command files on update', async () => {
-    const crushApply = path.join(
+    const crushImplement = path.join(
       testDir,
-      '.crush/commands/plx-apply.md'
+      '.crush/commands/plx-implement.md'
     );
 
-    // Only create apply; leave proposal and archive missing
-    await fs.mkdir(path.dirname(crushApply), { recursive: true });
+    // Only create implement; leave proposal and archive missing
+    await fs.mkdir(path.dirname(crushImplement), { recursive: true });
     await fs.writeFile(
-      crushApply,
+      crushImplement,
       `---
-name: Pew Pew Plx: Apply
+name: Pew Pew Plx: Implement
 description: Old description
 category: Pew Pew Plx
-tags: [plx, apply]
+tags: [plx, implement]
 ---
 <!-- PLX:START -->
 Old body
@@ -1187,16 +1187,16 @@ Old body
   });
 
   it('should not create missing RooCode slash command files on update', async () => {
-    const rooApply = path.join(
+    const rooImplement = path.join(
       testDir,
-      '.roo/commands/plx-apply.md'
+      '.roo/commands/plx-implement.md'
     );
 
-    // Only create apply; leave proposal and archive missing
-    await fs.mkdir(path.dirname(rooApply), { recursive: true });
+    // Only create implement; leave proposal and archive missing
+    await fs.mkdir(path.dirname(rooImplement), { recursive: true });
     await fs.writeFile(
-      rooApply,
-      `# Pew Pew Plx: Apply
+      rooImplement,
+      `# Pew Pew Plx: Implement
 
 <!-- PLX:START -->
 Old body
@@ -1220,15 +1220,15 @@ Old body
   });
 
   it('should not create missing CoStrict slash command files on update', async () => {
-    const costrictApply = path.join(
+    const costrictImplement = path.join(
       testDir,
-      '.cospec/plx/commands/plx-apply.md'
+      '.cospec/plx/commands/plx-implement.md'
     );
 
-    // Only create apply; leave proposal and archive missing
-    await fs.mkdir(path.dirname(costrictApply), { recursive: true });
+    // Only create implement; leave proposal and archive missing
+    await fs.mkdir(path.dirname(costrictImplement), { recursive: true });
     await fs.writeFile(
-      costrictApply,
+      costrictImplement,
       `---
 description: "Old"
 argument-hint: old
@@ -1255,20 +1255,20 @@ Old
   });
 
   it('should not create missing Qoder slash command files on update', async () => {
-    const qoderApply = path.join(
+    const qoderImplement = path.join(
       testDir,
-      '.qoder/commands/plx/apply.md'
+      '.qoder/commands/plx/implement.md'
     );
 
-    // Only create apply; leave proposal and archive missing
-    await fs.mkdir(path.dirname(qoderApply), { recursive: true });
+    // Only create implement; leave proposal and archive missing
+    await fs.mkdir(path.dirname(qoderImplement), { recursive: true });
     await fs.writeFile(
-      qoderApply,
+      qoderImplement,
       `---
-name: Pew Pew Plx: Apply
+name: Pew Pew Plx: Implement
 description: Old description
 category: Pew Pew Plx
-tags: [plx, apply]
+tags: [plx, implement]
 ---
 <!-- PLX:START -->
 Old body
@@ -1417,14 +1417,14 @@ More instructions after.`;
   });
 
   it('should not create missing Windsurf workflows on update', async () => {
-    const wsApply = path.join(
+    const wsImplement = path.join(
       testDir,
-      '.windsurf/workflows/plx-apply.md'
+      '.windsurf/workflows/plx-implement.md'
     );
-    // Only create apply; leave proposal and archive missing
-    await fs.mkdir(path.dirname(wsApply), { recursive: true });
+    // Only create implement; leave proposal and archive missing
+    await fs.mkdir(path.dirname(wsImplement), { recursive: true });
     await fs.writeFile(
-      wsApply,
+      wsImplement,
       '<!-- PLX:START -->\nOld\n<!-- PLX:END -->'
     );
 
@@ -1504,14 +1504,14 @@ Old content
 
     await updateCommand.execute(testDir);
 
-    const applyExists = await FileSystemUtils.fileExists(
-      path.join(testDir, '.claude/commands/plx/apply.md')
+    const implementExists = await FileSystemUtils.fileExists(
+      path.join(testDir, '.claude/commands/plx/implement.md')
     );
     const archiveExists = await FileSystemUtils.fileExists(
       path.join(testDir, '.claude/commands/plx/archive.md')
     );
 
-    expect(applyExists).toBe(false);
+    expect(implementExists).toBe(false);
     expect(archiveExists).toBe(false);
   });
 
@@ -1693,13 +1693,13 @@ Old content
 
     it('should generate PLX commands when regular Codex prompts are updated', async () => {
       // Create existing Codex prompt
-      const applyPath = path.join(
+      const implementPath = path.join(
         testDir,
-        '.codex/prompts/plx-apply.md'
+        '.codex/prompts/plx-implement.md'
       );
-      await fs.mkdir(path.dirname(applyPath), { recursive: true });
+      await fs.mkdir(path.dirname(implementPath), { recursive: true });
       await fs.writeFile(
-        applyPath,
+        implementPath,
         `---
 description: Old description
 argument-hint: old-hint
@@ -1776,13 +1776,13 @@ Old
       );
 
       // Create Cursor slash command
-      const cursorPath = path.join(testDir, '.cursor/commands/plx-apply.md');
+      const cursorPath = path.join(testDir, '.cursor/commands/plx-implement.md');
       await fs.mkdir(path.dirname(cursorPath), { recursive: true });
       await fs.writeFile(
         cursorPath,
         `---
-name: /plx-apply
-id: plx-apply
+name: /plx-implement
+id: plx-implement
 category: PLX
 description: Old
 ---

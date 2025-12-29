@@ -191,10 +191,10 @@ describe('FileSystemUtils', () => {
     it('should join Windows paths that use forward slashes', () => {
       const result = FileSystemUtils.joinPath(
         'D:/workspace/app',
-        '.cursor/commands/plx-apply.md'
+        '.cursor/commands/plx-implement.md'
       );
       expect(result).toBe(
-        'D:\\workspace\\app\\.cursor\\commands\\plx-apply.md'
+        'D:\\workspace\\app\\.cursor\\commands\\plx-implement.md'
       );
     });
 

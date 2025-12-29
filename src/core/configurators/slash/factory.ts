@@ -3,7 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   proposal: '.factory/commands/plx-proposal.md',
-  apply: '.factory/commands/plx-apply.md',
+  implement: '.factory/commands/plx-implement.md',
   archive: '.factory/commands/plx-archive.md'
 };
 
@@ -12,7 +12,7 @@ const FRONTMATTER: Record<SlashCommandId, string> = {
 description: Scaffold a new PLX change and validate strictly.
 argument-hint: request or feature description
 ---`,
-  apply: `---
+  implement: `---
 description: Implement an approved PLX change and keep tasks in sync.
 argument-hint: change-id
 ---`,

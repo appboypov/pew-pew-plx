@@ -178,9 +178,9 @@ describe('InitCommand', () => {
         testDir,
         '.windsurf/workflows/plx-proposal.md'
       );
-      const wsApply = path.join(
+      const wsImplement = path.join(
         testDir,
-        '.windsurf/workflows/plx-apply.md'
+        '.windsurf/workflows/plx-implement.md'
       );
       const wsArchive = path.join(
         testDir,
@@ -188,7 +188,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(wsProposal)).toBe(true);
-      expect(await fileExists(wsApply)).toBe(true);
+      expect(await fileExists(wsImplement)).toBe(true);
       expect(await fileExists(wsArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(wsProposal, 'utf-8');
@@ -198,12 +198,12 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(wsApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
-      expect(applyContent).toContain('auto_execution_mode: 3');
-      expect(applyContent).toContain('<!-- PLX:START -->');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(wsImplement, 'utf-8');
+      expect(implementContent).toContain('---');
+      expect(implementContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
+      expect(implementContent).toContain('auto_execution_mode: 3');
+      expect(implementContent).toContain('<!-- PLX:START -->');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(wsArchive, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -222,9 +222,9 @@ describe('InitCommand', () => {
         testDir,
         '.agent/workflows/plx-proposal.md'
       );
-      const agApply = path.join(
+      const agImplement = path.join(
         testDir,
-        '.agent/workflows/plx-apply.md'
+        '.agent/workflows/plx-implement.md'
       );
       const agArchive = path.join(
         testDir,
@@ -232,7 +232,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(agProposal)).toBe(true);
-      expect(await fileExists(agApply)).toBe(true);
+      expect(await fileExists(agImplement)).toBe(true);
       expect(await fileExists(agArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(agProposal, 'utf-8');
@@ -242,12 +242,12 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('**Guardrails**');
       expect(proposalContent).not.toContain('auto_execution_mode');
 
-      const applyContent = await fs.readFile(agApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
-      expect(applyContent).toContain('<!-- PLX:START -->');
-      expect(applyContent).toContain('Work through that task');
-      expect(applyContent).not.toContain('auto_execution_mode');
+      const implementContent = await fs.readFile(agImplement, 'utf-8');
+      expect(implementContent).toContain('---');
+      expect(implementContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
+      expect(implementContent).toContain('<!-- PLX:START -->');
+      expect(implementContent).toContain('Work through that task');
+      expect(implementContent).not.toContain('auto_execution_mode');
 
       const archiveContent = await fs.readFile(agArchive, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -284,9 +284,9 @@ describe('InitCommand', () => {
         testDir,
         '.claude/commands/plx/proposal.md'
       );
-      const claudeApply = path.join(
+      const claudeImplement = path.join(
         testDir,
-        '.claude/commands/plx/apply.md'
+        '.claude/commands/plx/implement.md'
       );
       const claudeArchive = path.join(
         testDir,
@@ -294,7 +294,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(claudeProposal)).toBe(true);
-      expect(await fileExists(claudeApply)).toBe(true);
+      expect(await fileExists(claudeImplement)).toBe(true);
       expect(await fileExists(claudeArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(claudeProposal, 'utf-8');
@@ -302,9 +302,9 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(claudeApply, 'utf-8');
-      expect(applyContent).toContain('name: Pew Pew Plx: Apply');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(claudeImplement, 'utf-8');
+      expect(implementContent).toContain('name: Pew Pew Plx: Implement');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(claudeArchive, 'utf-8');
       expect(archiveContent).toContain('name: Pew Pew Plx: Archive');
@@ -323,9 +323,9 @@ describe('InitCommand', () => {
         testDir,
         '.cursor/commands/plx-proposal.md'
       );
-      const cursorApply = path.join(
+      const cursorImplement = path.join(
         testDir,
-        '.cursor/commands/plx-apply.md'
+        '.cursor/commands/plx-implement.md'
       );
       const cursorArchive = path.join(
         testDir,
@@ -333,16 +333,16 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(cursorProposal)).toBe(true);
-      expect(await fileExists(cursorApply)).toBe(true);
+      expect(await fileExists(cursorImplement)).toBe(true);
       expect(await fileExists(cursorArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(cursorProposal, 'utf-8');
       expect(proposalContent).toContain('name: /plx-proposal');
       expect(proposalContent).toContain('<!-- PLX:END -->');
 
-      const applyContent = await fs.readFile(cursorApply, 'utf-8');
-      expect(applyContent).toContain('id: plx-apply');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(cursorImplement, 'utf-8');
+      expect(implementContent).toContain('id: plx-implement');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(cursorArchive, 'utf-8');
       expect(archiveContent).toContain('name: /plx-archive');
@@ -358,9 +358,9 @@ describe('InitCommand', () => {
         testDir,
         '.gemini/commands/plx/proposal.toml'
       );
-      const geminiApply = path.join(
+      const geminiImplement = path.join(
         testDir,
-        '.gemini/commands/plx/apply.toml'
+        '.gemini/commands/plx/implement.toml'
       );
       const geminiArchive = path.join(
         testDir,
@@ -368,7 +368,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(geminiProposal)).toBe(true);
-      expect(await fileExists(geminiApply)).toBe(true);
+      expect(await fileExists(geminiImplement)).toBe(true);
       expect(await fileExists(geminiArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(geminiProposal, 'utf-8');
@@ -378,9 +378,9 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('**Guardrails**');
       expect(proposalContent).toContain('<!-- PLX:END -->');
 
-      const applyContent = await fs.readFile(geminiApply, 'utf-8');
-      expect(applyContent).toContain('description = "Implement an approved PLX change and keep tasks in sync."');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(geminiImplement, 'utf-8');
+      expect(implementContent).toContain('description = "Implement an approved PLX change and keep tasks in sync."');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(geminiArchive, 'utf-8');
       expect(archiveContent).toContain('description = "Archive a deployed PLX change and update specs."');
@@ -424,9 +424,9 @@ describe('InitCommand', () => {
         testDir,
         '.iflow/commands/plx-proposal.md'
       );
-      const iflowApply = path.join(
+      const iflowImplement = path.join(
         testDir,
-        '.iflow/commands/plx-apply.md'
+        '.iflow/commands/plx-implement.md'
       );
       const iflowArchive = path.join(
         testDir,
@@ -434,7 +434,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(iflowProposal)).toBe(true);
-      expect(await fileExists(iflowApply)).toBe(true);
+      expect(await fileExists(iflowImplement)).toBe(true);
       expect(await fileExists(iflowArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(iflowProposal, 'utf-8');
@@ -443,9 +443,9 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('**Guardrails**');
       expect(proposalContent).toContain('<!-- PLX:END -->');
 
-      const applyContent = await fs.readFile(iflowApply, 'utf-8');
-      expect(applyContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(iflowImplement, 'utf-8');
+      expect(implementContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(iflowArchive, 'utf-8');
       expect(archiveContent).toContain('description: Archive a deployed Pew Pew Plx change and update specs.');
@@ -478,9 +478,9 @@ describe('InitCommand', () => {
         testDir,
         '.opencode/command/plx-proposal.md'
       );
-      const openCodeApply = path.join(
+      const openCodeImplement = path.join(
         testDir,
-        '.opencode/command/plx-apply.md'
+        '.opencode/command/plx-implement.md'
       );
       const openCodeArchive = path.join(
         testDir,
@@ -488,7 +488,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(openCodeProposal)).toBe(true);
-      expect(await fileExists(openCodeApply)).toBe(true);
+      expect(await fileExists(openCodeImplement)).toBe(true);
       expect(await fileExists(openCodeArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(openCodeProposal, 'utf-8');
@@ -498,12 +498,12 @@ describe('InitCommand', () => {
       );
       expect(proposalContent).toContain('<!-- PLX:START -->');
 
-      const applyContent = await fs.readFile(openCodeApply, 'utf-8');
-      expect(applyContent).not.toContain('agent:');
-      expect(applyContent).toContain(
+      const implementContent = await fs.readFile(openCodeImplement, 'utf-8');
+      expect(implementContent).not.toContain('agent:');
+      expect(implementContent).toContain(
         'description: Implement an approved PLX change and keep tasks in sync.'
       );
-      expect(applyContent).toContain('Work through that task');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(openCodeArchive, 'utf-8');
       expect(archiveContent).not.toContain('agent:');
@@ -523,9 +523,9 @@ describe('InitCommand', () => {
         testDir,
         '.qwen/commands/plx-proposal.toml'
       );
-      const applyPath = path.join(
+      const implementPath = path.join(
         testDir,
-        '.qwen/commands/plx-apply.toml'
+        '.qwen/commands/plx-implement.toml'
       );
       const archivePath = path.join(
         testDir,
@@ -534,7 +534,7 @@ describe('InitCommand', () => {
 
       expect(await fileExists(qwenConfigPath)).toBe(true);
       expect(await fileExists(proposalPath)).toBe(true);
-      expect(await fileExists(applyPath)).toBe(true);
+      expect(await fileExists(implementPath)).toBe(true);
       expect(await fileExists(archivePath)).toBe(true);
 
       const qwenConfigContent = await fs.readFile(qwenConfigPath, 'utf-8');
@@ -547,9 +547,9 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('prompt = """');
       expect(proposalContent).toContain('<!-- PLX:START -->');
 
-      const applyContent = await fs.readFile(applyPath, 'utf-8');
-      expect(applyContent).toContain('description = "Implement an approved PLX change and keep tasks in sync."');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(implementPath, 'utf-8');
+      expect(implementContent).toContain('description = "Implement an approved PLX change and keep tasks in sync."');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
       expect(archiveContent).toContain('description = "Archive a deployed PLX change and update specs."');
@@ -582,9 +582,9 @@ describe('InitCommand', () => {
         testDir,
         '.clinerules/workflows/plx-proposal.md'
       );
-      const clineApply = path.join(
+      const clineImplement = path.join(
         testDir,
-        '.clinerules/workflows/plx-apply.md'
+        '.clinerules/workflows/plx-implement.md'
       );
       const clineArchive = path.join(
         testDir,
@@ -592,7 +592,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(clineProposal)).toBe(true);
-      expect(await fileExists(clineApply)).toBe(true);
+      expect(await fileExists(clineImplement)).toBe(true);
       expect(await fileExists(clineArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(clineProposal, 'utf-8');
@@ -601,10 +601,10 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(clineApply, 'utf-8');
-      expect(applyContent).toContain('# PLX: Apply');
-      expect(applyContent).toContain('Implement an approved PLX change and keep tasks in sync.');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(clineImplement, 'utf-8');
+      expect(implementContent).toContain('# PLX: Implement');
+      expect(implementContent).toContain('Implement an approved PLX change and keep tasks in sync.');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(clineArchive, 'utf-8');
       expect(archiveContent).toContain('# PLX: Archive');
@@ -621,9 +621,9 @@ describe('InitCommand', () => {
         testDir,
         '.factory/commands/plx-proposal.md'
       );
-      const factoryApply = path.join(
+      const factoryImplement = path.join(
         testDir,
-        '.factory/commands/plx-apply.md'
+        '.factory/commands/plx-implement.md'
       );
       const factoryArchive = path.join(
         testDir,
@@ -631,7 +631,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(factoryProposal)).toBe(true);
-      expect(await fileExists(factoryApply)).toBe(true);
+      expect(await fileExists(factoryImplement)).toBe(true);
       expect(await fileExists(factoryArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(factoryProposal, 'utf-8');
@@ -644,13 +644,13 @@ describe('InitCommand', () => {
         )?.[1]
       ).toContain('$ARGUMENTS');
 
-      const applyContent = await fs.readFile(factoryApply, 'utf-8');
-      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
-      expect(applyContent).toContain('argument-hint: change-id');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(factoryImplement, 'utf-8');
+      expect(implementContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
+      expect(implementContent).toContain('argument-hint: change-id');
+      expect(implementContent).toContain('Work through that task');
       expect(
         /<!-- PLX:START -->([\s\S]*?)<!-- PLX:END -->/u.exec(
-          applyContent
+          implementContent
         )?.[1]
       ).toContain('$ARGUMENTS');
 
@@ -674,9 +674,9 @@ describe('InitCommand', () => {
         testDir,
         '.codex/prompts/plx-proposal.md'
       );
-      const applyPath = path.join(
+      const implementPath = path.join(
         testDir,
-        '.codex/prompts/plx-apply.md'
+        '.codex/prompts/plx-implement.md'
       );
       const archivePath = path.join(
         testDir,
@@ -684,7 +684,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(proposalPath)).toBe(true);
-      expect(await fileExists(applyPath)).toBe(true);
+      expect(await fileExists(implementPath)).toBe(true);
       expect(await fileExists(archivePath)).toBe(true);
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
@@ -694,11 +694,11 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(applyPath, 'utf-8');
-      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
-      expect(applyContent).toContain('argument-hint: change-id');
-      expect(applyContent).toContain('$ARGUMENTS');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(implementPath, 'utf-8');
+      expect(implementContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
+      expect(implementContent).toContain('argument-hint: change-id');
+      expect(implementContent).toContain('$ARGUMENTS');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
       expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
@@ -716,9 +716,9 @@ describe('InitCommand', () => {
         testDir,
         '.kilocode/workflows/plx-proposal.md'
       );
-      const applyPath = path.join(
+      const implementPath = path.join(
         testDir,
-        '.kilocode/workflows/plx-apply.md'
+        '.kilocode/workflows/plx-implement.md'
       );
       const archivePath = path.join(
         testDir,
@@ -726,7 +726,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(proposalPath)).toBe(true);
-      expect(await fileExists(applyPath)).toBe(true);
+      expect(await fileExists(implementPath)).toBe(true);
       expect(await fileExists(archivePath)).toBe(true);
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
@@ -734,9 +734,9 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('**Guardrails**');
       expect(proposalContent).not.toContain('---\n');
 
-      const applyContent = await fs.readFile(applyPath, 'utf-8');
-      expect(applyContent).toContain('Work through that task');
-      expect(applyContent).not.toContain('---\n');
+      const implementContent = await fs.readFile(implementPath, 'utf-8');
+      expect(implementContent).toContain('Work through that task');
+      expect(implementContent).not.toContain('---\n');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
       expect(archiveContent).toContain('plx list --specs');
@@ -752,9 +752,9 @@ describe('InitCommand', () => {
         testDir,
         '.github/prompts/plx-proposal.prompt.md'
       );
-      const applyPath = path.join(
+      const implementPath = path.join(
         testDir,
-        '.github/prompts/plx-apply.prompt.md'
+        '.github/prompts/plx-implement.prompt.md'
       );
       const archivePath = path.join(
         testDir,
@@ -762,7 +762,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(proposalPath)).toBe(true);
-      expect(await fileExists(applyPath)).toBe(true);
+      expect(await fileExists(implementPath)).toBe(true);
       expect(await fileExists(archivePath)).toBe(true);
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
@@ -772,11 +772,11 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(applyPath, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
-      expect(applyContent).toContain('$ARGUMENTS');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(implementPath, 'utf-8');
+      expect(implementContent).toContain('---');
+      expect(implementContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
+      expect(implementContent).toContain('$ARGUMENTS');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -1003,9 +1003,9 @@ describe('InitCommand', () => {
         testDir,
         '.amazonq/prompts/plx-proposal.md'
       );
-      const applyPath = path.join(
+      const implementPath = path.join(
         testDir,
-        '.amazonq/prompts/plx-apply.md'
+        '.amazonq/prompts/plx-implement.md'
       );
       const archivePath = path.join(
         testDir,
@@ -1013,7 +1013,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(proposalPath)).toBe(true);
-      expect(await fileExists(applyPath)).toBe(true);
+      expect(await fileExists(implementPath)).toBe(true);
       expect(await fileExists(archivePath)).toBe(true);
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
@@ -1023,11 +1023,11 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(applyPath, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
-      expect(applyContent).toContain('$ARGUMENTS');
-      expect(applyContent).toContain('<!-- PLX:START -->');
+      const implementContent = await fs.readFile(implementPath, 'utf-8');
+      expect(implementContent).toContain('---');
+      expect(implementContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
+      expect(implementContent).toContain('$ARGUMENTS');
+      expect(implementContent).toContain('<!-- PLX:START -->');
     });
 
     it('should mark Amazon Q Developer as already configured during extend mode', async () => {
@@ -1051,9 +1051,9 @@ describe('InitCommand', () => {
         testDir,
         '.augment/commands/plx-proposal.md'
       );
-      const auggieApply = path.join(
+      const auggieImplement = path.join(
         testDir,
-        '.augment/commands/plx-apply.md'
+        '.augment/commands/plx-implement.md'
       );
       const auggieArchive = path.join(
         testDir,
@@ -1061,7 +1061,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(auggieProposal)).toBe(true);
-      expect(await fileExists(auggieApply)).toBe(true);
+      expect(await fileExists(auggieImplement)).toBe(true);
       expect(await fileExists(auggieArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(auggieProposal, 'utf-8');
@@ -1071,11 +1071,11 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(auggieApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
-      expect(applyContent).toContain('argument-hint: change-id');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(auggieImplement, 'utf-8');
+      expect(implementContent).toContain('---');
+      expect(implementContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
+      expect(implementContent).toContain('argument-hint: change-id');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(auggieArchive, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -1105,9 +1105,9 @@ describe('InitCommand', () => {
         testDir,
         '.codebuddy/commands/plx/proposal.md'
       );
-      const codeBuddyApply = path.join(
+      const codeBuddyImplement = path.join(
         testDir,
-        '.codebuddy/commands/plx/apply.md'
+        '.codebuddy/commands/plx/implement.md'
       );
       const codeBuddyArchive = path.join(
         testDir,
@@ -1115,7 +1115,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(codeBuddyProposal)).toBe(true);
-      expect(await fileExists(codeBuddyApply)).toBe(true);
+      expect(await fileExists(codeBuddyImplement)).toBe(true);
       expect(await fileExists(codeBuddyArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(codeBuddyProposal, 'utf-8');
@@ -1126,11 +1126,11 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(codeBuddyApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('name: Pew Pew Plx: Apply');
-      expect(applyContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(codeBuddyImplement, 'utf-8');
+      expect(implementContent).toContain('---');
+      expect(implementContent).toContain('name: Pew Pew Plx: Implement');
+      expect(implementContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(codeBuddyArchive, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -1193,9 +1193,9 @@ describe('InitCommand', () => {
         testDir,
         '.crush/commands/plx/proposal.md'
       );
-      const crushApply = path.join(
+      const crushImplement = path.join(
         testDir,
-        '.crush/commands/plx/apply.md'
+        '.crush/commands/plx/implement.md'
       );
       const crushArchive = path.join(
         testDir,
@@ -1203,7 +1203,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(crushProposal)).toBe(true);
-      expect(await fileExists(crushApply)).toBe(true);
+      expect(await fileExists(crushImplement)).toBe(true);
       expect(await fileExists(crushArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(crushProposal, 'utf-8');
@@ -1215,13 +1215,13 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(crushApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('name: Pew Pew Plx: Apply');
-      expect(applyContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
-      expect(applyContent).toContain('category: Pew Pew Plx');
-      expect(applyContent).toContain('tags: [plx, apply]');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(crushImplement, 'utf-8');
+      expect(implementContent).toContain('---');
+      expect(implementContent).toContain('name: Pew Pew Plx: Implement');
+      expect(implementContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
+      expect(implementContent).toContain('category: Pew Pew Plx');
+      expect(implementContent).toContain('tags: [plx, implement]');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(crushArchive, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -1253,9 +1253,9 @@ describe('InitCommand', () => {
         testDir,
         '.cospec/plx/commands/plx-proposal.md'
       );
-      const costrictApply = path.join(
+      const costrictImplement = path.join(
         testDir,
-        '.cospec/plx/commands/plx-apply.md'
+        '.cospec/plx/commands/plx-implement.md'
       );
       const costrictArchive = path.join(
         testDir,
@@ -1263,7 +1263,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(costrictProposal)).toBe(true);
-      expect(await fileExists(costrictApply)).toBe(true);
+      expect(await fileExists(costrictImplement)).toBe(true);
       expect(await fileExists(costrictArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(costrictProposal, 'utf-8');
@@ -1273,11 +1273,11 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(costrictApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: "Implement an approved PLX change and keep tasks in sync."');
-      expect(applyContent).toContain('argument-hint: change-id');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(costrictImplement, 'utf-8');
+      expect(implementContent).toContain('---');
+      expect(implementContent).toContain('description: "Implement an approved PLX change and keep tasks in sync."');
+      expect(implementContent).toContain('argument-hint: change-id');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(costrictArchive, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -1307,9 +1307,9 @@ describe('InitCommand', () => {
         testDir,
         '.roo/commands/plx-proposal.md'
       );
-      const rooApply = path.join(
+      const rooImplement = path.join(
         testDir,
-        '.roo/commands/plx-apply.md'
+        '.roo/commands/plx-implement.md'
       );
       const rooArchive = path.join(
         testDir,
@@ -1317,16 +1317,16 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(rooProposal)).toBe(true);
-      expect(await fileExists(rooApply)).toBe(true);
+      expect(await fileExists(rooImplement)).toBe(true);
       expect(await fileExists(rooArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(rooProposal, 'utf-8');
       expect(proposalContent).toContain('# PLX: Proposal');
       expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(rooApply, 'utf-8');
-      expect(applyContent).toContain('# PLX: Apply');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(rooImplement, 'utf-8');
+      expect(implementContent).toContain('# PLX: Implement');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(rooArchive, 'utf-8');
       expect(archiveContent).toContain('# PLX: Archive');
@@ -1354,9 +1354,9 @@ describe('InitCommand', () => {
         testDir,
         '.qoder/commands/plx/proposal.md'
       );
-      const qoderApply = path.join(
+      const qoderImplement = path.join(
         testDir,
-        '.qoder/commands/plx/apply.md'
+        '.qoder/commands/plx/implement.md'
       );
       const qoderArchive = path.join(
         testDir,
@@ -1364,7 +1364,7 @@ describe('InitCommand', () => {
       );
 
       expect(await fileExists(qoderProposal)).toBe(true);
-      expect(await fileExists(qoderApply)).toBe(true);
+      expect(await fileExists(qoderImplement)).toBe(true);
       expect(await fileExists(qoderArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(qoderProposal, 'utf-8');
@@ -1375,11 +1375,11 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(qoderApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('name: Pew Pew Plx: Apply');
-      expect(applyContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
-      expect(applyContent).toContain('Work through that task');
+      const implementContent = await fs.readFile(qoderImplement, 'utf-8');
+      expect(implementContent).toContain('---');
+      expect(implementContent).toContain('name: Pew Pew Plx: Implement');
+      expect(implementContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
+      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(qoderArchive, 'utf-8');
       expect(archiveContent).toContain('---');

@@ -3,7 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   proposal: '.clinerules/workflows/plx-proposal.md',
-  apply: '.clinerules/workflows/plx-apply.md',
+  implement: '.clinerules/workflows/plx-implement.md',
   archive: '.clinerules/workflows/plx-archive.md'
 };
 
@@ -18,7 +18,7 @@ export class ClineSlashCommandConfigurator extends SlashCommandConfigurator {
   protected getFrontmatter(id: SlashCommandId): string | undefined {
     const descriptions: Record<SlashCommandId, string> = {
       proposal: 'Scaffold a new PLX change and validate strictly.',
-      apply: 'Implement an approved PLX change and keep tasks in sync.',
+      implement: 'Implement an approved PLX change and keep tasks in sync.',
       archive: 'Archive a deployed PLX change and update specs.'
     };
     const description = descriptions[id];

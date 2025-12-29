@@ -3,7 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   proposal: '.amazonq/prompts/plx-proposal.md',
-  apply: '.amazonq/prompts/plx-apply.md',
+  implement: '.amazonq/prompts/plx-implement.md',
   archive: '.amazonq/prompts/plx-archive.md'
 };
 
@@ -17,11 +17,11 @@ The user has requested the following change proposal. Use the PLX instructions t
 <UserRequest>
   $ARGUMENTS
 </UserRequest>`,
-  apply: `---
+  implement: `---
 description: Implement an approved PLX change and keep tasks in sync.
 ---
 
-The user wants to apply the following change. Use the PLX instructions to implement the approved change.
+The user wants to implement the following change. Use the PLX instructions to implement the approved change.
 
 <ChangeId>
   $ARGUMENTS

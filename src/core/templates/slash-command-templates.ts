@@ -1,4 +1,4 @@
-export type SlashCommandId = 'proposal' | 'apply' | 'archive';
+export type SlashCommandId = 'proposal' | 'implement' | 'archive';
 
 const baseGuardrails = `**Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.
@@ -24,21 +24,17 @@ const proposalReferences = `**Reference**
 - Search existing requirements with \`rg -n "Requirement:|Scenario:" workspace/specs\` before writing new ones.
 - Explore the codebase with \`rg <keyword>\`, \`ls\`, or direct file reads so proposals align with current implementation realities.`;
 
-const applySteps = `**Steps**
+const implementSteps = `**Steps**
 Track these steps as TODOs and complete them one by one.
-1. Read \`changes/<id>/proposal.md\` and \`design.md\` (if present) to understand scope.
-2. Find the next incomplete task in \`tasks/\` directory:
-   - Scan task files in sequence order (001-*, 002-*, etc.)
-   - Read completed task files for context
-   - Stop at the first task with incomplete checkboxes in its Implementation Checklist
-   - Do NOT read tasks beyond the next incomplete one
-   - If user specified a task file in ARGUMENTS, use that instead
-3. Work through that task's Implementation Checklist, keeping edits minimal.
-4. Mark items complete (\`[x]\`) in that task file only.
-5. Reference \`plx list\` or \`plx show <item>\` when additional context is required.
-6. Run apply again in a new conversation for the next task.`;
+1. Get the next task using \`plx get task\`:
+   - Run \`plx get task\` to retrieve the next prioritized task (includes proposal and design context)
+   - If user specified a task ID in ARGUMENTS, use \`plx get task --id <task-id>\` instead
+2. Work through that task's Implementation Checklist, keeping edits minimal.
+3. Mark items complete (\`[x]\`) in that task file only.
+4. Reference \`plx list\` or \`plx show <item>\` when additional context is required.
+5. Run implement again in a new conversation for the next task.`;
 
-const applyReferences = `**Reference**
+const implementReferences = `**Reference**
 - Use \`plx show <id> --json --deltas-only\` if you need additional context from the proposal while implementing.`;
 
 const archiveSteps = `**Steps**
@@ -58,7 +54,7 @@ const archiveReferences = `**Reference**
 
 export const slashCommandBodies: Record<SlashCommandId, string> = {
   proposal: [proposalGuardrails, proposalSteps, proposalReferences].join('\n\n'),
-  apply: [baseGuardrails, applySteps, applyReferences].join('\n\n'),
+  implement: [baseGuardrails, implementSteps, implementReferences].join('\n\n'),
   archive: [baseGuardrails, archiveSteps, archiveReferences].join('\n\n')
 };
 

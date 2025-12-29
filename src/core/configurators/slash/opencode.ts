@@ -5,7 +5,7 @@ import { PLX_MARKERS } from "../../config.js";
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   proposal: ".opencode/command/plx-proposal.md",
-  apply: ".opencode/command/plx-apply.md",
+  implement: ".opencode/command/plx-implement.md",
   archive: ".opencode/command/plx-archive.md",
 };
 
@@ -18,7 +18,7 @@ The user has requested the following change proposal. Use the PLX instructions t
   $ARGUMENTS
 </UserRequest>
 `,
-  apply: `---
+  implement: `---
 description: Implement an approved PLX change and keep tasks in sync.
 ---
 The user has requested to implement the following change proposal. Find the change proposal and follow the instructions below. If you're not sure or if ambiguous, ask for clarification from the user.

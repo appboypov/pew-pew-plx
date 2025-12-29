@@ -1,8 +1,8 @@
 ---
-name: Pew Pew Plx: Apply
+name: Pew Pew Plx: Implement
 description: Implement an approved Pew Pew Plx change and keep tasks in sync.
 category: Pew Pew Plx
-tags: [plx, apply]
+tags: [plx, implement]
 ---
 <!-- PLX:START -->
 **Guardrails**
@@ -13,17 +13,13 @@ tags: [plx, apply]
 
 **Steps**
 Track these steps as TODOs and complete them one by one.
-1. Read `changes/<id>/proposal.md` and `design.md` (if present) to understand scope.
-2. Find the next incomplete task in `tasks/` directory:
-   - Scan task files in sequence order (001-*, 002-*, etc.)
-   - Read completed task files for context
-   - Stop at the first task with incomplete checkboxes in its Implementation Checklist
-   - Do NOT read tasks beyond the next incomplete one
-   - If user specified a task file in ARGUMENTS, use that instead
-3. Work through that task's Implementation Checklist, keeping edits minimal.
-4. Mark items complete (`[x]`) in that task file only.
-5. Reference `plx list` or `plx show <item>` when additional context is required.
-6. Run apply again in a new conversation for the next task.
+1. Get the next task using `plx get task`:
+   - Run `plx get task` to retrieve the next prioritized task (includes proposal and design context)
+   - If user specified a task ID in ARGUMENTS, use `plx get task --id <task-id>` instead
+2. Work through that task's Implementation Checklist, keeping edits minimal.
+3. Mark items complete (`[x]`) in that task file only.
+4. Reference `plx list` or `plx show <item>` when additional context is required.
+5. Run implement again in a new conversation for the next task.
 
 **Reference**
 - Use `plx show <id> --json --deltas-only` if you need additional context from the proposal while implementing.

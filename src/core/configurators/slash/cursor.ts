@@ -3,7 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   proposal: '.cursor/commands/plx-proposal.md',
-  apply: '.cursor/commands/plx-apply.md',
+  implement: '.cursor/commands/plx-implement.md',
   archive: '.cursor/commands/plx-archive.md'
 };
 
@@ -14,9 +14,9 @@ id: plx-proposal
 category: Pew Pew Plx
 description: Scaffold a new Pew Pew Plx change and validate strictly.
 ---`,
-  apply: `---
-name: /plx-apply
-id: plx-apply
+  implement: `---
+name: /plx-implement
+id: plx-implement
 category: Pew Pew Plx
 description: Implement an approved Pew Pew Plx change and keep tasks in sync.
 ---`,

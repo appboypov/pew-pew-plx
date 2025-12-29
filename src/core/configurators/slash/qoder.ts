@@ -11,7 +11,7 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   proposal: '.qoder/commands/plx/proposal.md',
 
   // Implement approved changes with task tracking
-  apply: '.qoder/commands/plx/apply.md',
+  implement: '.qoder/commands/plx/implement.md',
 
   // Archive completed changes and update specs
   archive: '.qoder/commands/plx/archive.md'
@@ -29,11 +29,11 @@ description: Scaffold a new Pew Pew Plx change and validate strictly.
 category: Pew Pew Plx
 tags: [plx, change]
 ---`,
-  apply: `---
-name: Pew Pew Plx: Apply
+  implement: `---
+name: Pew Pew Plx: Implement
 description: Implement an approved Pew Pew Plx change and keep tasks in sync.
 category: Pew Pew Plx
-tags: [plx, apply]
+tags: [plx, implement]
 ---`,
   archive: `---
 name: Pew Pew Plx: Archive
@@ -47,7 +47,7 @@ tags: [plx, archive]
  * Qoder Slash Command Configurator
  *
  * Manages PLX slash commands for Qoder AI assistant.
- * Creates three workflow commands: proposal, apply, and archive.
+ * Creates three workflow commands: proposal, implement, and archive.
  * Uses colon-separated command format (/plx:proposal).
  *
  * @extends {SlashCommandConfigurator}

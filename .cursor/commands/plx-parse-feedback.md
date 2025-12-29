@@ -8,10 +8,10 @@ description: Parse feedback markers and generate review tasks.
 **Guardrails**
 - Scan only tracked files.
 - Generate one task per marker.
-- Require parent linkage.
+- Markers with parent linkage are grouped automatically.
 
 **Steps**
-1. Run `plx parse feedback <name> --change-id <id>`.
+1. Run `plx parse feedback <name>` (CLI flags --change-id, --spec-id, --task-id are optional fallbacks for unassigned markers).
 2. Review generated tasks.
 3. Address feedback.
 4. Archive when complete.
