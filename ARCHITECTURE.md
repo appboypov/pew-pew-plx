@@ -39,6 +39,8 @@ OpenSplx/
 │   │   ├── completion.ts   # Shell completion commands
 │   │   ├── config.ts       # Configuration commands
 │   │   ├── get.ts          # Artifact retrieval (get task)
+│   │   ├── parse-feedback.ts # Parse feedback markers command
+│   │   ├── review.ts       # Review command
 │   │   ├── show.ts         # Item display command
 │   │   ├── spec.ts         # Spec management commands
 │   │   ├── undo.ts         # Undo task/change commands
@@ -54,7 +56,9 @@ OpenSplx/
 │   │   ├── view.ts         # Interactive dashboard
 │   ├── services/           # Domain services
 │   │   ├── content-filter.ts # Markdown section filtering
-│   │   └── item-retrieval.ts # ID-based item retrieval
+│   │   ├── feedback-scanner.ts # Feedback marker scanning
+│   │   ├── item-retrieval.ts # ID-based item retrieval
+│   │   └── task-id.ts      # Task ID parsing and validation
 │   ├── core/               # Core business logic
 │   │   ├── completions/    # Shell completion generators
 │   │   ├── configurators/  # AI tool configurators
@@ -111,6 +115,8 @@ Each command class encapsulates its own logic:
 - `GetCommand` - Retrieve project artifacts (tasks, changes, specs)
 - `CompleteCommand` - Mark tasks/changes as done
 - `UndoCommand` - Revert tasks/changes to to-do status
+- `ReviewCommand` - Review implementations against specs/changes/tasks
+- `ParseFeedbackCommand` - Parse feedback markers from code and generate review tasks
 
 ### Registry Pattern
 
@@ -199,6 +205,21 @@ Domain services encapsulate business logic for reuse across commands:
 - **ContentFilterService** - Extracts markdown sections
   - `filterSections(content, sections)` - Extract named sections
   - `filterMultipleTasks(contents, sections)` - Aggregate from multiple tasks
+
+- **FeedbackScannerService** - Scans source files for feedback markers
+  - `scanDirectory(dir)` - Recursively scan directory for feedback markers
+  - `generateReview(reviewId, markers, parentType, parentId)` - Generate review entity from markers
+  - `removeFeedbackMarkers(markers)` - Remove feedback markers from source files
+  - Supports multiple comment styles (C-style, Python, HTML/Markdown)
+  - Extracts spec impact annotations `(spec:<spec-id>)`
+  - Scans 40+ file extensions including `.js`, `.ts`, `.py`, `.go`, `.rs`, `.md`, etc.
+
+- **Task ID utilities** (`src/services/task-id.ts`) - Task ID parsing and validation
+  - `getTaskId(task)` - Extract task ID from task object
+  - `getTaskIdFromFilename(filename)` - Parse ID from filename
+  - `parseTaskId(taskId)` - Parse and validate task ID format
+  - `normalizeTaskId(taskId)` - Normalize task ID format
+  - `isValidTaskId(taskId)` - Validate task ID format
 
 ### Template System
 
@@ -594,6 +615,113 @@ Task status utilities in `src/utils/task-status.ts`:
 - `completeImplementationChecklist(content)` - Check Implementation Checklist items only
 - `uncompleteImplementationChecklist(content)` - Uncheck Implementation Checklist items only
 
+### Review System
+
+OpenSplx provides a structured review workflow for validating implementations against specifications, changes, and tasks.
+
+#### Review Command
+
+The `plx review` command generates review context for changes, specs, or tasks:
+
+```bash
+plx review --change-id <id>    # Review a change
+plx review --spec-id <id>       # Review a spec
+plx review --task-id <id>       # Review a task
+```
+
+**Review Flow:**
+```
+User runs: plx review --change-id <id>
+    ↓
+ReviewCommand.execute()
+    ↓
+Load REVIEW.md template (if exists)
+    ↓
+Load parent documents (proposal.md, design.md, tasks, spec.md)
+    ↓
+Display review context with next steps
+```
+
+**Output includes:**
+- `REVIEW.md` template (if exists at project root)
+- Parent documents (proposal, design, tasks, or spec)
+- Next steps for adding feedback markers
+
+#### Parse Feedback Command
+
+The `plx parse feedback` command scans the codebase for feedback markers and generates review tasks:
+
+```bash
+plx parse feedback <review-name> --change-id <id>
+plx parse feedback <review-name> --spec-id <id>
+plx parse feedback <review-name> --task-id <id>
+```
+
+**Parse Feedback Flow:**
+```
+User runs: plx parse feedback <name> --change-id <id>
+    ↓
+ParseFeedbackCommand.execute()
+    ↓
+FeedbackScannerService.scanDirectory() → find all feedback markers
+    ↓
+For each marker:
+    Extract feedback text and spec impact (if any)
+    ↓
+FeedbackScannerService.generateReview() → create review entity
+    ↓
+Create tasks/ directory with numbered task files
+    ↓
+Output summary (markers found, tasks created, files scanned)
+```
+
+**Feedback Marker Format:**
+
+Feedback markers use inline comments with the pattern `#FEEDBACK #TODO | {feedback text}`:
+
+- **C-style** (`.ts`, `.js`, `.go`, `.rs`, etc.): `// #FEEDBACK #TODO | feedback text`
+- **Python/Shell** (`.py`, `.sh`, `.yaml`, etc.): `# #FEEDBACK #TODO | feedback text`
+- **HTML/Markdown**: `<!-- #FEEDBACK #TODO | feedback text -->`
+
+**Spec Impact Annotations:**
+
+For feedback that impacts specifications, add a suffix: `(spec:<spec-id>)`
+
+Example:
+```typescript
+// #FEEDBACK #TODO | Update validation logic to match new requirements (spec:user-auth)
+```
+
+**Review Entity Structure:**
+
+Reviews are stored in `workspace/reviews/<review-name>/`:
+```
+reviews/
+└── <review-name>/
+    ├── review.md          # Review summary and metadata
+    └── tasks/
+        ├── 001-<task>.md   # Generated task from feedback marker
+        └── 002-<task>.md
+```
+
+**Review Metadata:**
+
+Each review includes frontmatter:
+```yaml
+---
+parent-type: change|spec|task
+parent-id: <id>
+reviewed-at: <ISO timestamp>
+---
+```
+
+**Integration with Change/Spec/Task System:**
+
+- Reviews are linked to their parent (change, spec, or task) via metadata
+- Generated tasks follow the same structure as change tasks
+- Tasks can be retrieved via `plx get task` and managed with complete/undo commands
+- Reviews can be archived like changes: `plx archive <review-name> --type review`
+
 ## Fork-Specific Features (OpenSplx)
 
 OpenSplx extends OpenSpec with:
@@ -603,7 +731,11 @@ OpenSplx extends OpenSpec with:
 3. **PLX Slash Commands**: Additional commands in `.claude/commands/plx/`
    - `/plx/init-architecture` - Generate ARCHITECTURE.md
    - `/plx/update-architecture` - Refresh architecture documentation
+   - `/plx/refine-architecture` - Create or update ARCHITECTURE.md
    - `/plx/get-task` - Get next prioritized task and execute workflow
+   - `/plx/review` - Review implementations against specs/changes/tasks
+   - `/plx/parse-feedback` - Parse feedback markers and generate review tasks
+   - `/plx/refine-review` - Create or update REVIEW.md template
 4. **PlxSlashCommandRegistry**: Separate registry for PLX-specific commands
 5. **Extended Templates**: Architecture template generation
 6. **Get Command**: Extended with subcommands for item retrieval (`get task`, `get change`, `get spec`, `get tasks`) and content filtering (`--constraints`, `--acceptance-criteria`)
@@ -611,6 +743,7 @@ OpenSplx extends OpenSpec with:
 8. **Auto-Transition**: `get task` auto-transitions to-do tasks to in-progress when retrieved
 9. **Complete/Undo Commands**: Explicit commands for task/change completion and undo (`complete task`, `complete change`, `undo task`, `undo change`)
 10. **Services Layer**: Domain services for item retrieval and content filtering
+11. **Review System**: Structured review workflow with feedback markers (`plx review`, `plx parse feedback`)
 
 ## Extending the System
 
