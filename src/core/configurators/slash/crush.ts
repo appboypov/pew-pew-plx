@@ -2,29 +2,29 @@ import { SlashCommandConfigurator } from './base.js';
 import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
-  proposal: '.crush/commands/openspec/proposal.md',
-  apply: '.crush/commands/openspec/apply.md',
-  archive: '.crush/commands/openspec/archive.md'
+  proposal: '.crush/commands/plx/proposal.md',
+  apply: '.crush/commands/plx/apply.md',
+  archive: '.crush/commands/plx/archive.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   proposal: `---
-name: OpenSpec: Proposal
-description: Scaffold a new OpenSpec change and validate strictly.
-category: OpenSpec
-tags: [openspec, change]
+name: Pew Pew Plx: Proposal
+description: Scaffold a new Pew Pew Plx change and validate strictly.
+category: Pew Pew Plx
+tags: [plx, change]
 ---`,
   apply: `---
-name: OpenSpec: Apply
-description: Implement an approved OpenSpec change and keep tasks in sync.
-category: OpenSpec
-tags: [openspec, apply]
+name: Pew Pew Plx: Apply
+description: Implement an approved Pew Pew Plx change and keep tasks in sync.
+category: Pew Pew Plx
+tags: [plx, apply]
 ---`,
   archive: `---
-name: OpenSpec: Archive
-description: Archive a deployed OpenSpec change and update specs.
-category: OpenSpec
-tags: [openspec, archive]
+name: Pew Pew Plx: Archive
+description: Archive a deployed Pew Pew Plx change and update specs.
+category: Pew Pew Plx
+tags: [plx, archive]
 ---`
 };
 

@@ -2,27 +2,27 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { isInteractive, resolveNoInteractive } from '../../src/utils/interactive.js';
 
 describe('interactive utilities', () => {
-  let originalOpenSpecInteractive: string | undefined;
+  let originalPlxInteractive: string | undefined;
   let originalCI: string | undefined;
   let originalStdinIsTTY: boolean | undefined;
 
   beforeEach(() => {
     // Save original environment
-    originalOpenSpecInteractive = process.env.OPEN_SPEC_INTERACTIVE;
+    originalPlxInteractive = process.env.PLX_INTERACTIVE;
     originalCI = process.env.CI;
     originalStdinIsTTY = process.stdin.isTTY;
 
     // Clear environment for clean testing
-    delete process.env.OPEN_SPEC_INTERACTIVE;
+    delete process.env.PLX_INTERACTIVE;
     delete process.env.CI;
   });
 
   afterEach(() => {
     // Restore original environment
-    if (originalOpenSpecInteractive !== undefined) {
-      process.env.OPEN_SPEC_INTERACTIVE = originalOpenSpecInteractive;
+    if (originalPlxInteractive !== undefined) {
+      process.env.PLX_INTERACTIVE = originalPlxInteractive;
     } else {
-      delete process.env.OPEN_SPEC_INTERACTIVE;
+      delete process.env.PLX_INTERACTIVE;
     }
     if (originalCI !== undefined) {
       process.env.CI = originalCI;
@@ -88,8 +88,8 @@ describe('interactive utilities', () => {
       expect(isInteractive({ interactive: false })).toBe(false);
     });
 
-    it('should return false when OPEN_SPEC_INTERACTIVE env var is 0', () => {
-      process.env.OPEN_SPEC_INTERACTIVE = '0';
+    it('should return false when PLX_INTERACTIVE env var is 0', () => {
+      process.env.PLX_INTERACTIVE = '0';
       Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
       expect(isInteractive({})).toBe(false);
     });

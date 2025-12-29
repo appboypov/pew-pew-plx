@@ -6,8 +6,8 @@ import { execSync } from 'child_process';
 describe('undo task command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-undo-task-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
-  const openspecBin = path.join(projectRoot, 'bin', 'openspec.js');
+  const changesDir = path.join(testDir, 'workspace', 'changes');
+  const plxBin = path.join(projectRoot, 'bin', 'plx.js');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
@@ -44,7 +44,7 @@ status: done
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} undo task --id 001-my-task --json`,
+        `node ${plxBin} undo task --id 001-my-task --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -83,7 +83,7 @@ status: done
       process.chdir(testDir);
       try {
         execSync(
-          `node ${openspecBin} undo task --id nonexistent --json`,
+          `node ${plxBin} undo task --id nonexistent --json`,
           { encoding: 'utf-8' }
         );
       } catch (error: any) {
@@ -121,7 +121,7 @@ status: to-do
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} undo task --id 001-todo-task --json`,
+        `node ${plxBin} undo task --id 001-todo-task --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -158,7 +158,7 @@ status: in-progress
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} undo task --id test-change/001-my-task --json`,
+        `node ${plxBin} undo task --id test-change/001-my-task --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -174,8 +174,8 @@ status: in-progress
 describe('undo change command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-undo-change-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
-  const openspecBin = path.join(projectRoot, 'bin', 'openspec.js');
+  const changesDir = path.join(testDir, 'workspace', 'changes');
+  const plxBin = path.join(projectRoot, 'bin', 'plx.js');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
@@ -223,7 +223,7 @@ status: in-progress
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} undo change --id test-change --json`,
+        `node ${plxBin} undo change --id test-change --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -280,7 +280,7 @@ status: done
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} undo change --id test-change --json`,
+        `node ${plxBin} undo change --id test-change --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -298,7 +298,7 @@ status: done
       process.chdir(testDir);
       try {
         execSync(
-          `node ${openspecBin} undo change --id nonexistent --json`,
+          `node ${plxBin} undo change --id nonexistent --json`,
           { encoding: 'utf-8' }
         );
       } catch (error: any) {
@@ -336,7 +336,7 @@ status: to-do
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} undo change --id test-change --json`,
+        `node ${plxBin} undo change --id test-change --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -374,7 +374,7 @@ status: done
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} undo change --id test-change --json`,
+        `node ${plxBin} undo change --id test-change --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);

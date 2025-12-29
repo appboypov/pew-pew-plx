@@ -48,7 +48,7 @@ const toolsOptionDescription = `Configure AI tools non-interactively. Use "all",
 
 program
   .command('init [path]')
-  .description('Initialize OpenSpec in your project')
+  .description('Initialize Pew Pew Plx in your project')
   .option('--tools <tools>', toolsOptionDescription)
   .action(async (targetPath = '.', options?: { tools?: string }) => {
     try {
@@ -85,7 +85,7 @@ program
 
 program
   .command('update [path]')
-  .description('Update OpenSpec instruction files')
+  .description('Update Pew Pew Plx instruction files')
   .action(async (targetPath = '.') => {
     try {
       const resolvedPath = path.resolve(targetPath);
@@ -135,11 +135,11 @@ program
 // Change command with subcommands
 const changeCmd = program
   .command('change')
-  .description('Manage OpenSpec change proposals');
+  .description('Manage Pew Pew Plx change proposals');
 
 // Deprecation notice for noun-based commands
 changeCmd.hook('preAction', () => {
-  console.error('Warning: The "openspec change ..." commands are deprecated. Prefer verb-first commands (e.g., "openspec list", "openspec validate --changes").');
+  console.error('Warning: The "plx change ..." commands are deprecated. Prefer verb-first commands (e.g., "plx list", "plx validate --changes").');
 });
 
 changeCmd
@@ -161,12 +161,12 @@ changeCmd
 
 changeCmd
   .command('list')
-  .description('List all active changes (DEPRECATED: use "openspec list" instead)')
+  .description('List all active changes (DEPRECATED: use "plx list" instead)')
   .option('--json', 'Output as JSON')
   .option('--long', 'Show id and title with counts')
   .action(async (options?: { json?: boolean; long?: boolean }) => {
     try {
-      console.error('Warning: "openspec change list" is deprecated. Use "openspec list".');
+      console.error('Warning: "plx change list" is deprecated. Use "plx list".');
       const changeCommand = new ChangeCommand();
       await changeCommand.list(options);
     } catch (error) {
@@ -226,7 +226,7 @@ program
   .option('--type <type>', 'Specify item type when ambiguous: change|spec')
   .option('--strict', 'Enable strict validation mode')
   .option('--json', 'Output validation results as JSON')
-  .option('--concurrency <n>', 'Max concurrent validations (defaults to env OPENSPEC_CONCURRENCY or 6)')
+  .option('--concurrency <n>', 'Max concurrent validations (defaults to env PLX_CONCURRENCY or 6)')
   .option('--no-interactive', 'Disable interactive prompts')
   .action(async (itemName?: string, options?: { all?: boolean; changes?: boolean; specs?: boolean; type?: string; strict?: boolean; json?: boolean; noInteractive?: boolean; concurrency?: string }) => {
     try {
@@ -269,7 +269,7 @@ program
 // Completion command with subcommands
 const completionCmd = program
   .command('completion')
-  .description('Manage shell completions for OpenSpec CLI');
+  .description('Manage shell completions for Pew Pew Plx CLI');
 
 completionCmd
   .command('generate [shell]')

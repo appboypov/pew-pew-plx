@@ -1,4 +1,23 @@
-# OpenSplx Changelog
+# Pew Pew Plx Changelog
+
+## 0.6.0 - 2025-12-29
+
+### Changed
+
+- **BREAKING**: Rebrand from OpenSpec to PLX across entire codebase
+  - CLI command changed from `openspec` to `plx`
+  - All internal references updated (constants, templates, configurators)
+  - Markers remain as `<!-- PLX:START -->` / `<!-- PLX:END -->`
+- **BREAKING**: Rebrand display name from "PLX" to "Pew Pew Plx"
+  - User-facing display names updated in CLI help, dashboard, slash commands
+  - CLI command stays as `plx`, constants like `PLX_DIR_NAME` unchanged
+- Clarify backward compatibility test descriptions
+
+### Added
+
+- Architecture documentation commands: `plx/refine-architecture`, `plx/refine-review`, `plx/parse-feedback`
+
+---
 
 ## 0.5.0 - 2025-12-26
 
@@ -15,7 +34,7 @@
   - SQL/Lua: `-- #FEEDBACK #TODO | feedback`
   - HTML/XML/Markdown: `<!-- #FEEDBACK #TODO | feedback -->`
   - Spec-impacting: `(spec:<spec-id>)` suffix for spec updates on archive
-- **Review entity type**: New entity in `openspec/reviews/` with parent linkage, task generation, and archiving with spec updates
+- **Review entity type**: New entity in `workspace/reviews/` with parent linkage, task generation, and archiving with spec updates
 - **PLX slash commands**: `plx/review`, `plx/refine-architecture`, `plx/refine-review`, `plx/parse-feedback`
 - **Complete and undo commands**: New CLI commands for explicit task/change management
   - `complete task --id <task-id>` - Mark task as done, check all Implementation Checklist items
@@ -63,7 +82,7 @@
 
 ### Added
 
-- **Act next command**: New `openspec act next` CLI command for prioritized task selection across active changes
+- **Act next command**: New `plx act next` CLI command for prioritized task selection across active changes
   - Prioritizes changes by completion percentage (highest first)
   - Uses proposal.md birthtime as tiebreaker when percentages equal
   - Task status tracking via YAML frontmatter (`to-do`, `in-progress`, `done`)
@@ -102,7 +121,7 @@
 
 ## 0.1.0 - 2024-12-24
 
-Initial release of OpenSplx fork.
+Initial release of Pew Pew Plx fork.
 
 ### Added
 
@@ -113,7 +132,7 @@ Initial release of OpenSplx fork.
 
 ### Changed
 
-- Rebrand fork as OpenSplx while maintaining upstream compatibility
+- Rebrand fork as Pew Pew Plx while maintaining upstream compatibility
 - Archive workflow suggests refreshing architecture documentation after spec updates
 
 ---

@@ -11,7 +11,7 @@ describe('ListCommand', () => {
 
   beforeEach(async () => {
     // Create temp directory
-    tempDir = path.join(os.tmpdir(), `openspec-list-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `plx-list-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
 
     // Mock console.log to capture output
@@ -31,16 +31,16 @@ describe('ListCommand', () => {
   });
 
   describe('execute', () => {
-    it('should handle missing openspec/changes directory', async () => {
+    it('should handle missing workspace/changes directory', async () => {
       const listCommand = new ListCommand();
       
       await expect(listCommand.execute(tempDir, 'changes')).rejects.toThrow(
-        "No OpenSpec changes directory found. Run 'openspec init' first."
+        "No PLX changes directory found. Run 'plx init' first."
       );
     });
 
     it('should handle empty changes directory', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(changesDir, { recursive: true });
 
       const listCommand = new ListCommand();
@@ -50,7 +50,7 @@ describe('ListCommand', () => {
     });
 
     it('should exclude archive directory', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'archive'), { recursive: true });
       await fs.mkdir(path.join(changesDir, 'my-change'), { recursive: true });
       
@@ -69,7 +69,7 @@ describe('ListCommand', () => {
     });
 
     it('should count tasks correctly', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'test-change'), { recursive: true });
       
       await fs.writeFile(
@@ -91,7 +91,7 @@ Regular text that should be ignored
     });
 
     it('should show complete status for fully completed changes', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'completed-change'), { recursive: true });
       
       await fs.writeFile(
@@ -106,7 +106,7 @@ Regular text that should be ignored
     });
 
     it('should handle changes without tasks.md', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'no-tasks'), { recursive: true });
 
       const listCommand = new ListCommand();
@@ -116,7 +116,7 @@ Regular text that should be ignored
     });
 
     it('should sort changes alphabetically', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'zebra'), { recursive: true });
       await fs.mkdir(path.join(changesDir, 'alpha'), { recursive: true });
       await fs.mkdir(path.join(changesDir, 'middle'), { recursive: true });
@@ -134,7 +134,7 @@ Regular text that should be ignored
     });
 
     it('should handle multiple changes with various states', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, 'workspace', 'changes');
 
       // Complete change
       await fs.mkdir(path.join(changesDir, 'completed'), { recursive: true });
@@ -163,7 +163,7 @@ Regular text that should be ignored
     });
 
     it('should display tracked issue IDs from proposal frontmatter', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'with-issue'), { recursive: true });
 
       const proposal = `---
@@ -189,7 +189,7 @@ Test`;
     });
 
     it('should align columns correctly when changes have different issue ID lengths', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, 'workspace', 'changes');
 
       // Change with short issue ID
       await fs.mkdir(path.join(changesDir, 'short'), { recursive: true });
@@ -235,7 +235,7 @@ tracked-issues:
     });
 
     it('should handle changes without tracked issues in alignment calculation', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, 'workspace', 'changes');
 
       // Mix of changes with and without issues
       await fs.mkdir(path.join(changesDir, 'alpha-with-issue'), { recursive: true });

@@ -1,14 +1,14 @@
 ---
-name: PLX: Complete Task
+name: Pew Pew Plx: Complete Task
 description: Mark a task as done and check all Implementation Checklist items.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, task, complete, workflow]
 ---
-<!-- OPENSPEC:START -->
+<!-- PLX:START -->
 **Usage**
 ```bash
-openspec complete task --id <task-id>      # Complete specific task
-openspec complete change --id <change-id>  # Complete all tasks in a change
+plx complete task --id <task-id>      # Complete specific task
+plx complete change --id <change-id>  # Complete all tasks in a change
 ```
 
 **Behavior**
@@ -19,4 +19,4 @@ openspec complete change --id <change-id>  # Complete all tasks in a change
 
 **Options**
 - `--json` - Output in JSON format with completedItems array
-<!-- OPENSPEC:END -->
+<!-- PLX:END -->

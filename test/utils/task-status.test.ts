@@ -171,7 +171,7 @@ status: to-do
     let tempDir: string;
 
     beforeEach(async () => {
-      tempDir = path.join(os.tmpdir(), `openspec-task-status-test-${Date.now()}`);
+      tempDir = path.join(os.tmpdir(), `plx-task-status-test-${Date.now()}`);
       await fs.mkdir(tempDir, { recursive: true });
     });
 
@@ -331,7 +331,7 @@ status: in-progress
     let tempDir: string;
 
     beforeEach(async () => {
-      tempDir = path.join(os.tmpdir(), `openspec-complete-test-${Date.now()}`);
+      tempDir = path.join(os.tmpdir(), `plx-complete-test-${Date.now()}`);
       await fs.mkdir(tempDir, { recursive: true });
     });
 
@@ -485,7 +485,7 @@ Some notes`;
     let tempDir: string;
 
     beforeEach(async () => {
-      tempDir = path.join(os.tmpdir(), `openspec-undo-test-${Date.now()}`);
+      tempDir = path.join(os.tmpdir(), `plx-undo-test-${Date.now()}`);
       await fs.mkdir(tempDir, { recursive: true });
     });
 

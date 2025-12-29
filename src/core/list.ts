@@ -26,13 +26,13 @@ interface ReviewInfo {
 export class ListCommand {
   async execute(targetPath: string = '.', mode: 'changes' | 'specs' | 'reviews' = 'changes'): Promise<void> {
     if (mode === 'changes') {
-      const changesDir = path.join(targetPath, 'openspec', 'changes');
-      
+      const changesDir = path.join(targetPath, 'workspace', 'changes');
+
       // Check if changes directory exists
       try {
         await fs.access(changesDir);
       } catch {
-        throw new Error("No OpenSpec changes directory found. Run 'openspec init' first.");
+        throw new Error("No PLX changes directory found. Run 'plx init' first.");
       }
 
       // Get all directories in changes (excluding archive)
@@ -101,7 +101,7 @@ export class ListCommand {
     }
 
     if (mode === 'specs') {
-      const specsDir = path.join(targetPath, 'openspec', 'specs');
+      const specsDir = path.join(targetPath, 'workspace', 'specs');
       try {
         await fs.access(specsDir);
       } catch {
@@ -148,7 +148,7 @@ export class ListCommand {
       return;
     }
 
-    const reviewsDir = path.join(targetPath, 'openspec', 'reviews');
+    const reviewsDir = path.join(targetPath, 'workspace', 'reviews');
     const reviews: ReviewInfo[] = [];
 
     for (const reviewId of reviewIds) {

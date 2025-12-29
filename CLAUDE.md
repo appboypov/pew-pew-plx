@@ -1,14 +1,14 @@
-<!-- OPENSPEC:START -->
-# OpenSpec Instructions
+<!-- PLX:START -->
+# Pew Pew Plx Instructions
 
 These instructions are for AI assistants working in this project.
 
-Always open `@/openspec/AGENTS.md` when the request:
+Always open `@/workspace/AGENTS.md` when the request:
 - Mentions planning or proposals (words like proposal, spec, change, plan)
 - Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
 - Sounds ambiguous and you need the authoritative spec before coding
 
-Use `@/openspec/AGENTS.md` to learn:
+Use `@/workspace/AGENTS.md` to learn:
 - How to create and apply change proposals
 - Spec format and conventions
 - Project structure and guidelines
@@ -18,7 +18,7 @@ Use `@/openspec/AGENTS.md` to learn:
 ### Project Setup
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `plx init [path]` | Initialize OpenSpec | New project setup |
+| `plx init [path]` | Initialize Pew Pew Plx | New project setup |
 | `plx init --tools <list>` | Initialize with specific AI tools | Non-interactive setup |
 | `plx update [path]` | Refresh instruction files | After CLI updates |
 
@@ -97,14 +97,14 @@ Use `@/openspec/AGENTS.md` to learn:
 | `--no-interactive` | Disable prompts |
 | `--no-color` | Disable color output |
 
-Keep this managed block so 'openspec update' can refresh the instructions.
+Keep this managed block so 'plx update' can refresh the instructions.
 
-<!-- OPENSPEC:END -->
+<!-- PLX:END -->
 
-# OpenSplx Fork Configuration
+# Pew Pew Plx Fork Configuration
 
 This is a fork of `Fission-AI/OpenSpec`. The git remotes are configured as:
-- `origin` → `appboypov/OpenSplx` (this fork, PRs go here)
+- `origin` → `appboypov/pew-pew-plx` (this fork, PRs go here)
 - `sync` → `Fission-AI/OpenSpec` (upstream, sync only)
 
 ## Syncing with Upstream
@@ -132,7 +132,7 @@ Use merge (not rebase) to preserve upstream commit SHAs and enable PR review.
    ```
 
 4. **Resolve conflicts intentionally:**
-   - For package.json: keep fork's name (`@appboypov/opensplx`) and version
+   - For package.json: keep fork's name (`@appboypov/pew-pew-plx`) and version
    - All other conflicts must be discussed with the user before resolving
 
 5. **Push and create PR:**

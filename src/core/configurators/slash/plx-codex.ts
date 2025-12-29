@@ -3,7 +3,7 @@ import os from 'os';
 import { PlxSlashCommandConfigurator } from './plx-base.js';
 import { PlxSlashCommandId, TemplateManager } from '../../templates/index.js';
 import { FileSystemUtils } from '../../../utils/file-system.js';
-import { OPENSPEC_MARKERS } from '../../config.js';
+import { PLX_MARKERS } from '../../config.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'init-architecture': '.codex/prompts/plx-init-architecture.md',
@@ -104,7 +104,7 @@ export class PlxCodexSlashCommandConfigurator extends PlxSlashCommandConfigurato
         const frontmatter = this.getFrontmatter(target.id);
         const sections: string[] = [];
         if (frontmatter) sections.push(frontmatter.trim());
-        sections.push(`${OPENSPEC_MARKERS.start}\n${body}\n${OPENSPEC_MARKERS.end}`);
+        sections.push(`${PLX_MARKERS.start}\n${body}\n${PLX_MARKERS.end}`);
         await FileSystemUtils.writeFile(filePath, sections.join('\n') + '\n');
       }
 
@@ -132,17 +132,17 @@ export class PlxCodexSlashCommandConfigurator extends PlxSlashCommandConfigurato
 
   private async updateFullFile(filePath: string, id: PlxSlashCommandId, body: string): Promise<void> {
     const content = await FileSystemUtils.readFile(filePath);
-    const startIndex = content.indexOf(OPENSPEC_MARKERS.start);
-    const endIndex = content.indexOf(OPENSPEC_MARKERS.end);
+    const startIndex = content.indexOf(PLX_MARKERS.start);
+    const endIndex = content.indexOf(PLX_MARKERS.end);
 
     if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-      throw new Error(`Missing OpenSpec markers in ${filePath}`);
+      throw new Error(`Missing PLX markers in ${filePath}`);
     }
 
     const frontmatter = this.getFrontmatter(id);
     const sections: string[] = [];
     if (frontmatter) sections.push(frontmatter.trim());
-    sections.push(`${OPENSPEC_MARKERS.start}\n${body}\n${OPENSPEC_MARKERS.end}`);
+    sections.push(`${PLX_MARKERS.start}\n${body}\n${PLX_MARKERS.end}`);
 
     await FileSystemUtils.writeFile(filePath, sections.join('\n') + '\n');
   }

@@ -1,10 +1,10 @@
 ---
-name: PLX: Refine Architecture
+name: Pew Pew Plx: Refine Architecture
 description: Create or update ARCHITECTURE.md.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, architecture, documentation]
 ---
-<!-- OPENSPEC:START -->
+<!-- PLX:START -->
 **Guardrails**
 - Focus on practical documentation.
 - Preserve user content.
@@ -13,4 +13,4 @@ tags: [plx, architecture, documentation]
 1. Check if ARCHITECTURE.md exists.
 2. If not: create from template.
 3. If exists: read and update.
-<!-- OPENSPEC:END -->
+<!-- PLX:END -->

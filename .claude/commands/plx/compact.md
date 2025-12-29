@@ -1,10 +1,10 @@
 ---
-name: PLX: Compact
+name: Pew Pew Plx: Compact
 description: Preserve session progress in PROGRESS.md for context continuity.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, context, session]
 ---
-<!-- OPENSPEC:START -->
+<!-- PLX:START -->
 **Guardrails**
 - Save ALL modified files before creating PROGRESS.md.
 - Create PROGRESS.md in the project root directory.
@@ -17,4 +17,4 @@ tags: [plx, context, session]
 2. Create or update `PROGRESS.md` in the project root with these sections: Current Task, Status, Completed Steps, Remaining Steps, Key Decisions Made, Files Modified, Files Created, Open Questions/Blockers, Context for Next Agent, Related Resources.
 3. Check if `.gitignore` contains `PROGRESS.md`; if not present, add it on a new line.
 4. Confirm to user that progress has been saved and they can start a new session.
-<!-- OPENSPEC:END -->
+<!-- PLX:END -->

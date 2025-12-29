@@ -71,7 +71,7 @@ export class GetCommand {
   private contentFilterService: ContentFilterService;
 
   constructor() {
-    this.changesPath = path.join(process.cwd(), 'openspec', 'changes');
+    this.changesPath = path.join(process.cwd(), 'workspace', 'changes');
     this.itemRetrievalService = new ItemRetrievalService();
     this.contentFilterService = new ContentFilterService();
   }

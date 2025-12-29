@@ -50,9 +50,9 @@ describe('getCommandName', () => {
       expect(getCommandName()).toBe('plx');
     });
 
-    it('should return openspec for openspec.exe', () => {
+    it('should treat legacy openspec.exe executable as plx (backward compatibility with pre-rebrand name)', () => {
       process.argv = ['node', 'C:\\Program Files\\openspec.exe'];
-      expect(getCommandName()).toBe('openspec');
+      expect(getCommandName()).toBe('plx');
     });
   });
 
@@ -73,25 +73,25 @@ describe('getCommandName', () => {
     });
   });
 
-  describe('defaults to openspec', () => {
-    it('should return openspec for openspec.js', () => {
+  describe('defaults to plx', () => {
+    it('should treat legacy openspec.js executable as plx (backward compatibility with pre-rebrand name)', () => {
       process.argv = ['node', '/path/to/openspec.js'];
-      expect(getCommandName()).toBe('openspec');
+      expect(getCommandName()).toBe('plx');
     });
 
-    it('should return openspec for unknown scripts', () => {
+    it('should return plx for unknown scripts', () => {
       process.argv = ['node', '/path/to/somescript.js'];
-      expect(getCommandName()).toBe('openspec');
+      expect(getCommandName()).toBe('plx');
     });
 
-    it('should return openspec when argv[1] is empty', () => {
+    it('should return plx when argv[1] is empty', () => {
       process.argv = ['node', ''];
-      expect(getCommandName()).toBe('openspec');
+      expect(getCommandName()).toBe('plx');
     });
 
-    it('should return openspec when argv[1] is undefined', () => {
+    it('should return plx when argv[1] is undefined', () => {
       process.argv = ['node'];
-      expect(getCommandName()).toBe('openspec');
+      expect(getCommandName()).toBe('plx');
     });
   });
 

@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   prepare:
-    if: github.repository == 'appboypov/OpenSplx'
+    if: github.repository == 'appboypov/pew-pew-plx'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

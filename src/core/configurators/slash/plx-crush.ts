@@ -14,51 +14,51 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
   'init-architecture': `---
-name: PLX: Init Architecture
+name: Pew Pew Plx: Init Architecture
 description: Generate comprehensive ARCHITECTURE.md from codebase analysis.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, architecture, documentation]
 ---`,
   'update-architecture': `---
-name: PLX: Update Architecture
+name: Pew Pew Plx: Update Architecture
 description: Refresh ARCHITECTURE.md based on current codebase state.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, architecture, documentation]
 ---`,
   'get-task': `---
-name: PLX: Get Task
+name: Pew Pew Plx: Get Task
 description: Select and display the next prioritized task to work on.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, task, workflow]
 ---`,
   'compact': `---
-name: PLX: Compact
+name: Pew Pew Plx: Compact
 description: Preserve session progress in PROGRESS.md for context continuity.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, context, session]
 ---`,
   'review': `---
-name: PLX: Review
+name: Pew Pew Plx: Review
 description: Review implementations against specs, changes, or tasks.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, review, workflow]
 ---`,
   'refine-architecture': `---
-name: PLX: Refine Architecture
+name: Pew Pew Plx: Refine Architecture
 description: Create or update ARCHITECTURE.md.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, architecture, documentation]
 ---`,
   'refine-review': `---
-name: PLX: Refine Review
+name: Pew Pew Plx: Refine Review
 description: Create or update REVIEW.md.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, review, documentation]
 ---`,
   'parse-feedback': `---
-name: PLX: Parse Feedback
+name: Pew Pew Plx: Parse Feedback
 description: Parse feedback markers and generate review tasks.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, review, workflow]
 ---`
 };

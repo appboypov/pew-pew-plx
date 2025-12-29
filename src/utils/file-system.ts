@@ -189,7 +189,7 @@ export class FileSystemUtils {
         return await this.ensureWritePermissions(parentDir);
       }
       
-      const testFile = path.join(dirPath, '.openspec-test-' + Date.now());
+      const testFile = path.join(dirPath, '.plx-test-' + Date.now());
       await fs.writeFile(testFile, '');
       await fs.unlink(testFile);
       return true;

@@ -16,49 +16,49 @@ const FRONTMATTER: Record<PlxSlashCommandId, string> = {
   'init-architecture': `---
 name: /plx-init-architecture
 id: plx-init-architecture
-category: PLX
+category: Pew Pew Plx
 description: Generate comprehensive ARCHITECTURE.md from codebase analysis.
 ---`,
   'update-architecture': `---
 name: /plx-update-architecture
 id: plx-update-architecture
-category: PLX
+category: Pew Pew Plx
 description: Refresh ARCHITECTURE.md based on current codebase state.
 ---`,
   'get-task': `---
 name: /plx-get-task
 id: plx-get-task
-category: PLX
+category: Pew Pew Plx
 description: Select and display the next prioritized task to work on.
 ---`,
   'compact': `---
 name: /plx-compact
 id: plx-compact
-category: PLX
+category: Pew Pew Plx
 description: Preserve session progress in PROGRESS.md for context continuity.
 ---`,
   'review': `---
 name: /plx-review
 id: plx-review
-category: PLX
+category: Pew Pew Plx
 description: Review implementations against specs, changes, or tasks.
 ---`,
   'refine-architecture': `---
 name: /plx-refine-architecture
 id: plx-refine-architecture
-category: PLX
+category: Pew Pew Plx
 description: Create or update ARCHITECTURE.md.
 ---`,
   'refine-review': `---
 name: /plx-refine-review
 id: plx-refine-review
-category: PLX
+category: Pew Pew Plx
 description: Create or update REVIEW.md.
 ---`,
   'parse-feedback': `---
 name: /plx-parse-feedback
 id: plx-parse-feedback
-category: PLX
+category: Pew Pew Plx
 description: Parse feedback markers and generate review tasks.
 ---`
 };

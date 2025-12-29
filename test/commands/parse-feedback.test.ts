@@ -33,9 +33,9 @@ describe('ParseFeedbackCommand', () => {
     process.chdir(tempDir);
 
     // Create OpenSpec structure
-    await fs.mkdir(path.join(tempDir, 'openspec', 'changes'), { recursive: true });
-    await fs.mkdir(path.join(tempDir, 'openspec', 'reviews'), { recursive: true });
-    await fs.mkdir(path.join(tempDir, 'openspec', 'specs'), { recursive: true });
+    await fs.mkdir(path.join(tempDir, 'workspace', 'changes'), { recursive: true });
+    await fs.mkdir(path.join(tempDir, 'workspace', 'reviews'), { recursive: true });
+    await fs.mkdir(path.join(tempDir, 'workspace', 'specs'), { recursive: true });
 
     // Suppress console.log during tests
     console.log = vi.fn();
@@ -62,13 +62,13 @@ describe('ParseFeedbackCommand', () => {
   });
 
   async function createChange(changeId: string): Promise<void> {
-    const changeDir = path.join(tempDir, 'openspec', 'changes', changeId);
+    const changeDir = path.join(tempDir, 'workspace', 'changes', changeId);
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'proposal.md'), '# Proposal');
   }
 
   async function createSpec(specId: string): Promise<void> {
-    const specDir = path.join(tempDir, 'openspec', 'specs', specId);
+    const specDir = path.join(tempDir, 'workspace', 'specs', specId);
     await fs.mkdir(specDir, { recursive: true });
     await fs.writeFile(path.join(specDir, 'spec.md'), '# Spec');
   }
@@ -126,7 +126,7 @@ describe('ParseFeedbackCommand', () => {
     it('rejects existing review name', async () => {
       await createChange('test-change');
       // Create existing review
-      const reviewDir = path.join(tempDir, 'openspec', 'reviews', 'existing-review');
+      const reviewDir = path.join(tempDir, 'workspace', 'reviews', 'existing-review');
       await fs.mkdir(path.join(reviewDir, 'tasks'), { recursive: true });
       await fs.writeFile(
         path.join(reviewDir, 'review.md'),
@@ -163,7 +163,7 @@ describe('ParseFeedbackCommand', () => {
       // Check review was created
       const reviewPath = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'valid-review',
         'review.md'
@@ -187,7 +187,7 @@ describe('ParseFeedbackCommand', () => {
 
       const tasksDir = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'tasks-review',
         'tasks'
@@ -207,7 +207,7 @@ describe('ParseFeedbackCommand', () => {
 
       const reviewPath = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'spec-review',
         'review.md'
@@ -228,7 +228,7 @@ describe('ParseFeedbackCommand', () => {
 
       const reviewPath = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'task-review',
         'review.md'

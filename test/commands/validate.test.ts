@@ -6,8 +6,8 @@ import { runCLI } from '../helpers/run-cli.js';
 describe('top-level validate command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-validate-command-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
-  const specsDir = path.join(testDir, 'openspec', 'specs');
+  const changesDir = path.join(testDir, 'workspace', 'changes');
+  const specsDir = path.join(testDir, 'workspace', 'specs');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
@@ -42,7 +42,7 @@ describe('top-level validate command', () => {
       '',
       '#### Scenario: Apply alpha delta',
       '- **GIVEN** the test change delta',
-      '- **WHEN** openspec validate runs',
+      '- **WHEN** plx validate runs',
       '- **THEN** the validator reports the change as valid',
     ].join('\n');
     const c1DeltaDir = path.join(changesDir, 'c1', 'specs', 'alpha');
@@ -119,7 +119,7 @@ describe('top-level validate command', () => {
       '',
       '#### Scenario: Validate CRLF change',
       '- **GIVEN** a change proposal saved with CRLF line endings',
-      '- **WHEN** a developer runs openspec validate on the proposal',
+      '- **WHEN** a developer runs plx validate on the proposal',
       '- **THEN** validation succeeds without section errors',
     ]);
 
@@ -137,8 +137,8 @@ describe('top-level validate command', () => {
     // (not options.noInteractive = true) due to Commander.js convention.
     const result = await runCLI(['validate', '--specs', '--no-interactive'], {
       cwd: testDir,
-      // Don't set OPEN_SPEC_INTERACTIVE to ensure we're testing the flag itself
-      env: { ...process.env, OPEN_SPEC_INTERACTIVE: undefined },
+      // Don't set PLX_INTERACTIVE to ensure we're testing the flag itself
+      env: { ...process.env, PLX_INTERACTIVE: undefined },
     });
     expect(result.exitCode).toBe(0);
     // Should complete without hanging and without prompts

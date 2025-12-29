@@ -6,8 +6,8 @@ import { execSync } from 'child_process';
 describe('change show (interactive behavior)', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-change-show-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
-  const bin = path.join(projectRoot, 'bin', 'openspec.js');
+  const changesDir = path.join(testDir, 'workspace', 'changes');
+  const bin = path.join(projectRoot, 'bin', 'plx.js');
 
 
   beforeEach(async () => {
@@ -26,7 +26,7 @@ describe('change show (interactive behavior)', () => {
     const originalEnv = { ...process.env };
     try {
       process.chdir(testDir);
-      process.env.OPEN_SPEC_INTERACTIVE = '0';
+      process.env.PLX_INTERACTIVE = '0';
       let err: any;
       try {
         execSync(`node ${bin} change show`, { encoding: 'utf-8' });
@@ -34,7 +34,7 @@ describe('change show (interactive behavior)', () => {
       expect(err).toBeDefined();
       expect(err.status).not.toBe(0);
       expect(err.stderr.toString()).toContain('Available IDs:');
-      expect(err.stderr.toString()).toContain('openspec change list');
+      expect(err.stderr.toString()).toContain('plx change list');
     } finally {
       process.chdir(originalCwd);
       process.env = originalEnv;

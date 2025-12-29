@@ -1,10 +1,10 @@
 ---
-name: PLX: Update Architecture
+name: Pew Pew Plx: Update Architecture
 description: Refresh ARCHITECTURE.md based on current codebase state.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, architecture, documentation]
 ---
-<!-- OPENSPEC:START -->
+<!-- PLX:START -->
 **Guardrails**
 - Focus on practical, usable documentation that enables feature planning.
 - Document patterns and conventions, not implementation details.
@@ -17,4 +17,4 @@ tags: [plx, architecture, documentation]
 3. Update ARCHITECTURE.md to reflect the current state of the codebase.
 4. Preserve user-added content that doesn't conflict with generated sections.
 5. Ensure all sections remain accurate and complete for feature planning.
-<!-- OPENSPEC:END -->
+<!-- PLX:END -->

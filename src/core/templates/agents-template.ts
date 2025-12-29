@@ -1,15 +1,15 @@
-export const agentsTemplate = `# OpenSpec Instructions
+export const agentsTemplate = `# Pew Pew Plx Instructions
 
-Instructions for AI coding assistants using OpenSpec for spec-driven development.
+Instructions for AI coding assistants using Pew Pew Plx for spec-driven development.
 
 ## TL;DR Quick Checklist
 
-- Search existing work: \`openspec spec list --long\`, \`openspec list\` (use \`rg\` only for full-text search)
+- Search existing work: \`plx spec list --long\`, \`plx list\` (use \`rg\` only for full-text search)
 - Decide scope: new capability vs modify existing capability
 - Pick a unique \`change-id\`: kebab-case, verb-led (\`add-\`, \`update-\`, \`remove-\`, \`refactor-\`)
 - Scaffold: \`proposal.md\`, \`tasks/\` directory, \`design.md\` (only if needed), and delta specs per affected capability
 - Write deltas: use \`## ADDED|MODIFIED|REMOVED|RENAMED Requirements\`; include at least one \`#### Scenario:\` per requirement
-- Validate: \`openspec validate [change-id] --strict\` and fix issues
+- Validate: \`plx validate [change-id] --strict\` and fix issues
 - Request approval: Do not start implementation until proposal is approved
 
 ## Three-Stage Workflow
@@ -41,18 +41,18 @@ Skip proposal for:
 - Tests for existing behavior
 
 **Workflow**
-1. Review \`ARCHITECTURE.md\`, \`openspec list\`, and \`openspec list --specs\` to understand current context.
-2. Choose a unique verb-led \`change-id\` and scaffold \`proposal.md\`, \`tasks/\` directory, optional \`design.md\`, and spec deltas under \`openspec/changes/<id>/\`.
+1. Review \`ARCHITECTURE.md\`, \`plx list\`, and \`plx list --specs\` to understand current context.
+2. Choose a unique verb-led \`change-id\` and scaffold \`proposal.md\`, \`tasks/\` directory, optional \`design.md\`, and spec deltas under \`workspace/changes/<id>/\`.
 3. Draft spec deltas using \`## ADDED|MODIFIED|REMOVED Requirements\` with at least one \`#### Scenario:\` per requirement.
-4. Run \`openspec validate <id> --strict\` and resolve any issues before sharing the proposal.
+4. Run \`plx validate <id> --strict\` and resolve any issues before sharing the proposal.
 
 ### Stage 2: Implementing Changes
 Track these steps as TODOs and complete them one by one.
 1. **Read proposal.md** - Understand what's being built
 2. **Read design.md** (if exists) - Review technical decisions
-3. **Get next task** - Run \`openspec get task\` to retrieve the next task (auto-transitions to in-progress)
+3. **Get next task** - Run \`plx get task\` to retrieve the next task (auto-transitions to in-progress)
 4. **Implement task** - Work through the Implementation Checklist
-5. **Complete task** - Run \`openspec complete task --id <id>\` to mark the task as done
+5. **Complete task** - Run \`plx complete task --id <id>\` to mark the task as done
 6. **Stop and await user confirmation** - Do not proceed to the next task until the user requests it
 7. **Approval gate** - Do not start implementation until the proposal is reviewed and approved
 
@@ -60,8 +60,8 @@ Track these steps as TODOs and complete them one by one.
 After deployment, create separate PR to:
 - Move \`changes/[name]/\` → \`changes/archive/YYYY-MM-DD-[name]/\`
 - Update \`specs/\` if capabilities changed
-- Use \`openspec archive <change-id> --skip-specs --yes\` for tooling-only changes (always pass the change ID explicitly)
-- Run \`openspec validate --strict\` to confirm the archived change passes checks
+- Use \`plx archive <change-id> --skip-specs --yes\` for tooling-only changes (always pass the change ID explicitly)
+- Run \`plx validate --strict\` to confirm the archived change passes checks
 
 ## Before Any Task
 
@@ -69,22 +69,22 @@ After deployment, create separate PR to:
 - [ ] Read relevant specs in \`specs/[capability]/spec.md\`
 - [ ] Check pending changes in \`changes/\` for conflicts
 - [ ] Read \`ARCHITECTURE.md\` for project context and conventions
-- [ ] Run \`openspec list\` to see active changes
-- [ ] Run \`openspec list --specs\` to see existing capabilities
+- [ ] Run \`plx list\` to see active changes
+- [ ] Run \`plx list --specs\` to see existing capabilities
 
 **Before Creating Specs:**
 - Always check if capability already exists
 - Prefer modifying existing specs over creating duplicates
-- Use \`openspec show [spec]\` to review current state
+- Use \`plx show [spec]\` to review current state
 - If request is ambiguous, gather as many as necessary clarifications (using your question tool if available) before scaffolding
 
 ### Search Guidance
-- Enumerate specs: \`openspec spec list --long\` (or \`--json\` for scripts)
-- Enumerate changes: \`openspec list\` (or \`openspec change list --json\` - deprecated but available)
+- Enumerate specs: \`plx spec list --long\` (or \`--json\` for scripts)
+- Enumerate changes: \`plx list\` (or \`plx change list --json\` - deprecated but available)
 - Show details:
-  - Spec: \`openspec show <spec-id> --type spec\` (use \`--json\` for filters)
-  - Change: \`openspec show <change-id> --json --deltas-only\`
-- Full-text search (use ripgrep): \`rg -n "Requirement:|Scenario:" openspec/specs\`
+  - Spec: \`plx show <spec-id> --type spec\` (use \`--json\` for filters)
+  - Change: \`plx show <change-id> --json --deltas-only\`
+- Full-text search (use ripgrep): \`rg -n "Requirement:|Scenario:" workspace/specs\`
 
 ## External Issue Tracking
 
@@ -129,42 +129,42 @@ Use available tools to interact with issue trackers. If no tools available for a
 
 \`\`\`bash
 # Essential commands
-openspec list                  # List active changes
-openspec list --specs          # List specifications
-openspec show [item]           # Display change or spec
-openspec validate [item]       # Validate changes or specs
-openspec archive <change-id> [--yes|-y]   # Archive after deployment (add --yes for non-interactive runs)
+plx list                  # List active changes
+plx list --specs          # List specifications
+plx show [item]           # Display change or spec
+plx validate [item]       # Validate changes or specs
+plx archive <change-id> [--yes|-y]   # Archive after deployment (add --yes for non-interactive runs)
 
 # Project management
-openspec init [path]           # Initialize OpenSpec
-openspec update [path]         # Update instruction files
+plx init [path]           # Initialize Pew Pew Plx
+plx update [path]         # Update instruction files
 
 # Interactive mode
-openspec show                  # Prompts for selection
-openspec validate              # Bulk validation mode
+plx show                  # Prompts for selection
+plx validate              # Bulk validation mode
 
 # Debugging
-openspec show [change] --json --deltas-only
-openspec validate [change] --strict
+plx show [change] --json --deltas-only
+plx validate [change] --strict
 
 # Retrieve tasks and items
-openspec get task                          # Get next task from highest-priority change
-openspec get task --id <task-id>           # Get specific task by ID
-openspec get task --did-complete-previous  # Complete current task and get next
-openspec get task --constraints            # Show only Constraints section
-openspec get task --acceptance-criteria    # Show only Acceptance Criteria section
-openspec get change --id <change-id>       # Retrieve change by ID
-openspec get spec --id <spec-id>           # Retrieve spec by ID
-openspec get tasks                         # List all open tasks
-openspec get tasks --id <change-id>        # List tasks for specific change
+plx get task                          # Get next task from highest-priority change
+plx get task --id <task-id>           # Get specific task by ID
+plx get task --did-complete-previous  # Complete current task and get next
+plx get task --constraints            # Show only Constraints section
+plx get task --acceptance-criteria    # Show only Acceptance Criteria section
+plx get change --id <change-id>       # Retrieve change by ID
+plx get spec --id <spec-id>           # Retrieve spec by ID
+plx get tasks                         # List all open tasks
+plx get tasks --id <change-id>        # List tasks for specific change
 
 # Complete tasks and changes
-openspec complete task --id <task-id>      # Mark task as done, check Implementation Checklist items
-openspec complete change --id <change-id>  # Complete all tasks in a change
+plx complete task --id <task-id>      # Mark task as done, check Implementation Checklist items
+plx complete change --id <change-id>  # Complete all tasks in a change
 
 # Undo task/change completion
-openspec undo task --id <task-id>          # Revert task to to-do, uncheck Implementation Checklist items
-openspec undo change --id <change-id>      # Revert all tasks in a change to to-do
+plx undo task --id <task-id>          # Revert task to to-do, uncheck Implementation Checklist items
+plx undo change --id <change-id>      # Revert all tasks in a change to to-do
 \`\`\`
 
 ### Command Flags
@@ -184,8 +184,8 @@ openspec undo change --id <change-id>      # Revert all tasks in a change to to-
 \`\`\`
 project-root/
 ├── ARCHITECTURE.md             # Project context and conventions
-├── AGENTS.md                   # Root stub pointing to openspec/AGENTS.md
-└── openspec/
+├── AGENTS.md                   # Root stub pointing to workspace/AGENTS.md
+└── workspace/
     ├── AGENTS.md               # AI assistant instructions
     ├── specs/                  # Current truth - what IS built
     │   └── [capability]/       # Single focused capability
@@ -375,7 +375,7 @@ Headers matched with \`trim(header)\` - whitespace ignored.
 Common pitfall: Using MODIFIED to add a new concern without including the previous text. This causes loss of detail at archive time. If you aren’t explicitly changing the existing requirement, add a new requirement under ADDED instead.
 
 Authoring a MODIFIED requirement correctly:
-1) Locate the existing requirement in \`openspec/specs/<capability>/spec.md\`.
+1) Locate the existing requirement in \`workspace/specs/<capability>/spec.md\`.
 2) Copy the entire requirement block (from \`### Requirement: ...\` through its scenarios).
 3) Paste it under \`## MODIFIED Requirements\` and edit to reflect the new behavior.
 4) Ensure the header text matches exactly (whitespace-insensitive) and keep at least one \`#### Scenario:\`.
@@ -401,39 +401,39 @@ Example for RENAMED:
 
 **Silent scenario parsing failures**
 - Exact format required: \`#### Scenario: Name\`
-- Debug with: \`openspec show [change] --json --deltas-only\`
+- Debug with: \`plx show [change] --json --deltas-only\`
 
 ### Validation Tips
 
 \`\`\`bash
 # Always use strict mode for comprehensive checks
-openspec validate [change] --strict
+plx validate [change] --strict
 
 # Debug delta parsing
-openspec show [change] --json | jq '.deltas'
+plx show [change] --json | jq '.deltas'
 
 # Check specific requirement
-openspec show [spec] --json -r 1
+plx show [spec] --json -r 1
 \`\`\`
 
 ## Happy Path Script
 
 \`\`\`bash
 # 1) Explore current state
-openspec spec list --long
-openspec list
+plx spec list --long
+plx list
 # Optional full-text search:
-# rg -n "Requirement:|Scenario:" openspec/specs
-# rg -n "^#|Requirement:" openspec/changes
+# rg -n "Requirement:|Scenario:" workspace/specs
+# rg -n "^#|Requirement:" workspace/changes
 
 # 2) Choose change id and scaffold
 CHANGE=add-two-factor-auth
-mkdir -p openspec/changes/$CHANGE/{specs/auth,tasks}
-printf "## Why\\n...\\n\\n## What Changes\\n- ...\\n\\n## Impact\\n- ...\\n" > openspec/changes/$CHANGE/proposal.md
-printf "---\\nstatus: to-do\\n---\\n\\n# Task: Implement feature\\n\\n## End Goal\\n...\\n\\n## Implementation Checklist\\n- [ ] 1.1 ...\\n" > openspec/changes/$CHANGE/tasks/001-implement.md
+mkdir -p workspace/changes/$CHANGE/{specs/auth,tasks}
+printf "## Why\\n...\\n\\n## What Changes\\n- ...\\n\\n## Impact\\n- ...\\n" > workspace/changes/$CHANGE/proposal.md
+printf "---\\nstatus: to-do\\n---\\n\\n# Task: Implement feature\\n\\n## End Goal\\n...\\n\\n## Implementation Checklist\\n- [ ] 1.1 ...\\n" > workspace/changes/$CHANGE/tasks/001-implement.md
 
 # 3) Add deltas (example)
-cat > openspec/changes/$CHANGE/specs/auth/spec.md << 'EOF'
+cat > workspace/changes/$CHANGE/specs/auth/spec.md << 'EOF'
 ## ADDED Requirements
 ### Requirement: Two-Factor Authentication
 Users MUST provide a second factor during login.
@@ -444,13 +444,13 @@ Users MUST provide a second factor during login.
 EOF
 
 # 4) Validate
-openspec validate $CHANGE --strict
+plx validate $CHANGE --strict
 \`\`\`
 
 ## Multi-Capability Example
 
 \`\`\`
-openspec/changes/add-2fa-notify/
+workspace/changes/add-2fa-notify/
 ├── proposal.md
 ├── tasks/
 │   ├── 001-implement-auth.md
@@ -520,7 +520,7 @@ Only add complexity with:
 ## Error Recovery
 
 ### Change Conflicts
-1. Run \`openspec list\` to see active changes
+1. Run \`plx list\` to see active changes
 2. Check for overlapping specs
 3. Coordinate with change owners
 4. Consider combining proposals
@@ -552,10 +552,10 @@ Only add complexity with:
 
 ### CLI Essentials
 \`\`\`bash
-openspec list              # What's in progress?
-openspec show [item]       # View details
-openspec validate --strict # Is it correct?
-openspec archive <change-id> [--yes|-y]  # Mark complete (add --yes for automation)
+plx list              # What's in progress?
+plx show [item]       # View details
+plx validate --strict # Is it correct?
+plx archive <change-id> [--yes|-y]  # Mark complete (add --yes for automation)
 \`\`\`
 
 Remember: Specs are truth. Changes are proposals. Keep them in sync.

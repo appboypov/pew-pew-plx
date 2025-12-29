@@ -1,10 +1,10 @@
 ---
-name: PLX: Init Architecture
+name: Pew Pew Plx: Init Architecture
 description: Generate comprehensive ARCHITECTURE.md from codebase analysis.
-category: PLX
+category: Pew Pew Plx
 tags: [plx, architecture, documentation]
 ---
-<!-- OPENSPEC:START -->
+<!-- PLX:START -->
 **Guardrails**
 - Focus on practical, usable documentation that enables feature planning.
 - Document patterns and conventions, not implementation details.
@@ -18,4 +18,4 @@ tags: [plx, architecture, documentation]
 4. Create ARCHITECTURE.md at the project root with comprehensive documentation.
 5. Include: Project setup, tech stack, folder structure, service patterns, state management, and conventions.
 6. Ensure the document is practical and usable for feature planning without additional codebase research.
-<!-- OPENSPEC:END -->
+<!-- PLX:END -->

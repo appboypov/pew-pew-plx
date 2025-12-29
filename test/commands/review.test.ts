@@ -33,8 +33,8 @@ describe('ReviewCommand', () => {
     process.chdir(tempDir);
 
     // Create OpenSpec structure
-    await fs.mkdir(path.join(tempDir, 'openspec', 'changes'), { recursive: true });
-    await fs.mkdir(path.join(tempDir, 'openspec', 'specs'), { recursive: true });
+    await fs.mkdir(path.join(tempDir, 'workspace', 'changes'), { recursive: true });
+    await fs.mkdir(path.join(tempDir, 'workspace', 'specs'), { recursive: true });
 
     // Suppress console.log during tests
     console.log = vi.fn();
@@ -64,7 +64,7 @@ describe('ReviewCommand', () => {
     changeId: string,
     options: { proposal?: string; design?: string; tasks?: string[] } = {}
   ): Promise<void> {
-    const changeDir = path.join(tempDir, 'openspec', 'changes', changeId);
+    const changeDir = path.join(tempDir, 'workspace', 'changes', changeId);
     await fs.mkdir(path.join(changeDir, 'tasks'), { recursive: true });
     await fs.writeFile(
       path.join(changeDir, 'proposal.md'),
@@ -85,7 +85,7 @@ describe('ReviewCommand', () => {
   }
 
   async function createSpec(specId: string, content?: string): Promise<void> {
-    const specDir = path.join(tempDir, 'openspec', 'specs', specId);
+    const specDir = path.join(tempDir, 'workspace', 'specs', specId);
     await fs.mkdir(specDir, { recursive: true });
     await fs.writeFile(
       path.join(specDir, 'spec.md'),

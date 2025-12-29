@@ -1,6 +1,6 @@
-# OpenSplx Architecture
+# Pew Pew Plx Architecture
 
-OpenSplx is a fork of [OpenSpec](https://github.com/Fission-AI/OpenSpec) that provides an AI-native system for spec-driven development. This document describes the project architecture for feature planning and development.
+Pew Pew Plx is a fork of [OpenSpec](https://github.com/Fission-AI/OpenSpec) that provides an AI-native system for spec-driven development. This document describes the project architecture for feature planning and development.
 
 ## Technology Stack
 
@@ -26,10 +26,9 @@ OpenSplx is a fork of [OpenSpec](https://github.com/Fission-AI/OpenSpec) that pr
 ## Project Structure
 
 ```
-OpenSplx/
+pew-pew-plx/
 ├── bin/                    # CLI entry points
-│   ├── openspec.js         # Main CLI entry (openspec command)
-│   └── plx.js              # Alias CLI entry (plx command)
+│   └── plx.js              # CLI entry (plx command)
 ├── src/
 │   ├── index.ts            # Library exports (core + cli)
 │   ├── cli/
@@ -40,6 +39,8 @@ OpenSplx/
 │   │   ├── completion.ts   # Shell completion commands
 │   │   ├── config.ts       # Configuration commands
 │   │   ├── get.ts          # Artifact retrieval (get task)
+│   │   ├── parse-feedback.ts # Parse feedback markers command
+│   │   ├── review.ts       # Review command
 │   │   ├── show.ts         # Item display command
 │   │   ├── spec.ts         # Spec management commands
 │   │   ├── undo.ts         # Undo task/change commands
@@ -51,11 +52,13 @@ OpenSplx/
 │   │   ├── global-config.ts # Global config file management
 │   │   ├── init.ts         # Project initialization wizard
 │   │   ├── list.ts         # List changes/specs
-│   │   ├── update.ts       # Update OpenSpec files
+│   │   ├── update.ts       # Update PLX files
 │   │   ├── view.ts         # Interactive dashboard
 │   ├── services/           # Domain services
 │   │   ├── content-filter.ts # Markdown section filtering
-│   │   └── item-retrieval.ts # ID-based item retrieval
+│   │   ├── feedback-scanner.ts # Feedback marker scanning
+│   │   ├── item-retrieval.ts # ID-based item retrieval
+│   │   └── task-id.ts      # Task ID parsing and validation
 │   ├── core/               # Core business logic
 │   │   ├── completions/    # Shell completion generators
 │   │   ├── configurators/  # AI tool configurators
@@ -79,7 +82,7 @@ OpenSplx/
 │       ├── task-progress.ts # Task completion tracking
 │       └── task-status.ts  # Task status (to-do/in-progress/done)
 ├── test/                   # Test files (mirrors src structure)
-├── openspec/               # OpenSpec directory (dogfooding)
+├── workspace/              # PLX workspace directory (dogfooding)
 ├── .claude/commands/       # Claude Code slash commands
 └── dist/                   # Compiled output
 ```
@@ -91,7 +94,7 @@ OpenSplx/
 The CLI uses the **Command Pattern** via Commander.js. Commands are registered in `src/cli/index.ts` and delegate to dedicated command classes:
 
 ```
-CLI Entry (bin/openspec.js)
+CLI Entry (bin/plx.js)
     ↓
 Commander Program (src/cli/index.ts)
     ↓
@@ -100,7 +103,7 @@ Command Classes (src/commands/*.ts, src/core/*.ts)
 
 Each command class encapsulates its own logic:
 - `InitCommand` - Interactive project initialization
-- `UpdateCommand` - Refresh OpenSpec files
+- `UpdateCommand` - Refresh PLX files
 - `ListCommand` - Display changes/specs
 - `ViewCommand` - Interactive dashboard
 - `ArchiveCommand` - Archive completed changes
@@ -112,6 +115,8 @@ Each command class encapsulates its own logic:
 - `GetCommand` - Retrieve project artifacts (tasks, changes, specs)
 - `CompleteCommand` - Mark tasks/changes as done
 - `UndoCommand` - Revert tasks/changes to to-do status
+- `ReviewCommand` - Review implementations against specs/changes/tasks
+- `ParseFeedbackCommand` - Parse feedback markers from code and generate review tasks
 
 ### Registry Pattern
 
@@ -119,10 +124,10 @@ Tool configurators use a **Registry Pattern** with static initialization:
 
 ```typescript
 // ToolRegistry - manages AI tool config file generators
-ToolRegistry.get('claude')?.configure(projectPath, openspecDir);
+ToolRegistry.get('claude')?.configure(projectPath, workspaceDir);
 
 // SlashCommandRegistry - manages slash command generators
-SlashCommandRegistry.get('claude')?.generateAll(projectPath, openspecDir);
+SlashCommandRegistry.get('claude')?.generateAll(projectPath, workspaceDir);
 
 // PlxSlashCommandRegistry - manages PLX-specific commands (fork feature)
 PlxSlashCommandRegistry.get('claude')?.generateAll(projectPath);
@@ -182,8 +187,8 @@ tracked-issues:
 ```
 
 Tracked issues are:
-- Displayed in `openspec list` output alongside change names
-- Included in `openspec show --json` output
+- Displayed in `plx list` output alongside change names
+- Included in `plx show --json` output
 - Reported when archiving changes
 
 ### Service Layer
@@ -201,6 +206,21 @@ Domain services encapsulate business logic for reuse across commands:
   - `filterSections(content, sections)` - Extract named sections
   - `filterMultipleTasks(contents, sections)` - Aggregate from multiple tasks
 
+- **FeedbackScannerService** - Scans source files for feedback markers
+  - `scanDirectory(dir)` - Recursively scan directory for feedback markers
+  - `generateReview(reviewId, markers, parentType, parentId)` - Generate review entity from markers
+  - `removeFeedbackMarkers(markers)` - Remove feedback markers from source files
+  - Supports multiple comment styles (C-style, Python, HTML/Markdown)
+  - Extracts spec impact annotations `(spec:<spec-id>)`
+  - Scans 40+ file extensions including `.js`, `.ts`, `.py`, `.go`, `.rs`, `.md`, etc.
+
+- **Task ID utilities** (`src/services/task-id.ts`) - Task ID parsing and validation
+  - `getTaskId(task)` - Extract task ID from task object
+  - `getTaskIdFromFilename(filename)` - Parse ID from filename
+  - `parseTaskId(taskId)` - Parse and validate task ID format
+  - `normalizeTaskId(taskId)` - Normalize task ID format
+  - `isValidTaskId(taskId)` - Validate task ID format
+
 ### Template System
 
 Templates use a **Factory Pattern** via `TemplateManager`:
@@ -216,12 +236,12 @@ Templates support dynamic content via context injection.
 
 ### File Marker System
 
-Files managed by OpenSpec use **markers** to identify managed sections:
+Files managed by PLX use **markers** to identify managed sections:
 
 ```markdown
-<!-- OPENSPEC:START -->
+<!-- PLX:START -->
 Managed content here...
-<!-- OPENSPEC:END -->
+<!-- PLX:END -->
 ```
 
 `FileSystemUtils.updateFileWithMarkers()` handles safe updates preserving user content outside markers.
@@ -231,7 +251,7 @@ Managed content here...
 ### Initialization Flow
 
 ```
-User runs: openspec init
+User runs: plx init
     ↓
 InitCommand.execute()
     ↓
@@ -250,7 +270,7 @@ Write AGENTS.md root stub
 ### Validation Flow
 
 ```
-User runs: openspec validate <item>
+User runs: plx validate <item>
     ↓
 ValidateCommand.execute()
     ↓
@@ -271,7 +291,7 @@ For each item:
 ### Archive Flow
 
 ```
-User runs: openspec archive <change>
+User runs: plx archive <change>
     ↓
 ArchiveCommand.execute()
     ↓
@@ -294,7 +314,7 @@ Move change to archive/YYYY-MM-DD-<name>/
 
 ### Global Configuration
 
-Location: `~/.config/openspec/config.json` (XDG-compliant, respects `XDG_CONFIG_HOME`)
+Location: `~/.config/plx/config.json` (XDG-compliant, respects `XDG_CONFIG_HOME`)
 
 ```json
 {
@@ -302,7 +322,7 @@ Location: `~/.config/openspec/config.json` (XDG-compliant, respects `XDG_CONFIG_
 }
 ```
 
-Managed via `openspec config` subcommands:
+Managed via `plx config` subcommands:
 - `config path` - Show config file location
 - `config list [--json]` - Show all settings
 - `config get <key>` - Get specific value (raw, scriptable)
@@ -313,17 +333,17 @@ Managed via `openspec config` subcommands:
 
 ### Project Configuration
 
-OpenSpec creates/updates these files in a project:
+PLX creates/updates these files in a project:
 
 | File | Purpose |
 |------|---------|
 | `ARCHITECTURE.md` (root) | Project context and conventions (auto-generated during init) |
-| `openspec/AGENTS.md` | AI agent instructions |
+| `workspace/AGENTS.md` | AI agent instructions |
 | `AGENTS.md` (root) | Universal stub for AGENTS.md-compatible tools |
 | `.claude/commands/` | Claude Code slash commands |
 | Various tool configs | Tool-specific configuration files |
 
-The `openspec init` command generates `ARCHITECTURE.md` at the project root with technology stack, folder structure, and architectural patterns. This replaces the previous `openspec/project.md` approach.
+The `plx init` command generates `ARCHITECTURE.md` at the project root with technology stack, folder structure, and architectural patterns.
 
 ### AI Tool Support
 
@@ -334,13 +354,13 @@ Tools are defined in `src/core/config.ts` with availability flags. Currently sup
 | Amazon Q Developer | `.amazonq/rules/` | `.amazonq/prompts/` |
 | Antigravity | `.antigravity/rules/` | `.antigravity/prompts/` |
 | Auggie (CLI) | `.auggie/rules/` | `.auggie/prompts/` |
-| Claude Code | `.claude/settings.local.json` | `.claude/commands/openspec/` |
+| Claude Code | `.claude/settings.local.json` | `.claude/commands/plx/` |
 | Cline | `.clinerules` | `.clinerules/workflows/` |
 | Codex | N/A | `~/.codex/prompts/` (global) |
 | CodeBuddy Code | `.codebuddy/rules/` | `.codebuddy/prompts/` |
 | CoStrict | `.costrict/` | `.costrict/prompts/` |
 | Crush | `.crush/rules/` | `.crush/prompts/` |
-| Cursor | `.cursor/rules/openspec.mdc` | `.cursor/prompts/` |
+| Cursor | `.cursor/rules/plx.mdc` | `.cursor/prompts/` |
 | Factory Droid | `.factory/rules/` | `.factory/prompts/` |
 | Gemini CLI | `.gemini/` | `.gemini/prompts/` |
 | GitHub Copilot | `.github/copilot-instructions.md` | `.github/prompts/` |
@@ -358,7 +378,7 @@ Tools are defined in `src/core/config.ts` with availability flags. Currently sup
 
 - Commands: PascalCase class names (e.g., `InitCommand`)
 - Files: kebab-case (e.g., `file-system.ts`)
-- Constants: SCREAMING_SNAKE_CASE (e.g., `OPENSPEC_DIR_NAME`)
+- Constants: SCREAMING_SNAKE_CASE (e.g., `PLX_DIR_NAME`)
 - Schemas: PascalCase with `Schema` suffix (e.g., `SpecSchema`)
 
 ### Error Handling
@@ -396,9 +416,9 @@ if (!options.noInteractive) {
 The CLI supports shell completions for tab-completion of commands and arguments:
 
 ```bash
-openspec completion install [shell]   # Install completions
-openspec completion generate [shell]  # Output script to stdout
-openspec completion uninstall [shell] # Remove completions
+plx completion install [shell]   # Install completions
+plx completion generate [shell]  # Output script to stdout
+plx completion uninstall [shell] # Remove completions
 ```
 
 Shell auto-detection uses `$SHELL` environment variable. Currently supports: `zsh`.
@@ -444,11 +464,11 @@ Build output goes to `dist/` with:
 
 ## Task Management System
 
-OpenSplx includes a task management system for tracking implementation progress within changes.
+Pew Pew Plx includes a task management system for tracking implementation progress within changes.
 
 ### Task File Structure
 
-Tasks are stored in `openspec/changes/<change-name>/tasks/` as individual markdown files:
+Tasks are stored in `workspace/changes/<change-name>/tasks/` as individual markdown files:
 
 ```
 tasks/
@@ -487,7 +507,7 @@ Checkboxes under `## Constraints` and `## Acceptance Criteria` sections are excl
 
 ### Change Prioritization
 
-The `openspec get task` command selects the highest-priority change using:
+The `plx get task` command selects the highest-priority change using:
 
 1. **Completion Percentage** (highest first): Changes closer to completion get priority
 2. **Creation Date** (oldest first): Tiebreaker when percentages are equal
@@ -507,7 +527,7 @@ The `get` command provides subcommands for retrieving project artifacts:
 
 **Get Task Flow:**
 ```
-User runs: openspec get task
+User runs: plx get task
     ↓
 getPrioritizedChange() → find highest-priority change
     ↓
@@ -565,7 +585,7 @@ The CLI provides explicit commands for task/change completion and undo:
 
 **Complete Task Flow:**
 ```
-User runs: openspec complete task --id <task-id>
+User runs: plx complete task --id <task-id>
     ↓
 ItemRetrievalService.getTaskById() → find task
     ↓
@@ -578,7 +598,7 @@ Output result (JSON includes completedItems array)
 
 **Undo Task Flow:**
 ```
-User runs: openspec undo task --id <task-id>
+User runs: plx undo task --id <task-id>
     ↓
 ItemRetrievalService.getTaskById() → find task
     ↓
@@ -595,16 +615,127 @@ Task status utilities in `src/utils/task-status.ts`:
 - `completeImplementationChecklist(content)` - Check Implementation Checklist items only
 - `uncompleteImplementationChecklist(content)` - Uncheck Implementation Checklist items only
 
-## Fork-Specific Features (OpenSplx)
+### Review System
 
-OpenSplx extends OpenSpec with:
+Pew Pew Plx provides a structured review workflow for validating implementations against specifications, changes, and tasks.
 
-1. **PLX Command Alias**: Both `openspec` and `plx` CLI commands work identically
-2. **Dynamic Command Name**: CLI detects invocation name (`openspec` or `plx`) and uses it in output messages, help text, and shell completions via `src/utils/command-name.ts`
+#### Review Command
+
+The `plx review` command generates review context for changes, specs, or tasks:
+
+```bash
+plx review --change-id <id>    # Review a change
+plx review --spec-id <id>       # Review a spec
+plx review --task-id <id>       # Review a task
+```
+
+**Review Flow:**
+```
+User runs: plx review --change-id <id>
+    ↓
+ReviewCommand.execute()
+    ↓
+Load REVIEW.md template (if exists)
+    ↓
+Load parent documents (proposal.md, design.md, tasks, spec.md)
+    ↓
+Display review context with next steps
+```
+
+**Output includes:**
+- `REVIEW.md` template (if exists at project root)
+- Parent documents (proposal, design, tasks, or spec)
+- Next steps for adding feedback markers
+
+#### Parse Feedback Command
+
+The `plx parse feedback` command scans the codebase for feedback markers and generates review tasks:
+
+```bash
+plx parse feedback <review-name> --change-id <id>
+plx parse feedback <review-name> --spec-id <id>
+plx parse feedback <review-name> --task-id <id>
+```
+
+**Parse Feedback Flow:**
+```
+User runs: plx parse feedback <name> --change-id <id>
+    ↓
+ParseFeedbackCommand.execute()
+    ↓
+FeedbackScannerService.scanDirectory() → find all feedback markers
+    ↓
+For each marker:
+    Extract feedback text and spec impact (if any)
+    ↓
+FeedbackScannerService.generateReview() → create review entity
+    ↓
+Create tasks/ directory with numbered task files
+    ↓
+Output summary (markers found, tasks created, files scanned)
+```
+
+**Feedback Marker Format:**
+
+Feedback markers use inline comments with the pattern `#FEEDBACK #TODO | {feedback text}`:
+
+- **C-style** (`.ts`, `.js`, `.go`, `.rs`, etc.): `// #FEEDBACK #TODO | feedback text`
+- **Python/Shell** (`.py`, `.sh`, `.yaml`, etc.): `# #FEEDBACK #TODO | feedback text`
+- **HTML/Markdown**: `<!-- #FEEDBACK #TODO | feedback text -->`
+
+**Spec Impact Annotations:**
+
+For feedback that impacts specifications, add a suffix: `(spec:<spec-id>)`
+
+Example:
+```typescript
+// #FEEDBACK #TODO | Update validation logic to match new requirements (spec:user-auth)
+```
+
+**Review Entity Structure:**
+
+Reviews are stored in `workspace/reviews/<review-name>/`:
+```
+reviews/
+└── <review-name>/
+    ├── review.md          # Review summary and metadata
+    └── tasks/
+        ├── 001-<task>.md   # Generated task from feedback marker
+        └── 002-<task>.md
+```
+
+**Review Metadata:**
+
+Each review includes frontmatter:
+```yaml
+---
+parent-type: change|spec|task
+parent-id: <id>
+reviewed-at: <ISO timestamp>
+---
+```
+
+**Integration with Change/Spec/Task System:**
+
+- Reviews are linked to their parent (change, spec, or task) via metadata
+- Generated tasks follow the same structure as change tasks
+- Tasks can be retrieved via `plx get task` and managed with complete/undo commands
+- Reviews can be archived like changes: `plx archive <review-name> --type review`
+
+## Fork-Specific Features (Pew Pew Plx)
+
+Pew Pew Plx extends OpenSpec with:
+
+1. **PLX Command**: The CLI uses `plx` as the command name
+2. **Dynamic Command Name**: CLI detects invocation name and uses it in output messages, help text, and shell completions via `src/utils/command-name.ts`
 3. **PLX Slash Commands**: Additional commands in `.claude/commands/plx/`
    - `/plx/init-architecture` - Generate ARCHITECTURE.md
    - `/plx/update-architecture` - Refresh architecture documentation
+   - `/plx/refine-architecture` - Create or update ARCHITECTURE.md
    - `/plx/get-task` - Get next prioritized task and execute workflow
+   - `/plx/review` - Review implementations against specs/changes/tasks
+   - `/plx/parse-feedback` - Parse feedback markers and generate review tasks
+   - `/plx/refine-review` - Create or update REVIEW.md template
 4. **PlxSlashCommandRegistry**: Separate registry for PLX-specific commands
 5. **Extended Templates**: Architecture template generation
 6. **Get Command**: Extended with subcommands for item retrieval (`get task`, `get change`, `get spec`, `get tasks`) and content filtering (`--constraints`, `--acceptance-criteria`)
@@ -612,6 +743,7 @@ OpenSplx extends OpenSpec with:
 8. **Auto-Transition**: `get task` auto-transitions to-do tasks to in-progress when retrieved
 9. **Complete/Undo Commands**: Explicit commands for task/change completion and undo (`complete task`, `complete change`, `undo task`, `undo change`)
 10. **Services Layer**: Domain services for item retrieval and content filtering
+11. **Review System**: Structured review workflow with feedback markers (`plx review`, `plx parse feedback`)
 
 ## Extending the System
 

@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { PlxClaudeSlashCommandConfigurator } from '../../../../src/core/configurators/slash/plx-claude.js';
-import { OPENSPEC_MARKERS } from '../../../../src/core/config.js';
+import { PLX_MARKERS } from '../../../../src/core/config.js';
 
 describe('PlxSlashCommandConfigurator base class', () => {
   let testDir: string;
@@ -29,11 +29,11 @@ describe('PlxSlashCommandConfigurator base class', () => {
 
       const initArchPath = path.join(plxDir, 'init-architecture.md');
       const originalContent = `---
-name: PLX: Init Architecture
+name: Pew Pew Plx: Init Architecture
 ---
-${OPENSPEC_MARKERS.start}
+${PLX_MARKERS.start}
 Old body content
-${OPENSPEC_MARKERS.end}
+${PLX_MARKERS.end}
 `;
       await fs.writeFile(initArchPath, originalContent);
 
@@ -43,8 +43,8 @@ ${OPENSPEC_MARKERS.end}
       expect(updated[0]).toBe('.claude/commands/plx/init-architecture.md');
 
       const newContent = await fs.readFile(initArchPath, 'utf-8');
-      expect(newContent).toContain(OPENSPEC_MARKERS.start);
-      expect(newContent).toContain(OPENSPEC_MARKERS.end);
+      expect(newContent).toContain(PLX_MARKERS.start);
+      expect(newContent).toContain(PLX_MARKERS.end);
       expect(newContent).not.toContain('Old body content');
     });
 
@@ -60,12 +60,12 @@ ${OPENSPEC_MARKERS.end}
 
       const initArchPath = path.join(plxDir, 'init-architecture.md');
       const originalContent = `---
-name: PLX: Init Architecture
+name: Pew Pew Plx: Init Architecture
 description: Custom description
 ---
-${OPENSPEC_MARKERS.start}
+${PLX_MARKERS.start}
 Old body
-${OPENSPEC_MARKERS.end}
+${PLX_MARKERS.end}
 `;
       await fs.writeFile(initArchPath, originalContent);
 
