@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://github.com/appyboypov/OpenSplx">
+  <a href="https://github.com/appboypov/OpenSplx">
     <picture>
       <source srcset="assets/opensplx_pixel_dark.svg" media="(prefers-color-scheme: dark)">
       <source srcset="assets/opensplx_pixel_light.svg" media="(prefers-color-scheme: light)">
@@ -11,7 +11,8 @@
 <p align="center">Spec-driven development for AI coding assistants.</p>
 <p align="center">
   <a href="https://github.com/Fission-AI/OpenSpec"><img alt="Fork of OpenSpec" src="https://img.shields.io/badge/Fork%20of-OpenSpec-blue?style=flat-square" /></a>
-  <a href="https://nodejs.org/"><img alt="node version" src="https://img.shields.io/node/v/@fission-ai/openspec?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@appboypov/opensplx"><img alt="npm version" src="https://img.shields.io/npm/v/@appboypov/opensplx?style=flat-square" /></a>
+  <a href="https://nodejs.org/"><img alt="node version" src="https://img.shields.io/node/v/@appboypov/opensplx?style=flat-square" /></a>
   <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" /></a>
 </p>
 
@@ -19,507 +20,207 @@
   <img src="assets/plx_dashboard.png" alt="Pew Pew Plx dashboard preview" width="90%">
 </p>
 
-# OpenSplx
+# Pew Pew Plx
 
-> **Fork Notice:** OpenSplx is a community fork of [OpenSpec](https://github.com/Fission-AI/OpenSpec).
-> It uses the `plx` command and `workspace/` directory structure with extended features.
+Pew Pew Plx aligns humans and AI coding assistants with spec-driven development. Agree on what to build before any code is written. **No API keys required.**
 
-## What's Different in OpenSplx
+> Fork of [OpenSpec](https://github.com/Fission-AI/OpenSpec) with extended task management, review workflows, and automatic migration from OpenSpec projects.
 
-| Feature | OpenSpec | OpenSplx |
-|---------|----------|----------|
-| Command | `openspec` | `plx` |
-| Task Structure | Single `tasks.md` | `tasks/` directory with numbered files |
-| Task Status | Checkbox-based | YAML frontmatter (`to-do`, `in-progress`, `done`) |
-| Task Selection | Manual | `plx get task` for prioritized selection |
-| Item Retrieval | — | `get change`, `get spec`, `get tasks` by ID |
-| Content Filtering | — | `--constraints`, `--acceptance-criteria` flags |
-| Auto-completion | — | Detects fully checked tasks, auto-advances |
-| Auto-transition | — | `get task` auto-transitions to-do → in-progress |
-| Complete/Undo | — | `complete task`, `complete change`, `undo task`, `undo change` |
-| Review System | — | `plx review`, `plx parse feedback` with feedback markers |
-| Workspace Dir | `openspec/` | `workspace/` |
-| Architecture Docs | `openspec/project.md` | `ARCHITECTURE.md` |
-| Issue Tracking | — | External issue tracking in proposals |
-| Install | `npm i -g @fission-ai/openspec` | `npm i -g @appboypov/opensplx` |
-
-### Task Directory Structure
-
-OpenSplx uses a `tasks/` directory with numbered task files instead of a single `tasks.md`:
-
-```
-tasks/
-├── 001-<first-task>.md
-├── 002-<second-task>.md
-└── NNN-<last-task>.md
-```
-
-Each task file is scoped for one AI conversation. The apply command auto-detects the next incomplete task and processes only that one. Legacy `tasks.md` files are auto-migrated on first CLI access.
-
-### Get Command
-
-OpenSplx extends the `get` command with subcommands for retrieving project artifacts:
-
-```bash
-# Task retrieval and workflow
-plx get task                          # Get the next prioritized task
-plx get task --id 001-implement       # Get specific task by filename
-plx get task --did-complete-previous  # Mark current task done, get next
-plx get task --constraints            # Show only Constraints section
-plx get task --acceptance-criteria    # Show only Acceptance Criteria section
-
-# Item retrieval by ID
-plx get change --id add-feature       # Retrieve change proposal by ID
-plx get spec --id user-auth           # Retrieve spec by ID
-plx get tasks                         # List all open tasks
-plx get tasks --id add-feature        # List tasks for specific change
-
-# All commands support --json for machine-readable output
-```
-
-**Prioritization logic:**
-1. Changes with highest completion percentage are prioritized first
-2. When percentages are equal, older proposals (by birthtime) take precedence
-3. Within a change, finds the first task with `status: to-do` or `status: in-progress`
-
-**Task status tracking:** Tasks use YAML frontmatter for status:
-```yaml
----
-status: to-do  # or: in-progress, done
----
-```
-
-**Checkbox auto-completion:** When using `--did-complete-previous`, all checkboxes in the `## Implementation Checklist` section are automatically marked as complete. Checkboxes in `## Constraints` and `## Acceptance Criteria` sections are preserved unchanged.
-
-**Auto-transition:** When retrieving a task via `plx get task` or `plx get task --id`, tasks with `status: to-do` are automatically transitioned to `in-progress`. JSON output includes a `transitionedToInProgress` field when this occurs.
-
-**Automatic task completion:** When running `plx get task`, if the current in-progress task has all Implementation Checklist items checked, it is automatically marked as `done` and the next `to-do` task is marked as `in-progress`. The output shows the new task without repeating change documents. JSON output includes an `autoCompletedTask` field when this occurs.
-
-**Content filtering:** Use `--constraints` and `--acceptance-criteria` to filter task output to specific sections. Combine flags to show multiple sections.
-
-### Complete and Undo Commands
-
-OpenSplx provides explicit commands for task and change completion:
-
-```bash
-# Complete tasks and changes
-plx complete task --id 001-implement     # Mark task as done, check all Implementation Checklist items
-plx complete change --id add-feature     # Complete all tasks in a change
-
-# Undo completion
-plx undo task --id 001-implement         # Revert task to to-do, uncheck Implementation Checklist items
-plx undo change --id add-feature         # Revert all tasks in a change to to-do
-
-# All commands support --json for machine-readable output
-```
-
-### Review Commands
-
-OpenSplx provides a structured review workflow for validating implementations:
-
-```bash
-# Output review context
-plx review --change-id add-feature    # Review a change
-plx review --spec-id user-auth        # Review a spec
-plx review --task-id 001-implement    # Review a task
-
-# Parse feedback markers from code
-plx parse feedback review-name --change-id add-feature
-
-# List and archive reviews
-plx list --reviews                     # List active reviews
-plx archive review-name --type review  # Archive completed review
-
-# All commands support --json for machine-readable output
-```
-
-**Feedback markers:** Add inline markers in code during review:
-- `// #FEEDBACK #TODO | feedback text` (C-style: .ts, .js, .go, .rs, etc.)
-- `# #FEEDBACK #TODO | feedback text` (Python/Shell: .py, .sh, .yaml, etc.)
-- `<!-- #FEEDBACK #TODO | feedback text -->` (HTML/Markdown)
-
-For spec-impacting feedback, add suffix: `(spec:<spec-id>)`
-
-### Pew Pew Plx Slash Commands
-
-When you run `plx init`, these additional commands are installed:
-
-- **`/plx/get-task`** - Get the next prioritized task across active changes
-- **`/plx/init-architecture`** - Generate comprehensive `ARCHITECTURE.md` from codebase analysis
-- **`/plx/update-architecture`** - Refresh architecture documentation based on current codebase state
-- **`/plx/review`** - Review implementations against specs/changes/tasks
-- **`/plx/parse-feedback`** - Parse feedback markers and generate review tasks
-- **`/plx/refine-architecture`** - Create or update `ARCHITECTURE.md`
-- **`/plx/refine-review`** - Create or update `REVIEW.md` template
-
-### Quick Start (OpenSplx)
+## Installation
 
 ```bash
 npm install -g @appboypov/opensplx
 plx --version
 ```
 
----
+**Prerequisites:** Node.js >= 20.19.0
 
-<details>
-<summary><strong>Original OpenSpec Documentation</strong> (click to expand)</summary>
+## Quick Start
 
-<p align="center">
-  Follow <a href="https://x.com/0xTab">@0xTab on X</a> for updates · Join the <a href="https://discord.gg/YctCnvvshC">OpenSpec Discord</a> for help and questions.
-</p>
+```bash
+cd my-project
+plx init
+```
 
-# OpenSpec
-
-OpenSpec aligns humans and AI coding assistants with spec-driven development so you agree on what to build before any code is written. **No API keys required.**
-
-## Why OpenSpec?
-
-AI coding assistants are powerful but unpredictable when requirements live in chat history. OpenSpec adds a lightweight specification workflow that locks intent before implementation, giving you deterministic, reviewable outputs.
-
-Key outcomes:
-- Human and AI stakeholders agree on specs before work begins.
-- Structured change folders (proposals, tasks, and spec updates) keep scope explicit and auditable.
-- Shared visibility into what's proposed, active, or archived.
-- Works with the AI tools you already use: custom slash commands where supported, context rules everywhere else.
-
-## How OpenSpec compares (at a glance)
-
-- **Lightweight**: simple workflow, no API keys, minimal setup.
-- **Brownfield-first**: works great beyond 0→1. OpenSpec separates the source of truth from proposals: `openspec/specs/` (current truth) and `openspec/changes/` (proposed updates). This keeps diffs explicit and manageable across features.
-- **Change tracking**: proposals, tasks, and spec deltas live together; archiving merges the approved updates back into specs.
-- **Compared to spec-kit & Kiro**: those shine for brand-new features (0→1). OpenSpec also excels when modifying existing behavior (1→n), especially when updates span multiple specs.
-
-See the full comparison in [How OpenSpec Compares](#how-openspec-compares).
+This creates the `workspace/` directory structure and configures slash commands for your AI tools.
 
 ## How It Works
 
 ```
-┌────────────────────┐
-│ Draft Change       │
-│ Proposal           │
-└────────┬───────────┘
-         │ share intent with your AI
-         ▼
-┌────────────────────┐
-│ Review & Align     │
-│ (edit specs/tasks) │◀──── feedback loop ──────┐
-└────────┬───────────┘                          │
-         │ approved plan                        │
-         ▼                                      │
-┌────────────────────┐                          │
-│ Implement Tasks    │──────────────────────────┘
-│ (AI writes code)   │
-└────────┬───────────┘
-         │ ship the change
-         ▼
-┌────────────────────┐
-│ Archive & Update   │
-│ Specs (source)     │
-└────────────────────┘
-
-1. Draft a change proposal that captures the spec updates you want.
-2. Review the proposal with your AI assistant until everyone agrees.
-3. Implement tasks that reference the agreed specs.
-4. Archive the change to merge the approved updates back into the source-of-truth specs.
+1. Draft    → Create a change proposal capturing spec updates
+2. Review   → Iterate with your AI until everyone agrees
+3. Implement → AI works through tasks referencing agreed specs
+4. Archive  → Merge approved updates into source-of-truth specs
 ```
 
-## Getting Started
+## Commands
 
-### Supported AI Tools
+### Navigation & Listing
+
+| Command | Description |
+|---------|-------------|
+| `plx list` | List active changes |
+| `plx list --specs` | List specifications |
+| `plx list --reviews` | List active reviews |
+| `plx view` | Interactive dashboard |
+
+### Task Management
+
+| Command | Description |
+|---------|-------------|
+| `plx get task` | Get next prioritized task |
+| `plx get task --id <id>` | Get specific task |
+| `plx get task --did-complete-previous` | Complete current, get next |
+| `plx get task --constraints` | Show only Constraints |
+| `plx get task --acceptance-criteria` | Show only Acceptance Criteria |
+| `plx get tasks` | List all open tasks |
+| `plx complete task --id <id>` | Mark task done |
+| `plx complete change --id <id>` | Complete all tasks in change |
+| `plx undo task --id <id>` | Revert task to to-do |
+| `plx undo change --id <id>` | Revert all tasks in change |
+
+### Item Retrieval
+
+| Command | Description |
+|---------|-------------|
+| `plx get change --id <id>` | Get change by ID |
+| `plx get spec --id <id>` | Get spec by ID |
+| `plx show <item>` | Display change or spec |
+| `plx show <item> --json` | JSON output |
+
+### Review System
+
+| Command | Description |
+|---------|-------------|
+| `plx review --change-id <id>` | Review a change |
+| `plx review --spec-id <id>` | Review a spec |
+| `plx review --task-id <id>` | Review a task |
+| `plx parse feedback <name> --change-id <id>` | Parse feedback markers |
+
+### Validation & Archival
+
+| Command | Description |
+|---------|-------------|
+| `plx validate <item>` | Validate single item |
+| `plx validate --all` | Validate everything |
+| `plx archive <change-id>` | Archive completed change |
+
+### Configuration
+
+| Command | Description |
+|---------|-------------|
+| `plx config path` | Show config file location |
+| `plx config list` | Show all settings |
+| `plx update` | Refresh instruction files |
+
+## Task Structure
+
+Tasks live in `workspace/changes/<change-id>/tasks/` as numbered files:
+
+```
+tasks/
+├── 001-setup-database.md
+├── 002-implement-api.md
+└── 003-add-tests.md
+```
+
+Each task uses YAML frontmatter for status tracking:
+
+```yaml
+---
+status: to-do  # or: in-progress, done
+---
+```
+
+**Prioritization:** Changes with highest completion percentage are prioritized first. Within a change, the first `to-do` or `in-progress` task is selected.
+
+**Auto-completion:** When all Implementation Checklist items are checked, the task is automatically marked `done` and the next task begins.
+
+## Review Workflow
+
+Add inline feedback markers during code review:
+
+```typescript
+// #FEEDBACK #TODO | Validate input before processing
+```
+
+```python
+# #FEEDBACK #TODO | Add error handling here
+```
+
+```html
+<!-- #FEEDBACK #TODO | Missing accessibility attributes -->
+```
+
+For spec-impacting feedback, add suffix: `(spec:<spec-id>)`
+
+Parse markers with: `plx parse feedback review-name --change-id <id>`
+
+## Slash Commands
+
+When you run `plx init`, these commands are installed for supported AI tools:
+
+- `/plx/get-task` - Get next prioritized task
+- `/plx/init-architecture` - Generate `ARCHITECTURE.md`
+- `/plx/update-architecture` - Refresh architecture documentation
+- `/plx/review` - Review implementations
+- `/plx/parse-feedback` - Parse feedback markers
+
+## Supported AI Tools
 
 <details>
-<summary><strong>Native Slash Commands</strong> (click to expand)</summary>
+<summary><strong>Native Slash Commands</strong></summary>
 
-These tools have built-in OpenSpec commands. Select the OpenSpec integration when prompted.
-
-| Tool | Commands |
-|------|----------|
-| **Amazon Q Developer** | `@openspec-proposal`, `@openspec-apply`, `@openspec-archive` (`.amazonq/prompts/`) |
-| **Antigravity** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` (`.agent/workflows/`) |
-| **Auggie (Augment CLI)** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` (`.augment/commands/`) |
-| **Claude Code** | `/openspec:proposal`, `/openspec:apply`, `/openspec:archive` |
-| **Cline** | Workflows in `.clinerules/workflows/` directory (`.clinerules/workflows/openspec-*.md`) |
-| **CodeBuddy Code (CLI)** | `/openspec:proposal`, `/openspec:apply`, `/openspec:archive` (`.codebuddy/commands/`) — see [docs](https://www.codebuddy.ai/cli) |
-| **Codex** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` (global: `~/.codex/prompts`, auto-installed) |
-| **CoStrict** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` (`.cospec/openspec/commands/`) — see [docs](https://costrict.ai)|
-| **Crush** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` (`.crush/commands/openspec/`) |
-| **Cursor** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` |
-| **Factory Droid** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` (`.factory/commands/`) |
-| **Gemini CLI** | `/openspec:proposal`, `/openspec:apply`, `/openspec:archive` (`.gemini/commands/openspec/`) |
-| **GitHub Copilot** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` (`.github/prompts/`) |
-| **iFlow (iflow-cli)** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` (`.iflow/commands/`) |
-| **Kilo Code** | `/openspec-proposal.md`, `/openspec-apply.md`, `/openspec-archive.md` (`.kilocode/workflows/`) |
-| **OpenCode** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` |
-| **Qoder (CLI)** | `/openspec:proposal`, `/openspec:apply`, `/openspec:archive` (`.qoder/commands/openspec/`) — see [docs](https://qoder.com/cli) |
-| **Qwen Code** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` (`.qwen/commands/`) |
-| **RooCode** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` (`.roo/commands/`) |
-| **Windsurf** | `/openspec-proposal`, `/openspec-apply`, `/openspec-archive` (`.windsurf/workflows/`) |
-
-Kilo Code discovers team workflows automatically. Save the generated files under `.kilocode/workflows/` and trigger them from the command palette with `/openspec-proposal.md`, `/openspec-apply.md`, or `/openspec-archive.md`.
+| Tool | Command Format |
+|------|----------------|
+| Amazon Q Developer | `@plx-proposal`, `@plx-apply`, `@plx-archive` |
+| Antigravity | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
+| Auggie (Augment CLI) | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
+| Claude Code | `/plx:proposal`, `/plx:apply`, `/plx:archive` |
+| Cline | Workflows in `.clinerules/workflows/` |
+| CodeBuddy Code | `/plx:proposal`, `/plx:apply`, `/plx:archive` |
+| Codex | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
+| CoStrict | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
+| Crush | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
+| Cursor | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
+| Factory Droid | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
+| Gemini CLI | `/plx:proposal`, `/plx:apply`, `/plx:archive` |
+| GitHub Copilot | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
+| iFlow | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
+| Kilo Code | `/plx-proposal.md`, `/plx-apply.md`, `/plx-archive.md` |
+| OpenCode | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
+| Qoder | `/plx:proposal`, `/plx:apply`, `/plx:archive` |
+| Qwen Code | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
+| RooCode | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
+| Windsurf | `/plx-proposal`, `/plx-apply`, `/plx-archive` |
 
 </details>
 
 <details>
-<summary><strong>AGENTS.md Compatible</strong> (click to expand)</summary>
+<summary><strong>AGENTS.md Compatible</strong></summary>
 
-These tools automatically read workflow instructions from `openspec/AGENTS.md`. Ask them to follow the OpenSpec workflow if they need a reminder. Learn more about the [AGENTS.md convention](https://agents.md/).
+Tools that read workflow instructions from `workspace/AGENTS.md`:
 
-| Tools |
-|-------|
-| Amp • Jules • Others |
+Amp, Jules, and others following the [AGENTS.md convention](https://agents.md/).
 
 </details>
 
-### Install & Initialize
+## OpenSpec Migration
 
-#### Prerequisites
-- **Node.js >= 20.19.0** - Check your version with `node --version`
+Projects created with OpenSpec are automatically migrated when running `plx update` or `plx init`:
 
-#### Step 1: Install the CLI globally
-
-```bash
-npm install -g @fission-ai/openspec@latest
-```
-
-Verify installation:
-```bash
-openspec --version
-```
-
-#### Step 2: Initialize OpenSpec in your project
-
-Navigate to your project directory:
-```bash
-cd my-project
-```
-
-Run the initialization:
-```bash
-openspec init
-```
-
-**What happens during initialization:**
-- You'll be prompted to pick any natively supported AI tools (Claude Code, CodeBuddy, Cursor, OpenCode, Qoder,etc.); other assistants always rely on the shared `AGENTS.md` stub
-- OpenSpec automatically configures slash commands for the tools you choose and always writes a managed `AGENTS.md` hand-off at the project root
-- A new `openspec/` directory structure is created in your project
-
-**After setup:**
-- Primary AI tools can trigger `/openspec` workflows without additional configuration
-- Run `openspec list` to verify the setup and view any active changes
-- If your coding assistant doesn't surface the new slash commands right away, restart it. Slash commands are loaded at startup,
-  so a fresh launch ensures they appear
-
-### Optional: Populate Architecture Documentation
-
-After `openspec init` completes, you'll receive a suggested prompt to help populate your architecture documentation:
-
-```text
-Populate your architecture documentation:
-"Please read ARCHITECTURE.md and help me fill it out with details about my project, tech stack, and conventions"
-```
-
-Use `ARCHITECTURE.md` (at project root) to define project-level context, conventions, standards, architectural patterns, and other guidelines that should be followed across all changes.
-
-### Create Your First Change
-
-Here's a real example showing the complete OpenSpec workflow. This works with any AI tool. Those with native slash commands will recognize the shortcuts automatically.
-
-#### 1. Draft the Proposal
-Start by asking your AI to create a change proposal:
-
-```text
-You: Create an OpenSpec change proposal for adding profile search filters by role and team
-     (Shortcut for tools with slash commands: /openspec:proposal Add profile search filters)
-
-AI:  I'll create an OpenSpec change proposal for profile filters.
-     *Scaffolds openspec/changes/add-profile-filters/ with proposal.md, tasks.md, spec deltas.*
-```
-
-#### 2. Verify & Review
-Check that the change was created correctly and review the proposal:
-
-```bash
-$ openspec list                             # Confirm the change folder exists
-$ openspec validate add-profile-filters     # Validate spec formatting
-$ openspec show add-profile-filters         # Review proposal, tasks, and spec delta
-```
-
-#### 3. Refine the Specs
-Iterate on the specifications until they match your needs:
-
-```text
-You: Can you add acceptance criteria for the role and team filters?
-
-AI:  I'll update the spec delta with scenarios for role and team filters.
-     *Edits openspec/changes/add-profile-filters/specs/profile/spec.md and tasks.md.*
-```
-
-#### 4. Implement the Change
-Once specs look good, start implementation:
-
-```text
-You: The specs look good. Let's implement this change.
-     (Shortcut for tools with slash commands: /openspec:apply add-profile-filters)
-
-AI:  I'll work through the tasks in the add-profile-filters change.
-     *Implements tasks from openspec/changes/add-profile-filters/tasks.md*
-     *Marks tasks complete: Task 1.1 ✓, Task 1.2 ✓, Task 2.1 ✓...*
-```
-
-#### 5. Archive the Completed Change
-After implementation is complete, archive the change:
-
-```text
-AI:  All tasks are complete. The implementation is ready.
-
-You: Please archive the change
-     (Shortcut for tools with slash commands: /openspec:archive add-profile-filters)
-
-AI:  I'll archive the add-profile-filters change.
-    *Runs: openspec archive add-profile-filters --yes*
-     ✓ Change archived successfully. Specs updated. Ready for the next feature!
-```
-
-Or run the command yourself in terminal:
-```bash
-$ openspec archive add-profile-filters --yes  # Archive the completed change without prompts
-```
-
-**Note:** Tools with native slash commands (Claude Code, CodeBuddy, Cursor, Codex, Qoder, RooCode) can use the shortcuts shown. All other tools work with natural language requests to "create an OpenSpec proposal", "apply the OpenSpec change", or "archive the change".
-
-## Command Reference
-
-```bash
-openspec list               # View active change folders
-openspec view               # Interactive dashboard of specs and changes
-openspec show <change>      # Display change details (proposal, tasks, spec updates)
-openspec validate <change>  # Check spec formatting and structure
-openspec archive <change> [--yes|-y]   # Move a completed change into archive/ (non-interactive with --yes)
-```
-
-## Example: How AI Creates OpenSpec Files
-
-When you ask your AI assistant to "add two-factor authentication", it creates:
-
-```
-openspec/
-├── specs/
-│   └── auth/
-│       └── spec.md           # Current auth spec (if exists)
-└── changes/
-    └── add-2fa/              # AI creates this entire structure
-        ├── proposal.md       # Why and what changes
-        ├── tasks.md          # Implementation checklist
-        ├── design.md         # Technical decisions (optional)
-        └── specs/
-            └── auth/
-                └── spec.md   # Delta showing additions
-```
-
-### AI-Generated Spec (created in `openspec/specs/auth/spec.md`):
-
-```markdown
-# Auth Specification
-
-## Purpose
-Authentication and session management.
-
-## Requirements
-### Requirement: User Authentication
-The system SHALL issue a JWT on successful login.
-
-#### Scenario: Valid credentials
-- WHEN a user submits valid credentials
-- THEN a JWT is returned
-```
-
-### AI-Generated Change Delta (created in `openspec/changes/add-2fa/specs/auth/spec.md`):
-
-```markdown
-# Delta for Auth
-
-## ADDED Requirements
-### Requirement: Two-Factor Authentication
-The system MUST require a second factor during login.
-
-#### Scenario: OTP required
-- WHEN a user submits valid credentials
-- THEN an OTP challenge is required
-```
-
-### AI-Generated Tasks (created in `openspec/changes/add-2fa/tasks.md`):
-
-```markdown
-## 1. Database Setup
-- [ ] 1.1 Add OTP secret column to users table
-- [ ] 1.2 Create OTP verification logs table
-
-## 2. Backend Implementation  
-- [ ] 2.1 Add OTP generation endpoint
-- [ ] 2.2 Modify login flow to require OTP
-- [ ] 2.3 Add OTP verification endpoint
-
-## 3. Frontend Updates
-- [ ] 3.1 Create OTP input component
-- [ ] 3.2 Update login flow UI
-```
-
-**Important:** You don't create these files manually. Your AI assistant generates them based on your requirements and the existing codebase.
-
-## Understanding OpenSpec Files
-
-### Delta Format
-
-Deltas are "patches" that show how specs change:
-
-- **`## ADDED Requirements`** - New capabilities
-- **`## MODIFIED Requirements`** - Changed behavior (include complete updated text)
-- **`## REMOVED Requirements`** - Deprecated features
-
-**Format requirements:**
-- Use `### Requirement: <name>` for headers
-- Every requirement needs at least one `#### Scenario:` block
-- Use SHALL/MUST in requirement text
-
-## How OpenSpec Compares
-
-### vs. spec-kit
-OpenSpec’s two-folder model (`openspec/specs/` for the current truth, `openspec/changes/` for proposed updates) keeps state and diffs separate. This scales when you modify existing features or touch multiple specs. spec-kit is strong for greenfield/0→1 but provides less structure for cross-spec updates and evolving features.
-
-### vs. Kiro.dev
-OpenSpec groups every change for a feature in one folder (`openspec/changes/feature-name/`), making it easy to track related specs, tasks, and designs together. Kiro spreads updates across multiple spec folders, which can make feature tracking harder.
-
-### vs. No Specs
-Without specs, AI coding assistants generate code from vague prompts, often missing requirements or adding unwanted features. OpenSpec brings predictability by agreeing on the desired behavior before any code is written.
-
-## Team Adoption
-
-1. **Initialize OpenSpec** – Run `openspec init` in your repo.
-2. **Start with new features** – Ask your AI to capture upcoming work as change proposals.
-3. **Grow incrementally** – Each change archives into living specs that document your system.
-4. **Stay flexible** – Different teammates can use Claude Code, CodeBuddy, Cursor, or any AGENTS.md-compatible tool while sharing the same specs.
-
-Run `openspec update` whenever someone switches tools so your agents pick up the latest instructions and slash-command bindings.
-
-## Updating OpenSpec
-
-1. **Upgrade the package**
-   ```bash
-   npm install -g @fission-ai/openspec@latest
-   ```
-2. **Refresh agent instructions**
-   - Run `openspec update` inside each project to regenerate AI guidance and ensure the latest slash commands are active.
+- `openspec/` directory contents moved to `workspace/`
+- `<!-- OPENSPEC:START/END -->` markers updated to `<!-- PLX:START/END -->`
+- `~/.openspec/` global config moved to `~/.plx/`
 
 ## Contributing
 
-- Install dependencies: `pnpm install`
-- Build: `pnpm run build`
-- Test: `pnpm test`
-- Develop CLI locally: `pnpm run dev` or `pnpm run dev:cli`
-- Conventional commits (one-line): `type(scope): subject`
+```bash
+pnpm install
+pnpm run build
+pnpm test
+```
 
 ## License
 
 MIT
-
-</details>
