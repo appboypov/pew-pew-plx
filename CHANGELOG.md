@@ -1,5 +1,24 @@
 # OpenSplx Changelog
 
+## 0.6.0 - 2025-12-29
+
+### Changed
+
+- **BREAKING**: Rebrand from OpenSpec to PLX across entire codebase
+  - CLI command changed from `openspec` to `plx`
+  - All internal references updated (constants, templates, configurators)
+  - Markers remain as `<!-- PLX:START -->` / `<!-- PLX:END -->`
+- **BREAKING**: Rebrand display name from "PLX" to "Pew Pew Plx"
+  - User-facing display names updated in CLI help, dashboard, slash commands
+  - CLI command stays as `plx`, constants like `PLX_DIR_NAME` unchanged
+- Clarify backward compatibility test descriptions
+
+### Added
+
+- Architecture documentation commands: `plx/refine-architecture`, `plx/refine-review`, `plx/parse-feedback`
+
+---
+
 ## 0.5.0 - 2025-12-26
 
 ### Added

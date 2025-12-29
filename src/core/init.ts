@@ -12,6 +12,7 @@ import {
 } from '@inquirer/core';
 import chalk from 'chalk';
 import ora from 'ora';
+import { migrateOpenSpecProject } from '../utils/openspec-migration.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { TemplateManager } from './templates/index.js';
 import { ToolRegistry } from './configurators/registry.js';
@@ -33,6 +34,8 @@ const PROGRESS_SPINNER = {
 
 const LETTER_MAP: Record<string, string[]> = {
   P: ['█████ ', '██  ██', '█████ ', '██    ', '██    '],
+  E: ['██████', '██    ', '█████ ', '██    ', '██████'],
+  W: ['██  ██', '██  ██', '██ █ █', '██████', '██  ██'],
   L: ['██    ', '██    ', '██    ', '██    ', '██████'],
   X: ['██  ██', ' ████ ', '  ██  ', ' ████ ', '██  ██'],
   ' ': ['  ', '  ', '  ', '  ', '  '],
@@ -384,6 +387,27 @@ export class InitCommand {
     const projectPath = path.resolve(targetPath);
     const workspaceDir = PLX_DIR_NAME;
     const workspacePath = path.join(projectPath, workspaceDir);
+
+    // Migrate legacy OpenSpec projects if detected
+    const migrationResult = await migrateOpenSpecProject(projectPath);
+    if (migrationResult.migrated) {
+      const parts: string[] = [];
+      if (migrationResult.directoryMigrated) {
+        parts.push('Renamed openspec/ → workspace/');
+      }
+      if (migrationResult.markerFilesUpdated > 0) {
+        parts.push(`Updated markers in ${migrationResult.markerFilesUpdated} file${migrationResult.markerFilesUpdated === 1 ? '' : 's'}`);
+      }
+      if (migrationResult.globalConfigMigrated) {
+        parts.push('Migrated global config ~/.openspec/ → ~/.plx/');
+      }
+      console.log(chalk.green('Migrated legacy OpenSpec project:'), parts.join(', '));
+    }
+    if (migrationResult.errors.length > 0) {
+      for (const error of migrationResult.errors) {
+        console.log(chalk.yellow('Migration warning:'), error);
+      }
+    }
 
     // Validation happens silently in the background
     const extendMode = await this.validate(projectPath, workspacePath);
@@ -962,7 +986,7 @@ export class InitCommand {
 
   private renderBanner(_extendMode: boolean): void {
     const rows = ['', '', '', '', ''];
-    for (const char of 'PLX') {
+    for (const char of 'PEW PEW PLX') {
       const glyph = LETTER_MAP[char] ?? LETTER_MAP[' '];
       for (let i = 0; i < rows.length; i += 1) {
         rows[i] += `${glyph[i]}  `;

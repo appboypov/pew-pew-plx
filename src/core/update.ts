@@ -1,5 +1,7 @@
 import path from 'path';
+import chalk from 'chalk';
 import { FileSystemUtils } from '../utils/file-system.js';
+import { migrateOpenSpecProject } from '../utils/openspec-migration.js';
 import { PLX_DIR_NAME } from './config.js';
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
@@ -10,6 +12,28 @@ import { TemplateManager } from './templates/index.js';
 export class UpdateCommand {
   async execute(projectPath: string): Promise<void> {
     const resolvedProjectPath = path.resolve(projectPath);
+
+    // Migrate legacy OpenSpec projects if detected
+    const migrationResult = await migrateOpenSpecProject(resolvedProjectPath);
+    if (migrationResult.migrated) {
+      const parts: string[] = [];
+      if (migrationResult.directoryMigrated) {
+        parts.push('Renamed openspec/ → workspace/');
+      }
+      if (migrationResult.markerFilesUpdated > 0) {
+        parts.push(`Updated markers in ${migrationResult.markerFilesUpdated} file${migrationResult.markerFilesUpdated === 1 ? '' : 's'}`);
+      }
+      if (migrationResult.globalConfigMigrated) {
+        parts.push('Migrated global config ~/.openspec/ → ~/.plx/');
+      }
+      console.log(chalk.green('Migrated legacy OpenSpec project:'), parts.join(', '));
+    }
+    if (migrationResult.errors.length > 0) {
+      for (const error of migrationResult.errors) {
+        console.log(chalk.yellow('Migration warning:'), error);
+      }
+    }
+
     const workspaceDirName = PLX_DIR_NAME;
     const workspacePath = path.join(resolvedProjectPath, workspaceDirName);
 
