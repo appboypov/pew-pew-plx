@@ -26,7 +26,7 @@ describe('spec show (interactive behavior)', () => {
     const originalEnv = { ...process.env };
     try {
       process.chdir(testDir);
-      process.env.OPEN_SPEC_INTERACTIVE = '0';
+      process.env.PLX_INTERACTIVE = '0';
       let err: any;
       try {
         execSync(`node ${bin} spec show`, { encoding: 'utf-8' });

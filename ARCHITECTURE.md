@@ -187,8 +187,8 @@ tracked-issues:
 ```
 
 Tracked issues are:
-- Displayed in `openspec list` output alongside change names
-- Included in `openspec show --json` output
+- Displayed in `plx list` output alongside change names
+- Included in `plx show --json` output
 - Reported when archiving changes
 
 ### Service Layer

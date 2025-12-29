@@ -34,7 +34,7 @@
   - SQL/Lua: `-- #FEEDBACK #TODO | feedback`
   - HTML/XML/Markdown: `<!-- #FEEDBACK #TODO | feedback -->`
   - Spec-impacting: `(spec:<spec-id>)` suffix for spec updates on archive
-- **Review entity type**: New entity in `openspec/reviews/` with parent linkage, task generation, and archiving with spec updates
+- **Review entity type**: New entity in `workspace/reviews/` with parent linkage, task generation, and archiving with spec updates
 - **PLX slash commands**: `plx/review`, `plx/refine-architecture`, `plx/refine-review`, `plx/parse-feedback`
 - **Complete and undo commands**: New CLI commands for explicit task/change management
   - `complete task --id <task-id>` - Mark task as done, check all Implementation Checklist items
@@ -82,7 +82,7 @@
 
 ### Added
 
-- **Act next command**: New `openspec act next` CLI command for prioritized task selection across active changes
+- **Act next command**: New `plx act next` CLI command for prioritized task selection across active changes
   - Prioritizes changes by completion percentage (highest first)
   - Uses proposal.md birthtime as tiebreaker when percentages equal
   - Task status tracking via YAML frontmatter (`to-do`, `in-progress`, `done`)

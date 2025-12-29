@@ -2,21 +2,21 @@
 
 ## Purpose
 
-The `openspec list` command SHALL provide developers with a quick overview of all active changes in the project, showing their names and task completion status.
+The `plx list` command SHALL provide developers with a quick overview of all active changes in the project, showing their names and task completion status.
 ## Requirements
 ### Requirement: Command Execution
 The command SHALL scan and analyze either active changes or specs based on the selected mode.
 
 #### Scenario: Scanning for changes (default)
-- **WHEN** `openspec list` is executed without flags
-- **THEN** scan the `openspec/changes/` directory for change directories
+- **WHEN** `plx list` is executed without flags
+- **THEN** scan the `workspace/changes/` directory for change directories
 - **AND** exclude the `archive/` subdirectory from results
 - **AND** trigger auto-migration if legacy `tasks.md` exists without `tasks/` directory
 - **AND** parse each change's `tasks/` directory to count task completion across all task files
 
 #### Scenario: Scanning for specs
-- **WHEN** `openspec list --specs` is executed
-- **THEN** scan the `openspec/specs/` directory for capabilities
+- **WHEN** `plx list --specs` is executed
+- **THEN** scan the `workspace/specs/` directory for capabilities
 - **AND** read each capability's `spec.md`
 - **AND** parse requirements to compute requirement counts
 
@@ -99,8 +99,8 @@ The command SHALL gracefully handle missing files and directories with appropria
 
 #### Scenario: Missing changes directory
 
-- **WHEN** `openspec/changes/` directory doesn't exist
-- **THEN** display error: "No OpenSpec changes directory found. Run 'openspec init' first."
+- **WHEN** `workspace/changes/` directory doesn't exist
+- **THEN** display error: "No PLX changes directory found. Run 'plx init' first."
 - **AND** exit with code 1
 
 ### Requirement: Sorting
@@ -119,7 +119,7 @@ The command SHALL support listing reviews alongside changes and specs.
 #### Scenario: Listing reviews
 
 - **WHEN** `plx list --reviews` is executed
-- **THEN** scan the `openspec/reviews/` directory for review directories
+- **THEN** scan the `workspace/reviews/` directory for review directories
 - **AND** exclude the `archive/` subdirectory from results
 - **AND** display each review with: name, target type, task progress
 
@@ -144,4 +144,4 @@ Developers need a quick way to:
 - Understand the overall project evolution status
 - Get a bird's-eye view without opening multiple files
 
-This command provides that visibility with minimal effort, following OpenSpec's philosophy of simplicity and clarity.
+This command provides that visibility with minimal effort, following Pew Pew Plx's philosophy of simplicity and clarity.

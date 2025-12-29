@@ -74,14 +74,14 @@ The completion system SHALL provide context-aware dynamic completions for projec
 - **THEN** discover active changes from `workspace/changes/` directory
 - **AND** exclude archived changes in `workspace/changes/archive/`
 - **AND** return change IDs as completion suggestions
-- **AND** only provide suggestions when inside an PLX-enabled project
+- **AND** only provide suggestions when inside a PLX-enabled project
 
 #### Scenario: Completing spec IDs
 
 - **WHEN** completing arguments for commands that accept spec names (show, validate)
 - **THEN** discover specs from `workspace/specs/` directory
 - **AND** return spec IDs as completion suggestions
-- **AND** only provide suggestions when inside an PLX-enabled project
+- **AND** only provide suggestions when inside a PLX-enabled project
 
 #### Scenario: Completion caching
 
@@ -92,7 +92,7 @@ The completion system SHALL provide context-aware dynamic completions for projec
 
 #### Scenario: Project detection
 
-- **WHEN** user requests completions outside an OpenSpec project
+- **WHEN** user requests completions outside a PLX project
 - **THEN** skip dynamic change/spec ID completions
 - **AND** only suggest static commands and flags
 
@@ -230,7 +230,7 @@ The completion command SHALL provide clear error messages for common failure sce
 
 - **WHEN** `plx completion install` cannot detect current shell or detects non-Zsh shell
 - **THEN** display error: "Could not auto-detect shell. Please specify shell explicitly."
-- **AND** display usage hint: "Usage: openspec completion <operation> [shell]"
+- **AND** display usage hint: "Usage: plx completion <operation> [shell]"
 - **AND** exit with code 1
 
 ### Requirement: Output Format

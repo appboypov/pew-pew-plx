@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This spec defines how OpenSpec resolves, reads, and writes user-level global configuration. It governs the `src/core/global-config.ts` module, which provides the foundation for storing user preferences, feature flags, and settings that persist across projects. The spec ensures cross-platform compatibility by following XDG Base Directory Specification with platform-specific fallbacks, and guarantees forward/backward compatibility through schema evolution rules.
+This spec defines how Pew Pew Plx resolves, reads, and writes user-level global configuration. It governs the `src/core/global-config.ts` module, which provides the foundation for storing user preferences, feature flags, and settings that persist across projects. The spec ensures cross-platform compatibility by following XDG Base Directory Specification with platform-specific fallbacks, and guarantees forward/backward compatibility through schema evolution rules.
 ## Requirements
 ### Requirement: Global Config Directory Path
 
@@ -10,17 +10,17 @@ The system SHALL resolve the global configuration directory path following XDG B
 
 #### Scenario: Unix/macOS with XDG_CONFIG_HOME set
 - **WHEN** `$XDG_CONFIG_HOME` environment variable is set to `/custom/config`
-- **THEN** `getGlobalConfigDir()` returns `/custom/config/openspec`
+- **THEN** `getGlobalConfigDir()` returns `/custom/config/plx`
 
 #### Scenario: Unix/macOS without XDG_CONFIG_HOME
 - **WHEN** `$XDG_CONFIG_HOME` environment variable is not set
 - **AND** the platform is Unix or macOS
-- **THEN** `getGlobalConfigDir()` returns `~/.config/openspec` (expanded to absolute path)
+- **THEN** `getGlobalConfigDir()` returns `~/.config/plx` (expanded to absolute path)
 
 #### Scenario: Windows platform
 - **WHEN** the platform is Windows
 - **AND** `%APPDATA%` is set to `C:\Users\User\AppData\Roaming`
-- **THEN** `getGlobalConfigDir()` returns `C:\Users\User\AppData\Roaming\openspec`
+- **THEN** `getGlobalConfigDir()` returns `C:\Users\User\AppData\Roaming\plx`
 
 ### Requirement: Global Config Loading
 

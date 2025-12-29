@@ -137,8 +137,8 @@ describe('top-level validate command', () => {
     // (not options.noInteractive = true) due to Commander.js convention.
     const result = await runCLI(['validate', '--specs', '--no-interactive'], {
       cwd: testDir,
-      // Don't set OPEN_SPEC_INTERACTIVE to ensure we're testing the flag itself
-      env: { ...process.env, OPEN_SPEC_INTERACTIVE: undefined },
+      // Don't set PLX_INTERACTIVE to ensure we're testing the flag itself
+      env: { ...process.env, PLX_INTERACTIVE: undefined },
     });
     expect(result.exitCode).toBe(0);
     // Should complete without hanging and without prompts

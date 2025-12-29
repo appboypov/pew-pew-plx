@@ -41,7 +41,7 @@ The command SHALL create a review entity from parsed feedback markers.
 #### Scenario: Creating review directory structure
 
 - **WHEN** `plx parse feedback <review-name>` is executed
-- **THEN** create `openspec/reviews/<review-name>/` directory
+- **THEN** create `workspace/reviews/<review-name>/` directory
 - **AND** create `review.md` with metadata
 - **AND** create `tasks/` directory with generated task files
 
@@ -79,7 +79,7 @@ The command SHALL prompt for a review name if not provided.
 
 #### Scenario: Review name already exists
 
-- **WHEN** the specified review-name already exists in `openspec/reviews/`
+- **WHEN** the specified review-name already exists in `workspace/reviews/`
 - **THEN** display error: "Review '<review-name>' already exists."
 - **AND** exit with code 1
 

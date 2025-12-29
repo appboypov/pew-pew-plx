@@ -10,7 +10,7 @@ The command SHALL list all active reviews in the project.
 #### Scenario: Listing active reviews
 
 - **WHEN** `plx review list` is executed
-- **THEN** scan the `openspec/reviews/` directory for review directories
+- **THEN** scan the `workspace/reviews/` directory for review directories
 - **AND** exclude the `archive/` subdirectory from results
 - **AND** display each review with name, target type, target ID, and task progress
 
@@ -32,7 +32,7 @@ The command SHALL display details of a specific review.
 #### Scenario: Showing review details
 
 - **WHEN** `plx review show <review-id>` is executed
-- **THEN** read the review.md from `openspec/reviews/<review-id>/`
+- **THEN** read the review.md from `workspace/reviews/<review-id>/`
 - **AND** display: status, target type, target ID, reviewed date, scope, findings summary
 - **AND** list tasks with their status and spec-impact
 
@@ -55,13 +55,13 @@ The system SHALL provide functions to discover reviews in the project.
 #### Scenario: Finding active reviews
 
 - **WHEN** scanning for active reviews
-- **THEN** look in `openspec/reviews/` for directories containing `review.md`
+- **THEN** look in `workspace/reviews/` for directories containing `review.md`
 - **AND** exclude the `archive/` subdirectory
 - **AND** return sorted list of review IDs
 
 #### Scenario: Finding archived reviews
 
 - **WHEN** scanning for archived reviews
-- **THEN** look in `openspec/reviews/archive/` for directories
+- **THEN** look in `workspace/reviews/archive/` for directories
 - **AND** return sorted list of archived review IDs with date prefixes
 

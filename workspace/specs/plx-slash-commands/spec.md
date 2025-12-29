@@ -5,14 +5,14 @@ TBD - created by archiving change add-plx-architecture-commands. Update Purpose 
 ## Requirements
 ### Requirement: PLX Slash Command Infrastructure
 
-The system SHALL provide a separate PLX slash command infrastructure that coexists with OpenSpec commands without modifying the core OpenSpec workflow.
+The system SHALL provide a separate PLX slash command infrastructure that coexists with PLX commands without modifying the core PLX workflow.
 
 #### Scenario: PLX command registry exists independently
 
 - **WHEN** the PLX slash command system is initialized
 - **THEN** provide a `PlxSlashCommandRegistry` that is separate from `SlashCommandRegistry`
-- **AND** support the same tool configurator pattern as OpenSpec commands
-- **AND** use the same OpenSpec marker pattern (`<!-- OPENSPEC:START -->` / `<!-- OPENSPEC:END -->`) for managed content
+- **AND** support the same tool configurator pattern as PLX commands
+- **AND** use the PLX marker pattern (`<!-- PLX:START -->` / `<!-- PLX:END -->`) for managed content
 
 ### Requirement: Init Architecture Command
 
@@ -65,7 +65,7 @@ The system SHALL update PLX command content within markers when running init in 
 
 - **GIVEN** an existing project with PLX commands at "./test-project"
 - **WHEN** the user runs `plx init ./test-project` again
-- **THEN** update PLX command content within OpenSpec markers
+- **THEN** update PLX command content within PLX markers
 - **AND** preserve any content outside the markers
 
 ### Requirement: Act Next Actionable Filtering

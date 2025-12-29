@@ -33,7 +33,7 @@ describe('top-level show command', () => {
     const originalEnv = { ...process.env };
     try {
       process.chdir(testDir);
-      process.env.OPEN_SPEC_INTERACTIVE = '0';
+      process.env.PLX_INTERACTIVE = '0';
       let err: any;
       try {
         execSync(`node ${plxBin} show`, { encoding: 'utf-8' });
