@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 ---
 
 # Task: Deprecate npm Package
@@ -31,16 +31,16 @@ The package `@appboypov/opensplx` is active on npm. Users installing it receive 
 
 ## Implementation Checklist
 
-- [ ] Ensure code changes from Task 001 are committed and pushed
-- [ ] Launch Playwright browser
-- [ ] Navigate to https://www.npmjs.com/login
-- [ ] Log in with npm credentials (user enters manually)
-- [ ] Navigate to https://www.npmjs.com/package/@appboypov/opensplx/settings
-- [ ] Locate deprecation section
-- [ ] Enter message: "This package has been renamed to @appboypov/pew-pew-plx"
-- [ ] Submit deprecation
-- [ ] Verify deprecation banner on package page
-- [ ] Test by running `npm show @appboypov/opensplx` to confirm deprecated status
+- [x] Ensure code changes from Task 001 are committed and pushed
+- [x] Launch Playwright browser
+- [x] Navigate to https://www.npmjs.com/login
+- [x] Log in with npm credentials (user enters manually)
+- [x] Navigate to https://www.npmjs.com/package/@appboypov/opensplx/settings
+- [x] Locate deprecation section
+- [x] Enter message: "This package has been renamed to @appboypov/pew-pew-plx"
+- [x] Submit deprecation
+- [x] Verify deprecation banner on package page
+- [x] Test by running `npm show @appboypov/opensplx` to confirm deprecated status
 
 ## Notes
 

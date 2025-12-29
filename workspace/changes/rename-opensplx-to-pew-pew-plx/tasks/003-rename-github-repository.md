@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 ---
 
 # Task: Rename GitHub Repository
@@ -32,16 +32,16 @@ The repository is at `github.com/appboypov/OpenSplx`. All documentation referenc
 
 ## Implementation Checklist
 
-- [ ] Ensure Tasks 001 and 002 are complete
-- [ ] Launch Playwright browser
-- [ ] Navigate to https://github.com/appboypov/OpenSplx/settings
-- [ ] Scroll to "Repository name" section under "General"
-- [ ] Change name from `OpenSplx` to `pew-pew-plx`
-- [ ] Click "Rename" button
-- [ ] Confirm in modal if prompted
-- [ ] Verify new URL works
-- [ ] Verify old URL redirects
-- [ ] Optionally update local remote: `git remote set-url origin https://github.com/appboypov/pew-pew-plx.git`
+- [x] Ensure Tasks 001 and 002 are complete
+- [x] Launch Playwright browser
+- [x] Navigate to https://github.com/appboypov/OpenSplx/settings
+- [x] Scroll to "Repository name" section under "General"
+- [x] Change name from `OpenSplx` to `pew-pew-plx`
+- [x] Click "Rename" button
+- [x] Confirm in modal if prompted
+- [x] Verify new URL works
+- [x] Verify old URL redirects
+- [x] Optionally update local remote: `git remote set-url origin https://github.com/appboypov/pew-pew-plx.git`
 
 ## Notes
 
