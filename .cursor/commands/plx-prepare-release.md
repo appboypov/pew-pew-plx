@@ -7,6 +7,7 @@ description: Prepare release by updating changelog, readme, and architecture doc
 <!-- PLX:START -->
 **Guardrails**
 - Read @RELEASE.md for full release preparation instructions.
+- Reference @README.md, @CHANGELOG.md, and @ARCHITECTURE.md for updates.
 - Execute steps sequentially: changelog → readme → architecture.
 - User confirms or skips each step before proceeding.
 - Preserve existing content when updating files.
