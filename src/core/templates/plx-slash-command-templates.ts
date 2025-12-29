@@ -35,15 +35,17 @@ const prepareCompactSteps = `**Steps**
 const reviewGuardrails = `**Guardrails**
 - Use CLI to retrieve review context.
 - Output feedback as language-aware markers.
-- For spec-impacting feedback, include spec reference.`;
+- Include parent linkage in markers when reviewing a task, change, or spec.`;
 
 const reviewSteps = `**Steps**
 1. Run \`plx review --change-id <id>\` (or --spec-id, --task-id).
 2. Read the output: @REVIEW.md guidelines + parent documents.
 3. Review implementation against constraints/acceptance criteria.
-4. Insert feedback markers in relevant code.
+4. Insert feedback markers with format: \`#FEEDBACK #TODO | {type}:{id} | {feedback}\`
+   - Examples: \`task:001\`, \`change:my-feature\`, \`spec:auth-spec\`
+   - Parent linkage is optional but recommended.
 5. Summarize findings.
-6. Instruct to run \`plx parse feedback <name> --change-id <id>\`.`;
+6. Instruct to run \`plx parse feedback <name>\` (optionally with --change-id, --spec-id, or --task-id for unassigned markers).`;
 
 const refineArchitectureGuardrails = `**Guardrails**
 - Reference @ARCHITECTURE.md template structure.
@@ -67,10 +69,10 @@ const refineReviewSteps = `**Steps**
 const parseFeedbackGuardrails = `**Guardrails**
 - Scan only tracked files.
 - Generate one task per marker.
-- Require parent linkage.`;
+- Markers with parent linkage are grouped automatically.`;
 
 const parseFeedbackSteps = `**Steps**
-1. Run \`plx parse feedback <name> --change-id <id>\`.
+1. Run \`plx parse feedback <name>\` (CLI flags --change-id, --spec-id, --task-id are optional fallbacks for unassigned markers).
 2. Review generated tasks.
 3. Address feedback.
 4. Archive when complete.`;

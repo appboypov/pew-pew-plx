@@ -123,9 +123,28 @@ describe('comment-markers', () => {
       expect(result).toBe('// #FEEDBACK #TODO | Add validation');
     });
 
-    it('formats marker with spec impact', () => {
-      const result = formatFeedbackMarker('file.ts', 'Update spec', 'cli-get-task');
-      expect(result).toBe('// #FEEDBACK #TODO | Update spec (spec:cli-get-task)');
+    it('formats marker with task parent', () => {
+      const result = formatFeedbackMarker('file.ts', 'Update logic', {
+        type: 'task',
+        id: '001-implement-feature',
+      });
+      expect(result).toBe('// #FEEDBACK #TODO | task:001-implement-feature | Update logic');
+    });
+
+    it('formats marker with change parent', () => {
+      const result = formatFeedbackMarker('file.ts', 'Update requirement', {
+        type: 'change',
+        id: 'cli-get-task',
+      });
+      expect(result).toBe('// #FEEDBACK #TODO | change:cli-get-task | Update requirement');
+    });
+
+    it('formats marker with spec parent', () => {
+      const result = formatFeedbackMarker('file.ts', 'Update spec', {
+        type: 'spec',
+        id: 'api-docs',
+      });
+      expect(result).toBe('// #FEEDBACK #TODO | spec:api-docs | Update spec');
     });
 
     it('formats marker for Python files', () => {
@@ -153,9 +172,12 @@ describe('comment-markers', () => {
       expect(result).toBe('<!-- #FEEDBACK #TODO | Add section -->');
     });
 
-    it('formats marker with spec impact for block comments', () => {
-      const result = formatFeedbackMarker('file.html', 'Update docs', 'api-docs');
-      expect(result).toBe('<!-- #FEEDBACK #TODO | Update docs (spec:api-docs) -->');
+    it('formats marker with parent for block comments', () => {
+      const result = formatFeedbackMarker('file.html', 'Update docs', {
+        type: 'spec',
+        id: 'api-docs',
+      });
+      expect(result).toBe('<!-- #FEEDBACK #TODO | spec:api-docs | Update docs -->');
     });
   });
 
@@ -164,17 +186,41 @@ describe('comment-markers', () => {
       const result = parseFeedbackMarker('// #FEEDBACK #TODO | Add validation');
       expect(result).toEqual({
         feedback: 'Add validation',
-        specImpact: null,
+        parentType: null,
+        parentId: null,
       });
     });
 
-    it('parses feedback marker with spec impact', () => {
+    it('parses feedback marker with task parent', () => {
       const result = parseFeedbackMarker(
-        '// #FEEDBACK #TODO | Update requirement (spec:cli-get-task)'
+        '// #FEEDBACK #TODO | task:001-implement-feature | Update logic'
+      );
+      expect(result).toEqual({
+        feedback: 'Update logic',
+        parentType: 'task',
+        parentId: '001-implement-feature',
+      });
+    });
+
+    it('parses feedback marker with change parent', () => {
+      const result = parseFeedbackMarker(
+        '// #FEEDBACK #TODO | change:cli-get-task | Update requirement'
       );
       expect(result).toEqual({
         feedback: 'Update requirement',
-        specImpact: 'cli-get-task',
+        parentType: 'change',
+        parentId: 'cli-get-task',
+      });
+    });
+
+    it('parses feedback marker with spec parent', () => {
+      const result = parseFeedbackMarker(
+        '// #FEEDBACK #TODO | spec:api-docs | Update spec'
+      );
+      expect(result).toEqual({
+        feedback: 'Update spec',
+        parentType: 'spec',
+        parentId: 'api-docs',
       });
     });
 
@@ -182,7 +228,8 @@ describe('comment-markers', () => {
       const result = parseFeedbackMarker('# #FEEDBACK #TODO | Fix bug');
       expect(result).toEqual({
         feedback: 'Fix bug',
-        specImpact: null,
+        parentType: null,
+        parentId: null,
       });
     });
 
@@ -190,7 +237,8 @@ describe('comment-markers', () => {
       const result = parseFeedbackMarker('-- #FEEDBACK #TODO | Optimize query');
       expect(result).toEqual({
         feedback: 'Optimize query',
-        specImpact: null,
+        parentType: null,
+        parentId: null,
       });
     });
 
@@ -198,7 +246,8 @@ describe('comment-markers', () => {
       const result = parseFeedbackMarker('<!-- #FEEDBACK #TODO | Update structure -->');
       expect(result).toEqual({
         feedback: 'Update structure',
-        specImpact: null,
+        parentType: null,
+        parentId: null,
       });
     });
 
@@ -206,17 +255,19 @@ describe('comment-markers', () => {
       const result = parseFeedbackMarker('/* #FEEDBACK #TODO | Fix styling */');
       expect(result).toEqual({
         feedback: 'Fix styling',
-        specImpact: null,
+        parentType: null,
+        parentId: null,
       });
     });
 
-    it('parses block comment with spec impact', () => {
+    it('parses block comment with parent', () => {
       const result = parseFeedbackMarker(
-        '<!-- #FEEDBACK #TODO | Update docs (spec:api-docs) -->'
+        '<!-- #FEEDBACK #TODO | spec:api-docs | Update docs -->'
       );
       expect(result).toEqual({
         feedback: 'Update docs',
-        specImpact: 'api-docs',
+        parentType: 'spec',
+        parentId: 'api-docs',
       });
     });
 
@@ -224,7 +275,8 @@ describe('comment-markers', () => {
       const result = parseFeedbackMarker('//   #FEEDBACK   #TODO   |   Trim spaces  ');
       expect(result).toEqual({
         feedback: 'Trim spaces',
-        specImpact: null,
+        parentType: null,
+        parentId: null,
       });
     });
 
@@ -241,13 +293,14 @@ describe('comment-markers', () => {
       expect(parseFeedbackMarker('// #FEEDBACK #TODO without pipe')).toBeNull();
     });
 
-    it('handles spec-id with numbers and hyphens', () => {
+    it('handles parent-id with numbers and hyphens', () => {
       const result = parseFeedbackMarker(
-        '// #FEEDBACK #TODO | Update (spec:cli-v2-get-task-123)'
+        '// #FEEDBACK #TODO | change:cli-v2-get-task-123 | Update'
       );
       expect(result).toEqual({
         feedback: 'Update',
-        specImpact: 'cli-v2-get-task-123',
+        parentType: 'change',
+        parentId: 'cli-v2-get-task-123',
       });
     });
 
@@ -257,7 +310,19 @@ describe('comment-markers', () => {
       );
       expect(result).toEqual({
         feedback: "Handle edge-case: user's input",
-        specImpact: null,
+        parentType: null,
+        parentId: null,
+      });
+    });
+
+    it('handles feedback with special characters and parent', () => {
+      const result = parseFeedbackMarker(
+        "// #FEEDBACK #TODO | task:001-fix | Handle edge-case: user's input"
+      );
+      expect(result).toEqual({
+        feedback: "Handle edge-case: user's input",
+        parentType: 'task',
+        parentId: '001-fix',
       });
     });
   });
@@ -266,32 +331,66 @@ describe('comment-markers', () => {
     it('matches basic feedback pattern', () => {
       const match = '#FEEDBACK #TODO | Some feedback'.match(FEEDBACK_PATTERN);
       expect(match).not.toBeNull();
-      expect(match![1]).toBe('Some feedback');
+      expect(match![1]).toBeUndefined();
       expect(match![2]).toBeUndefined();
+      expect(match![3]).toBe('Some feedback');
     });
 
-    it('matches pattern with spec reference', () => {
-      const match = '#FEEDBACK #TODO | Feedback (spec:my-spec)'.match(FEEDBACK_PATTERN);
+    it('matches pattern with task parent', () => {
+      const match = '#FEEDBACK #TODO | task:my-task | Feedback'.match(FEEDBACK_PATTERN);
       expect(match).not.toBeNull();
-      expect(match![1]).toBe('Feedback');
+      expect(match![1]).toBe('task');
+      expect(match![2]).toBe('my-task');
+      expect(match![3]).toBe('Feedback');
+    });
+
+    it('matches pattern with change parent', () => {
+      const match = '#FEEDBACK #TODO | change:my-change | Feedback'.match(FEEDBACK_PATTERN);
+      expect(match).not.toBeNull();
+      expect(match![1]).toBe('change');
+      expect(match![2]).toBe('my-change');
+      expect(match![3]).toBe('Feedback');
+    });
+
+    it('matches pattern with spec parent', () => {
+      const match = '#FEEDBACK #TODO | spec:my-spec | Feedback'.match(FEEDBACK_PATTERN);
+      expect(match).not.toBeNull();
+      expect(match![1]).toBe('spec');
       expect(match![2]).toBe('my-spec');
+      expect(match![3]).toBe('Feedback');
     });
 
     it('strips trailing --> from HTML comments', () => {
       const match = '#FEEDBACK #TODO | HTML feedback -->'.match(FEEDBACK_PATTERN);
       expect(match).not.toBeNull();
-      expect(match![1]).toBe('HTML feedback');
+      expect(match![3]).toBe('HTML feedback');
     });
 
     it('strips trailing */ from CSS comments', () => {
       const match = '#FEEDBACK #TODO | CSS feedback */'.match(FEEDBACK_PATTERN);
       expect(match).not.toBeNull();
-      expect(match![1]).toBe('CSS feedback');
+      expect(match![3]).toBe('CSS feedback');
+    });
+
+    it('strips trailing --> with parent linkage', () => {
+      const match = '#FEEDBACK #TODO | spec:docs | HTML feedback -->'.match(FEEDBACK_PATTERN);
+      expect(match).not.toBeNull();
+      expect(match![1]).toBe('spec');
+      expect(match![2]).toBe('docs');
+      expect(match![3]).toBe('HTML feedback');
     });
 
     it('does not match without pipe separator', () => {
       const match = '#FEEDBACK #TODO No pipe'.match(FEEDBACK_PATTERN);
       expect(match).toBeNull();
+    });
+
+    it('does not match invalid parent types', () => {
+      const match = '#FEEDBACK #TODO | invalid:my-id | Feedback'.match(FEEDBACK_PATTERN);
+      expect(match).not.toBeNull();
+      expect(match![1]).toBeUndefined();
+      expect(match![2]).toBeUndefined();
+      expect(match![3]).toBe('invalid:my-id | Feedback');
     });
   });
 });

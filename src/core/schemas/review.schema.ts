@@ -12,7 +12,6 @@ export const ReviewSchema = z.object({
 
 export const ReviewTaskSchema = z.object({
   status: z.enum(['to-do', 'in-progress', 'done']),
-  specImpact: z.union([z.literal('none'), z.string()]).default('none'),
 });
 
 export type ReviewParent = z.infer<typeof ReviewParentType>;

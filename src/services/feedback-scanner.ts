@@ -15,8 +15,26 @@ export interface FeedbackMarker {
   file: string;
   line: number;
   feedback: string;
-  specImpact: string | null;
+  parentType: 'task' | 'change' | 'spec' | null;
+  parentId: string | null;
   commentStyle: CommentStyle;
+}
+
+/**
+ * Group of markers sharing the same parent
+ */
+export interface GroupedMarkers {
+  parentType: ReviewParent;
+  parentId: string;
+  markers: FeedbackMarker[];
+}
+
+/**
+ * Markers separated into assigned (with parent) and unassigned (no parent)
+ */
+export interface MarkerGroups {
+  assigned: GroupedMarkers[];
+  unassigned: FeedbackMarker[];
 }
 
 /**
@@ -147,6 +165,37 @@ export class FeedbackScannerService {
     }
   }
 
+  /**
+   * Groups markers by their parent, separating assigned from unassigned
+   */
+  groupMarkersByParent(markers: FeedbackMarker[]): MarkerGroups {
+    const groups = new Map<string, GroupedMarkers>();
+    const unassigned: FeedbackMarker[] = [];
+
+    for (const marker of markers) {
+      if (marker.parentType && marker.parentId) {
+        const key = `${marker.parentType}:${marker.parentId}`;
+        const existing = groups.get(key);
+        if (existing) {
+          existing.markers.push(marker);
+        } else {
+          groups.set(key, {
+            parentType: marker.parentType,
+            parentId: marker.parentId,
+            markers: [marker],
+          });
+        }
+      } else {
+        unassigned.push(marker);
+      }
+    }
+
+    return {
+      assigned: Array.from(groups.values()),
+      unassigned,
+    };
+  }
+
   private async initIgnore(): Promise<void> {
     if (this.ig) return;
 
@@ -214,7 +263,8 @@ export class FeedbackScannerService {
             file: relativePath.replace(/\\/g, '/'),
             line: i + 1,
             feedback: parsed.feedback,
-            specImpact: parsed.specImpact,
+            parentType: parsed.parentType,
+            parentId: parsed.parentId,
             commentStyle,
           });
         }
@@ -234,9 +284,6 @@ export class FeedbackScannerService {
   ): string {
     const timestamp = new Date().toISOString();
     const uniqueFiles = [...new Set(markers.map((m) => m.file))];
-    const specImpacts = markers
-      .filter((m) => m.specImpact)
-      .map((m) => `- **${m.specImpact}**: ${m.feedback}`);
 
     return `---
 parent-type: ${parentType}
@@ -251,18 +298,12 @@ Parsed ${markers.length} feedback marker${markers.length === 1 ? '' : 's'} from 
 
 ## Scope
 ${uniqueFiles.map((f) => `- ${f}`).join('\n')}
-
-## Spec Impact Findings
-${specImpacts.length > 0 ? specImpacts.join('\n') : 'No spec-impacting feedback found.'}
 `;
   }
 
   private generateTaskContent(marker: FeedbackMarker): string {
-    const specImpact = marker.specImpact ?? 'none';
-
     return `---
 status: to-do
-spec-impact: ${specImpact}
 ---
 
 # Task: ${this.truncateFeedback(marker.feedback, 60)}
