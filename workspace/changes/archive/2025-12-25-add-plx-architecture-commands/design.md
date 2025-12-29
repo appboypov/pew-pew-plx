@@ -1,6 +1,6 @@
 ## Context
 
-OpenSplx is a fork of PLX that adds PLX-specific functionality. PLX commands must coexist with PLX commands without modifying PLX's core workflow, ensuring upstream sync compatibility.
+Pew Pew Plx is a fork of PLX that adds PLX-specific functionality. PLX commands must coexist with PLX commands without modifying PLX's core workflow, ensuring upstream sync compatibility.
 
 The architecture documentation feature enables technical agents and engineers to design features based solely on the architecture document, without needing to research the codebase first.
 

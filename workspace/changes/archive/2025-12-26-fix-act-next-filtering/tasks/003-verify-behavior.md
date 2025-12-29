@@ -6,11 +6,11 @@ Manual verification confirms that `plx act next` correctly filters completed cha
 
 ## Currently
 
-The implementation and tests are complete but need manual verification against the actual OpenSplx repository changes.
+The implementation and tests are complete but need manual verification against the actual Pew Pew Plx repository changes.
 
 ## Should
 
-Running `plx act next` in the OpenSplx repository:
+Running `plx act next` in the Pew Pew Plx repository:
 - Skips changes like `add-antigravity-support` (100% complete)
 - Selects changes like `add-scaffold-command` or `make-validation-scope-aware` (incomplete)
 - Outputs the full task file content, not just checkboxes
@@ -23,7 +23,7 @@ Running `plx act next` in the OpenSplx repository:
 
 ## Acceptance Criteria
 
-- [ ] `plx act next` skips 100% complete changes in OpenSplx
+- [ ] `plx act next` skips 100% complete changes in Pew Pew Plx
 - [ ] `plx act next` returns an incomplete change
 - [ ] Full task file content is displayed (not just checkboxes)
 - [ ] Output order is: proposal.md → design.md (optional) → task content

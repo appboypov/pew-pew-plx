@@ -1,5 +1,5 @@
 {
-  "name": "@appboypov/opensplx",
+  "name": "@appboypov/pew-pew-plx",
   "version": "0.5.0",
   "description": "AI-native system for spec-driven development",
   "keywords": [
@@ -9,10 +9,10 @@
     "ai",
     "development"
   ],
-  "homepage": "https://github.com/appboypov/OpenSplx",
+  "homepage": "https://github.com/appboypov/pew-pew-plx",
   "repository": {
     "type": "git",
-    "url": "https://github.com/appboypov/OpenSplx"
+    "url": "https://github.com/appboypov/pew-pew-plx"
   },
   "license": "MIT",
   "author": "OpenSpec Contributors",

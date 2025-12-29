@@ -1,6 +1,6 @@
-# OpenSplx Architecture
+# Pew Pew Plx Architecture
 
-OpenSplx is a fork of [OpenSpec](https://github.com/Fission-AI/OpenSpec) that provides an AI-native system for spec-driven development. This document describes the project architecture for feature planning and development.
+Pew Pew Plx is a fork of [OpenSpec](https://github.com/Fission-AI/OpenSpec) that provides an AI-native system for spec-driven development. This document describes the project architecture for feature planning and development.
 
 ## Technology Stack
 
@@ -26,7 +26,7 @@ OpenSplx is a fork of [OpenSpec](https://github.com/Fission-AI/OpenSpec) that pr
 ## Project Structure
 
 ```
-OpenSplx/
+pew-pew-plx/
 ├── bin/                    # CLI entry points
 │   └── plx.js              # CLI entry (plx command)
 ├── src/
@@ -464,7 +464,7 @@ Build output goes to `dist/` with:
 
 ## Task Management System
 
-OpenSplx includes a task management system for tracking implementation progress within changes.
+Pew Pew Plx includes a task management system for tracking implementation progress within changes.
 
 ### Task File Structure
 
@@ -617,7 +617,7 @@ Task status utilities in `src/utils/task-status.ts`:
 
 ### Review System
 
-OpenSplx provides a structured review workflow for validating implementations against specifications, changes, and tasks.
+Pew Pew Plx provides a structured review workflow for validating implementations against specifications, changes, and tasks.
 
 #### Review Command
 
@@ -722,9 +722,9 @@ reviewed-at: <ISO timestamp>
 - Tasks can be retrieved via `plx get task` and managed with complete/undo commands
 - Reviews can be archived like changes: `plx archive <review-name> --type review`
 
-## Fork-Specific Features (OpenSplx)
+## Fork-Specific Features (Pew Pew Plx)
 
-OpenSplx extends OpenSpec with:
+Pew Pew Plx extends OpenSpec with:
 
 1. **PLX Command**: The CLI uses `plx` as the command name
 2. **Dynamic Command Name**: CLI detects invocation name and uses it in output messages, help text, and shell completions via `src/utils/command-name.ts`

@@ -2,7 +2,7 @@
 
 ## Why
 
-OpenSplx is a fork that needs a distinct identity to coexist with the original OpenSpec. Currently, the codebase mixes "OpenSpec" and "PLX" terminology, with both CLI commands available. Users expect `plx` to be the sole command, with all directories and documentation using PLX terminology.
+Pew Pew Plx is a fork that needs a distinct identity to coexist with the original OpenSpec. Currently, the codebase mixes "OpenSpec" and "PLX" terminology, with both CLI commands available. Users expect `plx` to be the sole command, with all directories and documentation using PLX terminology.
 
 ## What Changes
 

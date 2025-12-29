@@ -2,7 +2,7 @@
 
 **Title**: Split tasks.md into individual task files with token-based scoping
 **Linear**: [PLX-9](https://linear.app/de-app-specialist/issue/PLX-9)
-**GitHub**: [#13](https://github.com/appboypov/OpenSplx/issues/13)
+**GitHub**: [#13](https://github.com/appboypov/pew-pew-plx/issues/13)
 **Complexity**: 8 (Complex)
 
 This change addresses the limitation of storing all tasks in a single `tasks.md` file. When tasks are large or numerous, the entire file must be loaded into AI conversation context, potentially exceeding token limits and making it difficult to work on individual tasks in isolation.

@@ -5,7 +5,7 @@ tracked-issues:
     url: https://linear.app/de-app-specialist/issue/PLX-12
   - tracker: github
     id: "18"
-    url: https://github.com/appboypov/OpenSplx/issues/18
+    url: https://github.com/appboypov/pew-pew-plx/issues/18
 ---
 
 # Change: Complete task directory migration in framework instructions

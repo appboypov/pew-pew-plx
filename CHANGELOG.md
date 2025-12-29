@@ -1,4 +1,4 @@
-# OpenSplx Changelog
+# Pew Pew Plx Changelog
 
 ## 0.6.0 - 2025-12-29
 
@@ -121,7 +121,7 @@
 
 ## 0.1.0 - 2024-12-24
 
-Initial release of OpenSplx fork.
+Initial release of Pew Pew Plx fork.
 
 ### Added
 
@@ -132,7 +132,7 @@ Initial release of OpenSplx fork.
 
 ### Changed
 
-- Rebrand fork as OpenSplx while maintaining upstream compatibility
+- Rebrand fork as Pew Pew Plx while maintaining upstream compatibility
 - Archive workflow suggests refreshing architecture documentation after spec updates
 
 ---

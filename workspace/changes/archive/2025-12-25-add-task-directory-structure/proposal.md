@@ -5,7 +5,7 @@ tracked-issues:
     url: https://linear.app/de-app-specialist/issue/PLX-9
   - tracker: github
     id: "13"
-    url: https://github.com/appboypov/OpenSplx/issues/13
+    url: https://github.com/appboypov/pew-pew-plx/issues/13
 ---
 
 ## Why
