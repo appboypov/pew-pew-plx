@@ -10,7 +10,7 @@ export interface PlxSlashCommandTarget {
 
 export const ALL_PLX_COMMANDS: PlxSlashCommandId[] = [
   'get-task',
-  'compact',
+  'prepare-compact',
   'review',
   'refine-architecture',
   'refine-review',

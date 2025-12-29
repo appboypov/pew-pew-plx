@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.codebuddy/commands/plx/get-task.md',
-  'compact': '.codebuddy/commands/plx/compact.md',
+  'prepare-compact': '.codebuddy/commands/plx/prepare-compact.md',
   'review': '.codebuddy/commands/plx/review.md',
   'refine-architecture': '.codebuddy/commands/plx/refine-architecture.md',
   'refine-review': '.codebuddy/commands/plx/refine-review.md',
@@ -19,8 +19,8 @@ description: Select and display the next prioritized task to work on.
 category: Pew Pew Plx
 tags: [plx, task, workflow]
 ---`,
-  'compact': `---
-name: Pew Pew Plx: Compact
+  'prepare-compact': `---
+name: Pew Pew Plx: Prepare Compact
 description: Preserve session progress in PROGRESS.md for context continuity.
 category: Pew Pew Plx
 tags: [plx, context, session]

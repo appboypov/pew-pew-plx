@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.amazonq/prompts/plx-get-task.md',
-  'compact': '.amazonq/prompts/plx-compact.md',
+  'prepare-compact': '.amazonq/prompts/plx-prepare-compact.md',
   'review': '.amazonq/prompts/plx-review.md',
   'refine-architecture': '.amazonq/prompts/plx-refine-architecture.md',
   'refine-review': '.amazonq/prompts/plx-refine-review.md',
@@ -18,7 +18,7 @@ description: Select and display the next prioritized task to work on.
 ---
 
 <arguments>$ARGUMENTS</arguments>`,
-  'compact': `---
+  'prepare-compact': `---
 description: Preserve session progress in PROGRESS.md for context continuity.
 ---
 

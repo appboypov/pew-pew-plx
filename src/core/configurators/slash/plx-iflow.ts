@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.iflow/commands/plx-get-task.md',
-  'compact': '.iflow/commands/plx-compact.md',
+  'prepare-compact': '.iflow/commands/plx-prepare-compact.md',
   'review': '.iflow/commands/plx-review.md',
   'refine-architecture': '.iflow/commands/plx-refine-architecture.md',
   'refine-review': '.iflow/commands/plx-refine-review.md',
@@ -19,9 +19,9 @@ id: plx-get-task
 category: Pew Pew Plx
 description: Select and display the next prioritized task to work on.
 ---`,
-  'compact': `---
-name: /plx-compact
-id: plx-compact
+  'prepare-compact': `---
+name: /plx-prepare-compact
+id: plx-prepare-compact
 category: Pew Pew Plx
 description: Preserve session progress in PROGRESS.md for context continuity.
 ---`,

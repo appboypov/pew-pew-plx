@@ -730,12 +730,15 @@ Pew Pew Plx provides:
 2. **Dynamic Command Name**: CLI detects invocation name and uses it in output messages, help text, and shell completions via `src/utils/command-name.ts`
 3. **PLX Slash Commands**: Additional commands in `.claude/commands/plx/`
    - `/plx/get-task` - Get next prioritized task and execute workflow
+   - `/plx/complete-task` - Mark task as done
+   - `/plx/undo-task` - Revert task to to-do
    - `/plx/refine-architecture` - Create or update ARCHITECTURE.md
    - `/plx/review` - Review implementations against specs/changes/tasks
    - `/plx/parse-feedback` - Parse feedback markers and generate review tasks
    - `/plx/refine-review` - Create or update REVIEW.md template
    - `/plx/prepare-release` - Guided release preparation workflow
    - `/plx/refine-release` - Create or update RELEASE.md template
+   - `/plx/prepare-compact` - Preserve session progress in PROGRESS.md
 4. **PlxSlashCommandRegistry**: Separate registry for PLX-specific commands
 5. **Extended Templates**: Architecture template generation
 6. **Get Command**: Extended with subcommands for item retrieval (`get task`, `get change`, `get spec`, `get tasks`) and content filtering (`--constraints`, `--acceptance-criteria`)

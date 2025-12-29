@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.github/prompts/plx-get-task.prompt.md',
-  'compact': '.github/prompts/plx-compact.prompt.md',
+  'prepare-compact': '.github/prompts/plx-prepare-compact.prompt.md',
   'review': '.github/prompts/plx-review.prompt.md',
   'refine-architecture': '.github/prompts/plx-refine-architecture.prompt.md',
   'refine-review': '.github/prompts/plx-refine-review.prompt.md',
@@ -18,7 +18,7 @@ description: Select and display the next prioritized task to work on.
 ---
 
 $ARGUMENTS`,
-  'compact': `---
+  'prepare-compact': `---
 description: Preserve session progress in PROGRESS.md for context continuity.
 ---
 

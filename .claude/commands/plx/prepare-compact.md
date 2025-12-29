@@ -1,8 +1,8 @@
 ---
-name: /plx-compact
-id: plx-compact
-category: Pew Pew Plx
+name: Pew Pew Plx: Prepare Compact
 description: Preserve session progress in PROGRESS.md for context continuity.
+category: Pew Pew Plx
+tags: [plx, context, session]
 ---
 <!-- PLX:START -->
 **Guardrails**

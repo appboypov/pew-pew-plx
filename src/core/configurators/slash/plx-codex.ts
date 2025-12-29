@@ -7,7 +7,7 @@ import { PLX_MARKERS } from '../../config.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.codex/prompts/plx-get-task.md',
-  'compact': '.codex/prompts/plx-compact.md',
+  'prepare-compact': '.codex/prompts/plx-prepare-compact.md',
   'review': '.codex/prompts/plx-review.md',
   'refine-architecture': '.codex/prompts/plx-refine-architecture.md',
   'refine-review': '.codex/prompts/plx-refine-review.md',
@@ -23,7 +23,7 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS`,
-  'compact': `---
+  'prepare-compact': `---
 description: Preserve session progress in PROGRESS.md for context continuity.
 argument-hint: (optional context)
 ---

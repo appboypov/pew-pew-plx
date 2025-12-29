@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.agent/workflows/plx-get-task.md',
-  'compact': '.agent/workflows/plx-compact.md',
+  'prepare-compact': '.agent/workflows/plx-prepare-compact.md',
   'review': '.agent/workflows/plx-review.md',
   'refine-architecture': '.agent/workflows/plx-refine-architecture.md',
   'refine-review': '.agent/workflows/plx-refine-review.md',
@@ -14,7 +14,7 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
 
 const DESCRIPTIONS: Record<PlxSlashCommandId, string> = {
   'get-task': 'Select and display the next prioritized task to work on.',
-  'compact': 'Preserve session progress in PROGRESS.md for context continuity.',
+  'prepare-compact': 'Preserve session progress in PROGRESS.md for context continuity.',
   'review': 'Review implementations against specs, changes, or tasks.',
   'refine-architecture': 'Create or update ARCHITECTURE.md.',
   'refine-review': 'Create or update REVIEW.md.',

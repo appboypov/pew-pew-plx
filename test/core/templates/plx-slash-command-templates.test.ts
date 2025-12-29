@@ -3,8 +3,8 @@ import { getPlxSlashCommandBody, plxSlashCommandBodies, PlxSlashCommandId } from
 
 describe('plx-slash-command-templates', () => {
   describe('getPlxSlashCommandBody', () => {
-    it('returns body for compact command', () => {
-      const body = getPlxSlashCommandBody('compact');
+    it('returns body for prepare-compact command', () => {
+      const body = getPlxSlashCommandBody('prepare-compact');
 
       expect(body).toContain('**Guardrails**');
       expect(body).toContain('**Steps**');
@@ -17,7 +17,7 @@ describe('plx-slash-command-templates', () => {
     it('contains all PLX command IDs', () => {
       const expectedIds: PlxSlashCommandId[] = [
         'get-task',
-        'compact',
+        'prepare-compact',
         'review',
         'refine-architecture',
         'refine-review',
@@ -40,8 +40,8 @@ describe('plx-slash-command-templates', () => {
       }
     });
 
-    it('compact command includes context preservation content', () => {
-      const body = plxSlashCommandBodies['compact'];
+    it('prepare-compact command includes context preservation content', () => {
+      const body = plxSlashCommandBodies['prepare-compact'];
 
       expect(body).toContain('PROGRESS.md');
       expect(body).toContain('.gitignore');

@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.roo/commands/plx-get-task.md',
-  'compact': '.roo/commands/plx-compact.md',
+  'prepare-compact': '.roo/commands/plx-prepare-compact.md',
   'review': '.roo/commands/plx-review.md',
   'refine-architecture': '.roo/commands/plx-refine-architecture.md',
   'refine-review': '.roo/commands/plx-refine-review.md',
@@ -16,7 +16,7 @@ const FRONTMATTER: Record<PlxSlashCommandId, string> = {
   'get-task': `# PLX: Get Task
 
 Select and display the next prioritized task to work on.`,
-  'compact': `# PLX: Compact
+  'prepare-compact': `# PLX: Prepare Compact
 
 Preserve session progress in PROGRESS.md for context continuity.`,
   'review': `# PLX: Review

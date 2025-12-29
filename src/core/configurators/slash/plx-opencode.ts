@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.opencode/command/plx-get-task.md',
-  'compact': '.opencode/command/plx-compact.md',
+  'prepare-compact': '.opencode/command/plx-prepare-compact.md',
   'review': '.opencode/command/plx-review.md',
   'refine-architecture': '.opencode/command/plx-refine-architecture.md',
   'refine-review': '.opencode/command/plx-refine-review.md',
@@ -19,7 +19,7 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS`,
-  'compact': `---
+  'prepare-compact': `---
 description: Preserve session progress in PROGRESS.md for context continuity.
 argument-hint: (optional context)
 ---

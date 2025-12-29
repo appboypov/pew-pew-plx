@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.augment/commands/plx-get-task.md',
-  'compact': '.augment/commands/plx-compact.md',
+  'prepare-compact': '.augment/commands/plx-prepare-compact.md',
   'review': '.augment/commands/plx-review.md',
   'refine-architecture': '.augment/commands/plx-refine-architecture.md',
   'refine-review': '.augment/commands/plx-refine-review.md',
@@ -17,7 +17,7 @@ const FRONTMATTER: Record<PlxSlashCommandId, string> = {
 description: Select and display the next prioritized task to work on.
 argument-hint: (optional context)
 ---`,
-  'compact': `---
+  'prepare-compact': `---
 description: Preserve session progress in PROGRESS.md for context continuity.
 argument-hint: (optional context)
 ---`,

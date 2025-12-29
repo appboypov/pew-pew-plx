@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.factory/commands/plx-get-task.md',
-  'compact': '.factory/commands/plx-compact.md',
+  'prepare-compact': '.factory/commands/plx-prepare-compact.md',
   'review': '.factory/commands/plx-review.md',
   'refine-architecture': '.factory/commands/plx-refine-architecture.md',
   'refine-review': '.factory/commands/plx-refine-review.md',
@@ -19,7 +19,7 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS`,
-  'compact': `---
+  'prepare-compact': `---
 description: Preserve session progress in PROGRESS.md for context continuity.
 argument-hint: (optional context)
 ---

@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.gemini/commands/plx/get-task.toml',
-  'compact': '.gemini/commands/plx/compact.toml',
+  'prepare-compact': '.gemini/commands/plx/prepare-compact.toml',
   'review': '.gemini/commands/plx/review.toml',
   'refine-architecture': '.gemini/commands/plx/refine-architecture.toml',
   'refine-review': '.gemini/commands/plx/refine-review.toml',
@@ -14,7 +14,7 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
 
 const DESCRIPTIONS: Record<PlxSlashCommandId, string> = {
   'get-task': 'Select and display the next prioritized task to work on.',
-  'compact': 'Preserve session progress in PROGRESS.md for context continuity.',
+  'prepare-compact': 'Preserve session progress in PROGRESS.md for context continuity.',
   'review': 'Review implementations against specs, changes, or tasks.',
   'refine-architecture': 'Create or update ARCHITECTURE.md.',
   'refine-review': 'Create or update REVIEW.md.',

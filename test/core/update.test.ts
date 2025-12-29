@@ -1670,13 +1670,13 @@ Old content
         testDir,
         '.claude/commands/plx/get-task.md'
       );
-      const plxCompactPath = path.join(
+      const plxPrepareCompactPath = path.join(
         testDir,
-        '.claude/commands/plx/compact.md'
+        '.claude/commands/plx/prepare-compact.md'
       );
 
       await expect(FileSystemUtils.fileExists(plxGetTaskPath)).resolves.toBe(true);
-      await expect(FileSystemUtils.fileExists(plxCompactPath)).resolves.toBe(true);
+      await expect(FileSystemUtils.fileExists(plxPrepareCompactPath)).resolves.toBe(true);
 
       // Check content has PLX markers
       const getTaskContent = await fs.readFile(plxGetTaskPath, 'utf-8');
@@ -1686,7 +1686,7 @@ Old content
       // Check console output includes PLX commands
       const [logMessage] = consoleSpy.mock.calls[0];
       expect(logMessage).toContain('.claude/commands/plx/get-task.md');
-      expect(logMessage).toContain('.claude/commands/plx/compact.md');
+      expect(logMessage).toContain('.claude/commands/plx/prepare-compact.md');
 
       consoleSpy.mockRestore();
     });
@@ -1720,18 +1720,18 @@ Old body
         testDir,
         '.codex/prompts/plx-get-task.md'
       );
-      const plxCompactPath = path.join(
+      const plxPrepareCompactPath = path.join(
         testDir,
-        '.codex/prompts/plx-compact.md'
+        '.codex/prompts/plx-prepare-compact.md'
       );
 
       await expect(FileSystemUtils.fileExists(plxGetTaskPath)).resolves.toBe(true);
-      await expect(FileSystemUtils.fileExists(plxCompactPath)).resolves.toBe(true);
+      await expect(FileSystemUtils.fileExists(plxPrepareCompactPath)).resolves.toBe(true);
 
       // Check console output includes PLX commands
       const [logMessage] = consoleSpy.mock.calls[0];
       expect(logMessage).toContain('plx-get-task.md');
-      expect(logMessage).toContain('plx-compact.md');
+      expect(logMessage).toContain('plx-prepare-compact.md');
 
       consoleSpy.mockRestore();
     });
@@ -1746,13 +1746,13 @@ Old body
         testDir,
         '.claude/commands/plx/get-task.md'
       );
-      const plxCompactPath = path.join(
+      const plxPrepareCompactPath = path.join(
         testDir,
-        '.claude/commands/plx/compact.md'
+        '.claude/commands/plx/prepare-compact.md'
       );
 
       await expect(FileSystemUtils.fileExists(plxGetTaskPath)).resolves.toBe(false);
-      await expect(FileSystemUtils.fileExists(plxCompactPath)).resolves.toBe(false);
+      await expect(FileSystemUtils.fileExists(plxPrepareCompactPath)).resolves.toBe(false);
     });
 
     it('should generate PLX commands for multiple tools when their slash commands are updated', async () => {

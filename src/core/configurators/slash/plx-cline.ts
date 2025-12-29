@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.clinerules/workflows/plx-get-task.md',
-  'compact': '.clinerules/workflows/plx-compact.md',
+  'prepare-compact': '.clinerules/workflows/plx-prepare-compact.md',
   'review': '.clinerules/workflows/plx-review.md',
   'refine-architecture': '.clinerules/workflows/plx-refine-architecture.md',
   'refine-review': '.clinerules/workflows/plx-refine-review.md',
@@ -16,7 +16,7 @@ const FRONTMATTER: Record<PlxSlashCommandId, string> = {
   'get-task': `# PLX: Get Task
 
 Select and display the next prioritized task to work on.`,
-  'compact': `# PLX: Compact
+  'prepare-compact': `# PLX: Prepare Compact
 
 Preserve session progress in PROGRESS.md for context continuity.`,
   'review': `# PLX: Review

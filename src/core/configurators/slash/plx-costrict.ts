@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.cospec/plx/commands/plx-get-task.md',
-  'compact': '.cospec/plx/commands/plx-compact.md',
+  'prepare-compact': '.cospec/plx/commands/plx-prepare-compact.md',
   'review': '.cospec/plx/commands/plx-review.md',
   'refine-architecture': '.cospec/plx/commands/plx-refine-architecture.md',
   'refine-review': '.cospec/plx/commands/plx-refine-review.md',
@@ -17,7 +17,7 @@ const FRONTMATTER: Record<PlxSlashCommandId, string> = {
 description: "Select and display the next prioritized task to work on."
 argument-hint: (optional context)
 ---`,
-  'compact': `---
+  'prepare-compact': `---
 description: "Preserve session progress in PROGRESS.md for context continuity."
 argument-hint: (optional context)
 ---`,

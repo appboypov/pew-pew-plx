@@ -1,6 +1,6 @@
 export type PlxSlashCommandId =
   | 'get-task'
-  | 'compact'
+  | 'prepare-compact'
   | 'review'
   | 'refine-architecture'
   | 'refine-review'
@@ -19,14 +19,14 @@ const getTaskSteps = `**Steps**
 3. When all checklist items are complete, run \`plx complete task --id <task-id>\` to mark the task as done.
 4. **Stop and await user confirmation** before proceeding to the next task.`;
 
-const compactGuardrails = `**Guardrails**
+const prepareCompactGuardrails = `**Guardrails**
 - Save ALL modified files before creating PROGRESS.md.
 - Create PROGRESS.md in the project root directory.
 - Include enough detail that a new agent can continue without user re-explanation.
 - Add PROGRESS.md to .gitignore if not already present.
 - Update existing PROGRESS.md if one already exists (don't create duplicates).`;
 
-const compactSteps = `**Steps**
+const prepareCompactSteps = `**Steps**
 1. Save all files you have modified during this session.
 2. Create or update \`PROGRESS.md\` in the project root with these sections: Current Task, Status, Completed Steps, Remaining Steps, Key Decisions Made, Files Modified, Files Created, Open Questions/Blockers, Context for Next Agent, Related Resources.
 3. Check if \`.gitignore\` contains \`PROGRESS.md\`; if not present, add it on a new line.
@@ -100,7 +100,7 @@ const prepareReleaseSteps = `**Steps**
 
 export const plxSlashCommandBodies: Record<PlxSlashCommandId, string> = {
   'get-task': [getTaskGuardrails, getTaskSteps].join('\n\n'),
-  'compact': [compactGuardrails, compactSteps].join('\n\n'),
+  'prepare-compact': [prepareCompactGuardrails, prepareCompactSteps].join('\n\n'),
   'review': [reviewGuardrails, reviewSteps].join('\n\n'),
   'refine-architecture': [refineArchitectureGuardrails, refineArchitectureSteps].join('\n\n'),
   'refine-review': [refineReviewGuardrails, refineReviewSteps].join('\n\n'),

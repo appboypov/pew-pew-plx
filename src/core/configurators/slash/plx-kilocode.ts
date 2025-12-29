@@ -3,7 +3,7 @@ import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'get-task': '.kilocode/workflows/plx-get-task.md',
-  'compact': '.kilocode/workflows/plx-compact.md',
+  'prepare-compact': '.kilocode/workflows/plx-prepare-compact.md',
   'review': '.kilocode/workflows/plx-review.md',
   'refine-architecture': '.kilocode/workflows/plx-refine-architecture.md',
   'refine-review': '.kilocode/workflows/plx-refine-review.md',
