@@ -28,8 +28,7 @@ OpenSplx is a fork of [OpenSpec](https://github.com/Fission-AI/OpenSpec) that pr
 ```
 OpenSplx/
 ├── bin/                    # CLI entry points
-│   ├── openspec.js         # Main CLI entry (openspec command)
-│   └── plx.js              # Alias CLI entry (plx command)
+│   └── plx.js              # CLI entry (plx command)
 ├── src/
 │   ├── index.ts            # Library exports (core + cli)
 │   ├── cli/
@@ -51,7 +50,7 @@ OpenSplx/
 │   │   ├── global-config.ts # Global config file management
 │   │   ├── init.ts         # Project initialization wizard
 │   │   ├── list.ts         # List changes/specs
-│   │   ├── update.ts       # Update OpenSpec files
+│   │   ├── update.ts       # Update PLX files
 │   │   ├── view.ts         # Interactive dashboard
 │   ├── services/           # Domain services
 │   │   ├── content-filter.ts # Markdown section filtering
@@ -79,7 +78,7 @@ OpenSplx/
 │       ├── task-progress.ts # Task completion tracking
 │       └── task-status.ts  # Task status (to-do/in-progress/done)
 ├── test/                   # Test files (mirrors src structure)
-├── openspec/               # OpenSpec directory (dogfooding)
+├── workspace/              # PLX workspace directory (dogfooding)
 ├── .claude/commands/       # Claude Code slash commands
 └── dist/                   # Compiled output
 ```
@@ -91,7 +90,7 @@ OpenSplx/
 The CLI uses the **Command Pattern** via Commander.js. Commands are registered in `src/cli/index.ts` and delegate to dedicated command classes:
 
 ```
-CLI Entry (bin/openspec.js)
+CLI Entry (bin/plx.js)
     ↓
 Commander Program (src/cli/index.ts)
     ↓
@@ -100,7 +99,7 @@ Command Classes (src/commands/*.ts, src/core/*.ts)
 
 Each command class encapsulates its own logic:
 - `InitCommand` - Interactive project initialization
-- `UpdateCommand` - Refresh OpenSpec files
+- `UpdateCommand` - Refresh PLX files
 - `ListCommand` - Display changes/specs
 - `ViewCommand` - Interactive dashboard
 - `ArchiveCommand` - Archive completed changes
@@ -119,10 +118,10 @@ Tool configurators use a **Registry Pattern** with static initialization:
 
 ```typescript
 // ToolRegistry - manages AI tool config file generators
-ToolRegistry.get('claude')?.configure(projectPath, openspecDir);
+ToolRegistry.get('claude')?.configure(projectPath, workspaceDir);
 
 // SlashCommandRegistry - manages slash command generators
-SlashCommandRegistry.get('claude')?.generateAll(projectPath, openspecDir);
+SlashCommandRegistry.get('claude')?.generateAll(projectPath, workspaceDir);
 
 // PlxSlashCommandRegistry - manages PLX-specific commands (fork feature)
 PlxSlashCommandRegistry.get('claude')?.generateAll(projectPath);
@@ -216,12 +215,12 @@ Templates support dynamic content via context injection.
 
 ### File Marker System
 
-Files managed by OpenSpec use **markers** to identify managed sections:
+Files managed by PLX use **markers** to identify managed sections:
 
 ```markdown
-<!-- OPENSPEC:START -->
+<!-- PLX:START -->
 Managed content here...
-<!-- OPENSPEC:END -->
+<!-- PLX:END -->
 ```
 
 `FileSystemUtils.updateFileWithMarkers()` handles safe updates preserving user content outside markers.
@@ -231,7 +230,7 @@ Managed content here...
 ### Initialization Flow
 
 ```
-User runs: openspec init
+User runs: plx init
     ↓
 InitCommand.execute()
     ↓
@@ -250,7 +249,7 @@ Write AGENTS.md root stub
 ### Validation Flow
 
 ```
-User runs: openspec validate <item>
+User runs: plx validate <item>
     ↓
 ValidateCommand.execute()
     ↓
@@ -271,7 +270,7 @@ For each item:
 ### Archive Flow
 
 ```
-User runs: openspec archive <change>
+User runs: plx archive <change>
     ↓
 ArchiveCommand.execute()
     ↓
@@ -294,7 +293,7 @@ Move change to archive/YYYY-MM-DD-<name>/
 
 ### Global Configuration
 
-Location: `~/.config/openspec/config.json` (XDG-compliant, respects `XDG_CONFIG_HOME`)
+Location: `~/.config/plx/config.json` (XDG-compliant, respects `XDG_CONFIG_HOME`)
 
 ```json
 {
@@ -302,7 +301,7 @@ Location: `~/.config/openspec/config.json` (XDG-compliant, respects `XDG_CONFIG_
 }
 ```
 
-Managed via `openspec config` subcommands:
+Managed via `plx config` subcommands:
 - `config path` - Show config file location
 - `config list [--json]` - Show all settings
 - `config get <key>` - Get specific value (raw, scriptable)
@@ -313,17 +312,17 @@ Managed via `openspec config` subcommands:
 
 ### Project Configuration
 
-OpenSpec creates/updates these files in a project:
+PLX creates/updates these files in a project:
 
 | File | Purpose |
 |------|---------|
 | `ARCHITECTURE.md` (root) | Project context and conventions (auto-generated during init) |
-| `openspec/AGENTS.md` | AI agent instructions |
+| `workspace/AGENTS.md` | AI agent instructions |
 | `AGENTS.md` (root) | Universal stub for AGENTS.md-compatible tools |
 | `.claude/commands/` | Claude Code slash commands |
 | Various tool configs | Tool-specific configuration files |
 
-The `openspec init` command generates `ARCHITECTURE.md` at the project root with technology stack, folder structure, and architectural patterns. This replaces the previous `openspec/project.md` approach.
+The `plx init` command generates `ARCHITECTURE.md` at the project root with technology stack, folder structure, and architectural patterns.
 
 ### AI Tool Support
 
@@ -334,13 +333,13 @@ Tools are defined in `src/core/config.ts` with availability flags. Currently sup
 | Amazon Q Developer | `.amazonq/rules/` | `.amazonq/prompts/` |
 | Antigravity | `.antigravity/rules/` | `.antigravity/prompts/` |
 | Auggie (CLI) | `.auggie/rules/` | `.auggie/prompts/` |
-| Claude Code | `.claude/settings.local.json` | `.claude/commands/openspec/` |
+| Claude Code | `.claude/settings.local.json` | `.claude/commands/plx/` |
 | Cline | `.clinerules` | `.clinerules/workflows/` |
 | Codex | N/A | `~/.codex/prompts/` (global) |
 | CodeBuddy Code | `.codebuddy/rules/` | `.codebuddy/prompts/` |
 | CoStrict | `.costrict/` | `.costrict/prompts/` |
 | Crush | `.crush/rules/` | `.crush/prompts/` |
-| Cursor | `.cursor/rules/openspec.mdc` | `.cursor/prompts/` |
+| Cursor | `.cursor/rules/plx.mdc` | `.cursor/prompts/` |
 | Factory Droid | `.factory/rules/` | `.factory/prompts/` |
 | Gemini CLI | `.gemini/` | `.gemini/prompts/` |
 | GitHub Copilot | `.github/copilot-instructions.md` | `.github/prompts/` |
@@ -358,7 +357,7 @@ Tools are defined in `src/core/config.ts` with availability flags. Currently sup
 
 - Commands: PascalCase class names (e.g., `InitCommand`)
 - Files: kebab-case (e.g., `file-system.ts`)
-- Constants: SCREAMING_SNAKE_CASE (e.g., `OPENSPEC_DIR_NAME`)
+- Constants: SCREAMING_SNAKE_CASE (e.g., `PLX_DIR_NAME`)
 - Schemas: PascalCase with `Schema` suffix (e.g., `SpecSchema`)
 
 ### Error Handling
@@ -396,9 +395,9 @@ if (!options.noInteractive) {
 The CLI supports shell completions for tab-completion of commands and arguments:
 
 ```bash
-openspec completion install [shell]   # Install completions
-openspec completion generate [shell]  # Output script to stdout
-openspec completion uninstall [shell] # Remove completions
+plx completion install [shell]   # Install completions
+plx completion generate [shell]  # Output script to stdout
+plx completion uninstall [shell] # Remove completions
 ```
 
 Shell auto-detection uses `$SHELL` environment variable. Currently supports: `zsh`.
@@ -448,7 +447,7 @@ OpenSplx includes a task management system for tracking implementation progress 
 
 ### Task File Structure
 
-Tasks are stored in `openspec/changes/<change-name>/tasks/` as individual markdown files:
+Tasks are stored in `workspace/changes/<change-name>/tasks/` as individual markdown files:
 
 ```
 tasks/
@@ -487,7 +486,7 @@ Checkboxes under `## Constraints` and `## Acceptance Criteria` sections are excl
 
 ### Change Prioritization
 
-The `openspec get task` command selects the highest-priority change using:
+The `plx get task` command selects the highest-priority change using:
 
 1. **Completion Percentage** (highest first): Changes closer to completion get priority
 2. **Creation Date** (oldest first): Tiebreaker when percentages are equal
@@ -507,7 +506,7 @@ The `get` command provides subcommands for retrieving project artifacts:
 
 **Get Task Flow:**
 ```
-User runs: openspec get task
+User runs: plx get task
     ↓
 getPrioritizedChange() → find highest-priority change
     ↓
@@ -565,7 +564,7 @@ The CLI provides explicit commands for task/change completion and undo:
 
 **Complete Task Flow:**
 ```
-User runs: openspec complete task --id <task-id>
+User runs: plx complete task --id <task-id>
     ↓
 ItemRetrievalService.getTaskById() → find task
     ↓
@@ -578,7 +577,7 @@ Output result (JSON includes completedItems array)
 
 **Undo Task Flow:**
 ```
-User runs: openspec undo task --id <task-id>
+User runs: plx undo task --id <task-id>
     ↓
 ItemRetrievalService.getTaskById() → find task
     ↓
@@ -599,8 +598,8 @@ Task status utilities in `src/utils/task-status.ts`:
 
 OpenSplx extends OpenSpec with:
 
-1. **PLX Command Alias**: Both `openspec` and `plx` CLI commands work identically
-2. **Dynamic Command Name**: CLI detects invocation name (`openspec` or `plx`) and uses it in output messages, help text, and shell completions via `src/utils/command-name.ts`
+1. **PLX Command**: The CLI uses `plx` as the command name
+2. **Dynamic Command Name**: CLI detects invocation name and uses it in output messages, help text, and shell completions via `src/utils/command-name.ts`
 3. **PLX Slash Commands**: Additional commands in `.claude/commands/plx/`
    - `/plx/init-architecture` - Generate ARCHITECTURE.md
    - `/plx/update-architecture` - Refresh architecture documentation

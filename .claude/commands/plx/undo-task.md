@@ -4,11 +4,11 @@ description: Revert a task to to-do status and uncheck Implementation Checklist 
 category: PLX
 tags: [plx, task, undo, workflow]
 ---
-<!-- OPENSPEC:START -->
+<!-- PLX:START -->
 **Usage**
 ```bash
-openspec undo task --id <task-id>      # Revert specific task
-openspec undo change --id <change-id>  # Revert all tasks in a change
+plx undo task --id <task-id>      # Revert specific task
+plx undo change --id <change-id>  # Revert all tasks in a change
 ```
 
 **Behavior**
@@ -19,4 +19,4 @@ openspec undo change --id <change-id>  # Revert all tasks in a change
 
 **Options**
 - `--json` - Output in JSON format with uncheckedItems array
-<!-- OPENSPEC:END -->
+<!-- PLX:END -->

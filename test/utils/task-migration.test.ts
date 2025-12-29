@@ -9,7 +9,7 @@ describe('task-migration', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = path.join(os.tmpdir(), `openspec-migration-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `plx-migration-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
   });
 

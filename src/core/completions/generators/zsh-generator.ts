@@ -1,7 +1,7 @@
 import { CompletionGenerator, CommandDefinition, FlagDefinition } from '../types.js';
 
 /**
- * Generates Zsh completion scripts for the OpenSpec/OpenSplx CLI.
+ * Generates Zsh completion scripts for the PLX CLI.
  * Follows Zsh completion system conventions.
  */
 export class ZshGenerator implements CompletionGenerator {
@@ -11,10 +11,10 @@ export class ZshGenerator implements CompletionGenerator {
    * Generate a Zsh completion script
    *
    * @param commands - Command definitions to generate completions for
-   * @param commandName - The CLI command name (defaults to 'openspec')
+   * @param commandName - The CLI command name (defaults to 'plx')
    * @returns Zsh completion script as a string
    */
-  generate(commands: CommandDefinition[], commandName: string = 'openspec'): string {
+  generate(commands: CommandDefinition[], commandName: string = 'plx'): string {
     const script: string[] = [];
 
     // Header comment
@@ -347,7 +347,7 @@ export class ZshGenerator implements CompletionGenerator {
   /**
    * Generate positional argument specification
    */
-  private generatePositionalSpec(positionalType?: string, commandName: string = 'openspec'): string {
+  private generatePositionalSpec(positionalType?: string, commandName: string = 'plx'): string {
     switch (positionalType) {
       case 'change-id':
         return `'*: :_${commandName}_complete_changes'`;

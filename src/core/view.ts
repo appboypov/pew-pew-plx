@@ -6,19 +6,19 @@ import { MarkdownParser } from './parsers/markdown-parser.js';
 
 export class ViewCommand {
   async execute(targetPath: string = '.'): Promise<void> {
-    const openspecDir = path.join(targetPath, 'openspec');
-    
-    if (!fs.existsSync(openspecDir)) {
-      console.error(chalk.red('No openspec directory found'));
+    const workspaceDir = path.join(targetPath, 'workspace');
+
+    if (!fs.existsSync(workspaceDir)) {
+      console.error(chalk.red('No workspace directory found'));
       process.exit(1);
     }
 
-    console.log(chalk.bold('\nOpenSpec Dashboard\n'));
+    console.log(chalk.bold('\nPLX Dashboard\n'));
     console.log('═'.repeat(60));
 
     // Get changes and specs data
-    const changesData = await this.getChangesData(openspecDir);
-    const specsData = await this.getSpecsData(openspecDir);
+    const changesData = await this.getChangesData(workspaceDir);
+    const specsData = await this.getSpecsData(workspaceDir);
 
     // Display summary metrics
     this.displaySummary(changesData, specsData);
@@ -65,14 +65,14 @@ export class ViewCommand {
     }
 
     console.log('\n' + '═'.repeat(60));
-    console.log(chalk.dim(`\nUse ${chalk.white('openspec list --changes')} or ${chalk.white('openspec list --specs')} for detailed views`));
+    console.log(chalk.dim(`\nUse ${chalk.white('plx list --changes')} or ${chalk.white('plx list --specs')} for detailed views`));
   }
 
-  private async getChangesData(openspecDir: string): Promise<{
+  private async getChangesData(workspaceDir: string): Promise<{
     active: Array<{ name: string; progress: { total: number; completed: number } }>;
     completed: Array<{ name: string }>;
   }> {
-    const changesDir = path.join(openspecDir, 'changes');
+    const changesDir = path.join(workspaceDir, 'changes');
     
     if (!fs.existsSync(changesDir)) {
       return { active: [], completed: [] };
@@ -109,8 +109,8 @@ export class ViewCommand {
     return { active, completed };
   }
 
-  private async getSpecsData(openspecDir: string): Promise<Array<{ name: string; requirementCount: number }>> {
-    const specsDir = path.join(openspecDir, 'specs');
+  private async getSpecsData(workspaceDir: string): Promise<Array<{ name: string; requirementCount: number }>> {
+    const specsDir = path.join(workspaceDir, 'specs');
     
     if (!fs.existsSync(specsDir)) {
       return [];

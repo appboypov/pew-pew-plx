@@ -61,8 +61,8 @@ description: Create a git commit using both a conventional commit message (`type
                 2. Run `git diff` to view unstaged changes
                 3. Run `git diff --cached` for staged changes
                 4. Run `git log --oneline -5` to view recent commit style
-                5. Check for active OpenSpec changes: `ls openspec/changes/` (exclude archive/)
-                6. If proposal exists, read frontmatter for `tracked-issues` in `openspec/changes/*/proposal.md`
+                5. Check for active PLX changes: `ls workspace/changes/` (exclude archive/)
+                6. If proposal exists, read frontmatter for `tracked-issues` in `workspace/changes/*/proposal.md`
             </Research>
             <Plan>
                 7. Determine appropriate type based on changes

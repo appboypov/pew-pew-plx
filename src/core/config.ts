@@ -1,11 +1,11 @@
-export const OPENSPEC_DIR_NAME = 'openspec';
+export const PLX_DIR_NAME = 'workspace';
 
-export const OPENSPEC_MARKERS = {
-  start: '<!-- OPENSPEC:START -->',
-  end: '<!-- OPENSPEC:END -->'
+export const PLX_MARKERS = {
+  start: '<!-- PLX:START -->',
+  end: '<!-- PLX:END -->'
 };
 
-export interface OpenSpecConfig {
+export interface PlxConfig {
   aiTools: string[];
 }
 

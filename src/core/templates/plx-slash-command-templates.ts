@@ -35,9 +35,9 @@ const getTaskGuardrails = `**Guardrails**
 - Preserve existing task file content when updating status.`;
 
 const getTaskSteps = `**Steps**
-1. Run \`openspec get task\` to get the highest-priority task (auto-transitions to in-progress).
+1. Run \`plx get task\` to get the highest-priority task (auto-transitions to in-progress).
 2. Execute the task following its Implementation Checklist.
-3. When all checklist items are complete, run \`openspec complete task --id <task-id>\` to mark the task as done.
+3. When all checklist items are complete, run \`plx complete task --id <task-id>\` to mark the task as done.
 4. **Stop and await user confirmation** before proceeding to the next task.`;
 
 const compactGuardrails = `**Guardrails**

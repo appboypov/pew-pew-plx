@@ -15,7 +15,7 @@ describe('change-prioritization', () => {
   beforeEach(async () => {
     tempDir = path.join(
       os.tmpdir(),
-      `openspec-change-prioritization-test-${Date.now()}`
+      `plx-change-prioritization-test-${Date.now()}`
     );
     await fs.mkdir(tempDir, { recursive: true });
   });

@@ -27,9 +27,9 @@ export class ArchiveCommand {
     options: { yes?: boolean; skipSpecs?: boolean; noValidate?: boolean; validate?: boolean; type?: EntityType } = {}
   ): Promise<void> {
     const targetPath = '.';
-    const changesDir = path.join(targetPath, 'openspec', 'changes');
-    const reviewsDir = path.join(targetPath, 'openspec', 'reviews');
-    const mainSpecsDir = path.join(targetPath, 'openspec', 'specs');
+    const changesDir = path.join(targetPath, 'workspace', 'changes');
+    const reviewsDir = path.join(targetPath, 'workspace', 'reviews');
+    const mainSpecsDir = path.join(targetPath, 'workspace', 'specs');
 
     // Detect entity type or use provided type
     let entityType: EntityType | undefined = options.type;
@@ -107,7 +107,7 @@ export class ArchiveCommand {
     try {
       await fs.access(changesDir);
     } catch {
-      throw new Error("No OpenSpec changes directory found. Run 'openspec init' first.");
+      throw new Error("No PLX changes directory found. Run 'plx init' first.");
     }
 
     // Get change name interactively if not provided
@@ -475,7 +475,7 @@ export class ArchiveCommand {
     try {
       await fs.access(reviewsDir);
     } catch {
-      throw new Error("No OpenSpec reviews directory found. Run 'openspec init' first.");
+      throw new Error("No PLX reviews directory found. Run 'plx init' first.");
     }
 
     // Get review name interactively if not provided
@@ -1018,7 +1018,7 @@ export class ArchiveCommand {
     await fs.writeFile(update.target, rebuilt);
 
     const specName = path.basename(path.dirname(update.target));
-    console.log(`Applying changes to openspec/specs/${specName}/spec.md:`);
+    console.log(`Applying changes to workspace/specs/${specName}/spec.md:`);
     if (counts.added) console.log(`  + ${counts.added} added`);
     if (counts.modified) console.log(`  ~ ${counts.modified} modified`);
     if (counts.removed) console.log(`  - ${counts.removed} removed`);

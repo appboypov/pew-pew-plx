@@ -11,7 +11,7 @@ describe('ZshInstaller', () => {
 
   beforeEach(async () => {
     // Create a temporary home directory for testing
-    testHomeDir = path.join(os.tmpdir(), `openspec-zsh-test-${randomUUID()}`);
+    testHomeDir = path.join(os.tmpdir(), `plx-zsh-test-${randomUUID()}`);
     await fs.mkdir(testHomeDir, { recursive: true });
     installer = new ZshInstaller(testHomeDir);
   });
@@ -55,14 +55,14 @@ describe('ZshInstaller', () => {
       const result = await installer.getInstallationPath();
 
       expect(result.isOhMyZsh).toBe(true);
-      expect(result.path).toBe(path.join(testHomeDir, '.oh-my-zsh', 'custom', 'completions', '_openspec'));
+      expect(result.path).toBe(path.join(testHomeDir, '.oh-my-zsh', 'custom', 'completions', '_plx'));
     });
 
     it('should return standard Zsh path when Oh My Zsh is not installed', async () => {
       const result = await installer.getInstallationPath();
 
       expect(result.isOhMyZsh).toBe(false);
-      expect(result.path).toBe(path.join(testHomeDir, '.zsh', 'completions', '_openspec'));
+      expect(result.path).toBe(path.join(testHomeDir, '.zsh', 'completions', '_plx'));
     });
 
     it('should use custom commandName in installation path', async () => {
@@ -82,10 +82,10 @@ describe('ZshInstaller', () => {
       expect(result.path).toBe(path.join(testHomeDir, '.oh-my-zsh', 'custom', 'completions', '_plx'));
     });
 
-    it('should default to openspec when no commandName provided', async () => {
+    it('should default to plx when no commandName provided', async () => {
       const result = await installer.getInstallationPath();
 
-      expect(result.path).toContain('_openspec');
+      expect(result.path).toContain('_plx');
     });
   });
 
@@ -122,7 +122,7 @@ describe('ZshInstaller', () => {
   });
 
   describe('install', () => {
-    const testScript = '#compdef openspec\n_openspec() {\n  echo "test"\n}\n';
+    const testScript = '#compdef plx\n_plx() {\n  echo "test"\n}\n';
 
     it('should install to Oh My Zsh path when Oh My Zsh is present', async () => {
       // Create .oh-my-zsh directory
@@ -133,7 +133,7 @@ describe('ZshInstaller', () => {
 
       expect(result.success).toBe(true);
       expect(result.isOhMyZsh).toBe(true);
-      expect(result.installedPath).toBe(path.join(ohMyZshPath, 'custom', 'completions', '_openspec'));
+      expect(result.installedPath).toBe(path.join(ohMyZshPath, 'custom', 'completions', '_plx'));
       expect(result.message).toContain('Oh My Zsh');
 
       // Verify file was created with correct content
@@ -146,7 +146,7 @@ describe('ZshInstaller', () => {
 
       expect(result.success).toBe(true);
       expect(result.isOhMyZsh).toBe(false);
-      expect(result.installedPath).toBe(path.join(testHomeDir, '.zsh', 'completions', '_openspec'));
+      expect(result.installedPath).toBe(path.join(testHomeDir, '.zsh', 'completions', '_plx'));
 
       // Verify file was created
       const content = await fs.readFile(result.installedPath!, 'utf-8');
@@ -165,7 +165,7 @@ describe('ZshInstaller', () => {
     });
 
     it('should backup existing file before overwriting', async () => {
-      const targetPath = path.join(testHomeDir, '.zsh', 'completions', '_openspec');
+      const targetPath = path.join(testHomeDir, '.zsh', 'completions', '_plx');
       await fs.mkdir(path.dirname(targetPath), { recursive: true });
       await fs.writeFile(targetPath, 'old script');
 
@@ -198,8 +198,8 @@ describe('ZshInstaller', () => {
     });
 
     it('should include fpath instructions for standard Zsh when auto-config is disabled', async () => {
-      const originalEnv = process.env.OPENSPEC_NO_AUTO_CONFIG;
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+      const originalEnv = process.env.PLX_NO_AUTO_CONFIG;
+      process.env.PLX_NO_AUTO_CONFIG = '1';
 
       const result = await installer.install(testScript);
 
@@ -210,9 +210,9 @@ describe('ZshInstaller', () => {
 
       // Restore env
       if (originalEnv === undefined) {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.PLX_NO_AUTO_CONFIG;
       } else {
-        process.env.OPENSPEC_NO_AUTO_CONFIG = originalEnv;
+        process.env.PLX_NO_AUTO_CONFIG = originalEnv;
       }
     });
 
@@ -258,25 +258,16 @@ describe('ZshInstaller', () => {
       expect(content).toBe(plxScript);
     });
 
-    it('should install both openspec and plx completions independently', async () => {
-      const openspecScript = '#compdef openspec\n_openspec() {}\n';
+    it('should install plx completion script', async () => {
       const plxScript = '#compdef plx\n_plx() {}\n';
-
-      // Install openspec
-      const openspecResult = await installer.install(openspecScript, 'openspec');
-      expect(openspecResult.success).toBe(true);
-      expect(openspecResult.installedPath).toContain('_openspec');
 
       // Install plx
       const plxResult = await installer.install(plxScript, 'plx');
       expect(plxResult.success).toBe(true);
       expect(plxResult.installedPath).toContain('_plx');
 
-      // Verify both files exist independently
-      const openspecContent = await fs.readFile(openspecResult.installedPath!, 'utf-8');
+      // Verify file exists
       const plxContent = await fs.readFile(plxResult.installedPath!, 'utf-8');
-
-      expect(openspecContent).toBe(openspecScript);
       expect(plxContent).toBe(plxScript);
     });
 
@@ -294,12 +285,12 @@ describe('ZshInstaller', () => {
 
     it('should update completion when content differs', async () => {
       // First installation
-      const firstScript = '#compdef openspec\n_openspec() {\n  echo "version 1"\n}\n';
+      const firstScript = '#compdef plx\n_plx() {\n  echo "version 1"\n}\n';
       const firstResult = await installer.install(firstScript);
       expect(firstResult.success).toBe(true);
 
       // Second installation with different script
-      const secondScript = '#compdef openspec\n_openspec() {\n  echo "version 2"\n}\n';
+      const secondScript = '#compdef plx\n_plx() {\n  echo "version 2"\n}\n';
       const secondResult = await installer.install(secondScript);
 
       expect(secondResult.success).toBe(true);
@@ -318,7 +309,7 @@ describe('ZshInstaller', () => {
 
     it('should handle paths with spaces in .zshrc config', async () => {
       // Create a test home directory with spaces
-      const testHomeDirWithSpaces = path.join(os.tmpdir(), `openspec zsh test ${randomUUID()}`);
+      const testHomeDirWithSpaces = path.join(os.tmpdir(), `plx zsh test ${randomUUID()}`);
       await fs.mkdir(testHomeDirWithSpaces, { recursive: true });
       const installerWithSpaces = new ZshInstaller(testHomeDirWithSpaces);
 
@@ -343,7 +334,7 @@ describe('ZshInstaller', () => {
   });
 
   describe('uninstall', () => {
-    const testScript = '#compdef openspec\n_openspec() {}\n';
+    const testScript = '#compdef plx\n_plx() {}\n';
 
     it('should remove installed completion script', async () => {
       // Install first
@@ -381,12 +372,12 @@ describe('ZshInstaller', () => {
       const result = await installer.uninstall();
 
       expect(result.success).toBe(true);
-      expect(result.message).toContain(path.join('.oh-my-zsh', 'custom', 'completions', '_openspec'));
+      expect(result.message).toContain(path.join('.oh-my-zsh', 'custom', 'completions', '_plx'));
     });
   });
 
   describe('isInstalled', () => {
-    const testScript = '#compdef openspec\n_openspec() {}\n';
+    const testScript = '#compdef plx\n_plx() {}\n';
 
     it('should return false when not installed', async () => {
       const isInstalled = await installer.isInstalled();
@@ -412,7 +403,7 @@ describe('ZshInstaller', () => {
   });
 
   describe('getInstallationInfo', () => {
-    const testScript = '#compdef openspec\n_openspec() {}\n';
+    const testScript = '#compdef plx\n_plx() {}\n';
 
     it('should return not installed when script does not exist', async () => {
       const info = await installer.getInstallationInfo();
@@ -429,7 +420,7 @@ describe('ZshInstaller', () => {
 
       expect(info.installed).toBe(true);
       expect(info.path).toBeDefined();
-      expect(info.path).toContain('_openspec');
+      expect(info.path).toContain('_plx');
       expect(info.isOhMyZsh).toBe(false);
     });
 
@@ -470,9 +461,9 @@ describe('ZshInstaller', () => {
       const zshrcPath = path.join(testHomeDir, '.zshrc');
       const content = await fs.readFile(zshrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
-      expect(content).toContain('# OpenSpec shell completions configuration');
+      expect(content).toContain('# PLX:START');
+      expect(content).toContain('# PLX:END');
+      expect(content).toContain('# PLX shell completions configuration');
       expect(content).toContain(`fpath=("${completionsDir}" $fpath)`);
       expect(content).toContain('autoload -Uz compinit');
       expect(content).toContain('compinit');
@@ -488,13 +479,13 @@ describe('ZshInstaller', () => {
 
       const content = await fs.readFile(zshrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# PLX:START');
+      expect(content).toContain('# PLX:END');
       expect(content).toContain('# My custom zsh config');
       expect(content).toContain('alias ll="ls -la"');
 
       // Config should be before existing content
-      const configIndex = content.indexOf('# OPENSPEC:START');
+      const configIndex = content.indexOf('# PLX:START');
       const aliasIndex = content.indexOf('alias ll');
       expect(configIndex).toBeLessThan(aliasIndex);
     });
@@ -502,10 +493,10 @@ describe('ZshInstaller', () => {
     it('should update config between markers when .zshrc has existing markers', async () => {
       const zshrcPath = path.join(testHomeDir, '.zshrc');
       const initialContent = [
-        '# OPENSPEC:START',
+        '# PLX:START',
         '# Old config',
         'fpath=(/old/path $fpath)',
-        '# OPENSPEC:END',
+        '# PLX:END',
         '',
         '# My custom config',
       ].join('\n');
@@ -518,8 +509,8 @@ describe('ZshInstaller', () => {
 
       const content = await fs.readFile(zshrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# PLX:START');
+      expect(content).toContain('# PLX:END');
       expect(content).toContain(`fpath=("${completionsDir}" $fpath)`);
       expect(content).not.toContain('# Old config');
       expect(content).not.toContain('/old/path');
@@ -532,9 +523,9 @@ describe('ZshInstaller', () => {
         '# My zsh config',
         'export PATH="/custom/path:$PATH"',
         '',
-        '# OPENSPEC:START',
+        '# PLX:START',
         '# Old OpenSpec config',
-        '# OPENSPEC:END',
+        '# PLX:END',
         '',
         'alias ls="ls -G"',
       ].join('\n');
@@ -554,9 +545,9 @@ describe('ZshInstaller', () => {
       expect(content).not.toContain('# Old OpenSpec config');
     });
 
-    it('should return false when OPENSPEC_NO_AUTO_CONFIG is set', async () => {
-      const originalEnv = process.env.OPENSPEC_NO_AUTO_CONFIG;
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+    it('should return false when PLX_NO_AUTO_CONFIG is set', async () => {
+      const originalEnv = process.env.PLX_NO_AUTO_CONFIG;
+      process.env.PLX_NO_AUTO_CONFIG = '1';
 
       const result = await installer.configureZshrc(completionsDir);
 
@@ -568,9 +559,9 @@ describe('ZshInstaller', () => {
 
       // Restore env
       if (originalEnv === undefined) {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.PLX_NO_AUTO_CONFIG;
       } else {
-        process.env.OPENSPEC_NO_AUTO_CONFIG = originalEnv;
+        process.env.PLX_NO_AUTO_CONFIG = originalEnv;
       }
     });
 
@@ -612,12 +603,12 @@ describe('ZshInstaller', () => {
       const content = [
         '# My config',
         '',
-        '# OPENSPEC:START',
-        '# OpenSpec shell completions configuration',
+        '# PLX:START',
+        '# PLX shell completions configuration',
         'fpath=(~/.zsh/completions $fpath)',
         'autoload -Uz compinit',
         'compinit',
-        '# OPENSPEC:END',
+        '# PLX:END',
         '',
         'alias ll="ls -la"',
       ].join('\n');
@@ -630,8 +621,8 @@ describe('ZshInstaller', () => {
 
       const newContent = await fs.readFile(zshrcPath, 'utf-8');
 
-      expect(newContent).not.toContain('# OPENSPEC:START');
-      expect(newContent).not.toContain('# OPENSPEC:END');
+      expect(newContent).not.toContain('# PLX:START');
+      expect(newContent).not.toContain('# PLX:END');
       expect(newContent).not.toContain('OpenSpec shell completions');
       expect(newContent).toContain('# My config');
       expect(newContent).toContain('alias ll="ls -la"');
@@ -640,9 +631,9 @@ describe('ZshInstaller', () => {
     it('should remove leading empty lines when markers were at top', async () => {
       const zshrcPath = path.join(testHomeDir, '.zshrc');
       const content = [
-        '# OPENSPEC:START',
+        '# PLX:START',
         '# OpenSpec config',
-        '# OPENSPEC:END',
+        '# PLX:END',
         '',
         '# User config below',
       ].join('\n');
@@ -663,7 +654,7 @@ describe('ZshInstaller', () => {
       const zshrcPath = path.join(testHomeDir, '.zshrc');
 
       // End marker before start marker
-      await fs.writeFile(zshrcPath, '# OPENSPEC:END\n# OPENSPEC:START\n');
+      await fs.writeFile(zshrcPath, '# PLX:END\n# PLX:START\n');
 
       const result = await installer.removeZshrcConfig();
 
@@ -672,7 +663,7 @@ describe('ZshInstaller', () => {
 
     it('should return true when only one marker is present', async () => {
       const zshrcPath = path.join(testHomeDir, '.zshrc');
-      await fs.writeFile(zshrcPath, '# OPENSPEC:START\nsome config\n');
+      await fs.writeFile(zshrcPath, '# PLX:START\nsome config\n');
 
       const result = await installer.removeZshrcConfig();
 
@@ -682,7 +673,7 @@ describe('ZshInstaller', () => {
   });
 
   describe('install with .zshrc auto-configuration', () => {
-    const testScript = '#compdef openspec\n_openspec() {}\n';
+    const testScript = '#compdef plx\n_plx() {}\n';
 
     it('should auto-configure .zshrc for standard Zsh', async () => {
       const result = await installer.install(testScript);
@@ -694,7 +685,7 @@ describe('ZshInstaller', () => {
       const zshrcPath = path.join(testHomeDir, '.zshrc');
       const content = await fs.readFile(zshrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
+      expect(content).toContain('# PLX:START');
       expect(content).toContain('fpath=');
       expect(content).toContain('compinit');
     });
@@ -732,8 +723,8 @@ describe('ZshInstaller', () => {
     });
 
     it('should include instructions when .zshrc auto-config fails', async () => {
-      const originalEnv = process.env.OPENSPEC_NO_AUTO_CONFIG;
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+      const originalEnv = process.env.PLX_NO_AUTO_CONFIG;
+      process.env.PLX_NO_AUTO_CONFIG = '1';
 
       const result = await installer.install(testScript);
 
@@ -744,9 +735,9 @@ describe('ZshInstaller', () => {
 
       // Restore env
       if (originalEnv === undefined) {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.PLX_NO_AUTO_CONFIG;
       } else {
-        process.env.OPENSPEC_NO_AUTO_CONFIG = originalEnv;
+        process.env.PLX_NO_AUTO_CONFIG = originalEnv;
       }
     });
 
@@ -759,7 +750,7 @@ describe('ZshInstaller', () => {
   });
 
   describe('uninstall with .zshrc cleanup', () => {
-    const testScript = '#compdef openspec\n_openspec() {}\n';
+    const testScript = '#compdef plx\n_plx() {}\n';
 
     it('should remove .zshrc config when uninstalling', async () => {
       // Install first (which creates .zshrc config)
@@ -768,17 +759,17 @@ describe('ZshInstaller', () => {
       // Verify .zshrc was configured
       const zshrcPath = path.join(testHomeDir, '.zshrc');
       let content = await fs.readFile(zshrcPath, 'utf-8');
-      expect(content).toContain('# OPENSPEC:START');
+      expect(content).toContain('# PLX:START');
 
       // Uninstall
       const result = await installer.uninstall();
 
       expect(result.success).toBe(true);
-      expect(result.message).toContain('Removed OpenSpec configuration from ~/.zshrc');
+      expect(result.message).toContain('Removed PLX configuration from ~/.zshrc');
 
       // Verify .zshrc config was removed
       content = await fs.readFile(zshrcPath, 'utf-8');
-      expect(content).not.toContain('# OPENSPEC:START');
+      expect(content).not.toContain('# PLX:START');
     });
 
     it('should not remove .zshrc config for Oh My Zsh users', async () => {
@@ -796,12 +787,12 @@ describe('ZshInstaller', () => {
     it('should succeed even if only .zshrc config is removed', async () => {
       // Manually create .zshrc config without installing completion script
       const zshrcPath = path.join(testHomeDir, '.zshrc');
-      await fs.writeFile(zshrcPath, '# OPENSPEC:START\nconfig\n# OPENSPEC:END\n');
+      await fs.writeFile(zshrcPath, '# PLX:START\nconfig\n# PLX:END\n');
 
       const result = await installer.uninstall();
 
       expect(result.success).toBe(true);
-      expect(result.message).toContain('Removed OpenSpec configuration from ~/.zshrc');
+      expect(result.message).toContain('Removed PLX configuration from ~/.zshrc');
     });
 
     it('should include both messages when removing script and .zshrc', async () => {
@@ -811,7 +802,7 @@ describe('ZshInstaller', () => {
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('Completion script removed');
-      expect(result.message).toContain('Removed OpenSpec configuration from ~/.zshrc');
+      expect(result.message).toContain('Removed PLX configuration from ~/.zshrc');
     });
   });
 });

@@ -16,19 +16,19 @@ import { plxSlashCommandBodies } from '../../../../src/core/templates/plx-slash-
 describe('PLX Command Parity', () => {
   describe('tool parity', () => {
     it('every tool in SlashCommandRegistry has a PLX configurator', () => {
-      const openspecTools = SlashCommandRegistry.getAll().map(c => c.toolId);
-      const plxTools = PlxSlashCommandRegistry.getAll().map(c => c.toolId);
+      const allToolIds = SlashCommandRegistry.getAll().map(c => c.toolId);
+      const plxToolIds = PlxSlashCommandRegistry.getAll().map(c => c.toolId);
 
-      const missingTools = openspecTools.filter(toolId => !plxTools.includes(toolId));
+      const missingTools = allToolIds.filter(toolId => !plxToolIds.includes(toolId));
 
       expect(missingTools).toEqual([]);
     });
 
     it('PLX registry has same number of tools as OpenSpec registry', () => {
-      const openspecCount = SlashCommandRegistry.getAll().length;
+      const totalCommandsCount = SlashCommandRegistry.getAll().length;
       const plxCount = PlxSlashCommandRegistry.getAll().length;
 
-      expect(plxCount).toBe(openspecCount);
+      expect(plxCount).toBe(totalCommandsCount);
     });
   });
 
@@ -71,11 +71,11 @@ describe('PLX Command Parity', () => {
 
   describe('toolId consistency', () => {
     it('PLX configurators use same toolIds as their OpenSpec counterparts', () => {
-      const openspecToolIds = new Set(SlashCommandRegistry.getAll().map(c => c.toolId));
+      const allToolIds = new Set(SlashCommandRegistry.getAll().map(c => c.toolId));
       const plxConfigurators = PlxSlashCommandRegistry.getAll();
 
       for (const plxConfig of plxConfigurators) {
-        expect(openspecToolIds.has(plxConfig.toolId)).toBe(true);
+        expect(allToolIds.has(plxConfig.toolId)).toBe(true);
       }
     });
   });

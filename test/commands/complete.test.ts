@@ -6,8 +6,8 @@ import { execSync } from 'child_process';
 describe('complete task command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-complete-task-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
-  const openspecBin = path.join(projectRoot, 'bin', 'openspec.js');
+  const changesDir = path.join(testDir, 'workspace', 'changes');
+  const plxBin = path.join(projectRoot, 'bin', 'plx.js');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
@@ -44,7 +44,7 @@ status: in-progress
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} complete task --id 001-my-task --json`,
+        `node ${plxBin} complete task --id 001-my-task --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -83,7 +83,7 @@ status: in-progress
       process.chdir(testDir);
       try {
         execSync(
-          `node ${openspecBin} complete task --id nonexistent --json`,
+          `node ${plxBin} complete task --id nonexistent --json`,
           { encoding: 'utf-8' }
         );
       } catch (error: any) {
@@ -121,7 +121,7 @@ status: done
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} complete task --id 001-done-task --json`,
+        `node ${plxBin} complete task --id 001-done-task --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -158,7 +158,7 @@ status: to-do
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} complete task --id test-change/001-my-task --json`,
+        `node ${plxBin} complete task --id test-change/001-my-task --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -174,8 +174,8 @@ status: to-do
 describe('complete change command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-complete-change-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
-  const openspecBin = path.join(projectRoot, 'bin', 'openspec.js');
+  const changesDir = path.join(testDir, 'workspace', 'changes');
+  const plxBin = path.join(projectRoot, 'bin', 'plx.js');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
@@ -223,7 +223,7 @@ status: to-do
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} complete change --id test-change --json`,
+        `node ${plxBin} complete change --id test-change --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -280,7 +280,7 @@ status: to-do
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} complete change --id test-change --json`,
+        `node ${plxBin} complete change --id test-change --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -298,7 +298,7 @@ status: to-do
       process.chdir(testDir);
       try {
         execSync(
-          `node ${openspecBin} complete change --id nonexistent --json`,
+          `node ${plxBin} complete change --id nonexistent --json`,
           { encoding: 'utf-8' }
         );
       } catch (error: any) {
@@ -336,7 +336,7 @@ status: done
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} complete change --id test-change --json`,
+        `node ${plxBin} complete change --id test-change --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);

@@ -1,6 +1,6 @@
 import path from 'path';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { OPENSPEC_DIR_NAME } from './config.js';
+import { PLX_DIR_NAME } from './config.js';
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
 import { PlxSlashCommandRegistry } from './configurators/slash/plx-registry.js';
@@ -10,16 +10,16 @@ import { TemplateManager } from './templates/index.js';
 export class UpdateCommand {
   async execute(projectPath: string): Promise<void> {
     const resolvedProjectPath = path.resolve(projectPath);
-    const openspecDirName = OPENSPEC_DIR_NAME;
-    const openspecPath = path.join(resolvedProjectPath, openspecDirName);
+    const workspaceDirName = PLX_DIR_NAME;
+    const workspacePath = path.join(resolvedProjectPath, workspaceDirName);
 
-    // 1. Check openspec directory exists
-    if (!await FileSystemUtils.directoryExists(openspecPath)) {
-      throw new Error(`No OpenSpec directory found. Run 'openspec init' first.`);
+    // 1. Check workspace directory exists
+    if (!await FileSystemUtils.directoryExists(workspacePath)) {
+      throw new Error(`No PLX workspace directory found. Run 'plx init' first.`);
     }
 
     // 2. Update AGENTS.md (full replacement)
-    const agentsPath = path.join(openspecPath, 'AGENTS.md');
+    const agentsPath = path.join(workspacePath, 'AGENTS.md');
 
     await FileSystemUtils.writeFile(agentsPath, agentsTemplate);
 
@@ -59,7 +59,7 @@ export class UpdateCommand {
           );
         }
 
-        await configurator.configure(resolvedProjectPath, openspecPath);
+        await configurator.configure(resolvedProjectPath, workspacePath);
         updatedFiles.push(configurator.configFileName);
 
         if (!fileExists) {
@@ -85,7 +85,7 @@ export class UpdateCommand {
       try {
         const updated = await slashConfigurator.updateExisting(
           resolvedProjectPath,
-          openspecPath
+          workspacePath
         );
         updatedSlashFiles.push(...updated);
         if (updated.length > 0) {
@@ -123,7 +123,7 @@ export class UpdateCommand {
     }
 
     const summaryParts: string[] = [];
-    const instructionFiles: string[] = ['openspec/AGENTS.md'];
+    const instructionFiles: string[] = ['workspace/AGENTS.md'];
 
     if (updatedFiles.includes('AGENTS.md')) {
       instructionFiles.push(
@@ -132,7 +132,7 @@ export class UpdateCommand {
     }
 
     summaryParts.push(
-      `Updated OpenSpec instructions (${instructionFiles.join(', ')})`
+      `Updated PLX instructions (${instructionFiles.join(', ')})`
     );
 
     const aiToolFiles = updatedFiles.filter((file) => file !== 'AGENTS.md');

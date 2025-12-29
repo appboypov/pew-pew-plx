@@ -1,5 +1,5 @@
 import { FileSystemUtils } from '../../../utils/file-system.js';
-import { OPENSPEC_MARKERS } from '../../config.js';
+import { PLX_MARKERS } from '../../config.js';
 import { TemplateManager, PlxSlashCommandId } from '../../templates/index.js';
 
 export interface PlxSlashCommandTarget {
@@ -46,7 +46,7 @@ export abstract class PlxSlashCommandConfigurator {
         if (frontmatter) {
           sections.push(frontmatter.trim());
         }
-        sections.push(`${OPENSPEC_MARKERS.start}\n${body}\n${OPENSPEC_MARKERS.end}`);
+        sections.push(`${PLX_MARKERS.start}\n${body}\n${PLX_MARKERS.end}`);
         const content = sections.join('\n') + '\n';
         await FileSystemUtils.writeFile(filePath, content);
       }
@@ -86,14 +86,14 @@ export abstract class PlxSlashCommandConfigurator {
 
   protected async updateBody(filePath: string, body: string): Promise<void> {
     const content = await FileSystemUtils.readFile(filePath);
-    const startIndex = content.indexOf(OPENSPEC_MARKERS.start);
-    const endIndex = content.indexOf(OPENSPEC_MARKERS.end);
+    const startIndex = content.indexOf(PLX_MARKERS.start);
+    const endIndex = content.indexOf(PLX_MARKERS.end);
 
     if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-      throw new Error(`Missing OpenSpec markers in ${filePath}`);
+      throw new Error(`Missing PLX markers in ${filePath}`);
     }
 
-    const before = content.slice(0, startIndex + OPENSPEC_MARKERS.start.length);
+    const before = content.slice(0, startIndex + PLX_MARKERS.start.length);
     const after = content.slice(endIndex);
     const updatedContent = `${before}\n${body}\n${after}`;
 

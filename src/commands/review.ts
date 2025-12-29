@@ -128,13 +128,13 @@ export class ReviewCommand {
 
     // Add parent documents
     if (parentType === 'change') {
-      const changeDir = path.join(this.root, 'openspec', 'changes', parentId);
+      const changeDir = path.join(this.root, 'workspace', 'changes', parentId);
       await this.addChangeDocuments(changeDir, documents);
     } else if (parentType === 'spec') {
-      const specPath = path.join(this.root, 'openspec', 'specs', parentId, 'spec.md');
+      const specPath = path.join(this.root, 'workspace', 'specs', parentId, 'spec.md');
       try {
         const content = await fs.readFile(specPath, 'utf-8');
-        documents.push({ path: `openspec/specs/${parentId}/spec.md`, content });
+        documents.push({ path: `workspace/specs/${parentId}/spec.md`, content });
       } catch {
         // Spec may not exist
       }
@@ -205,7 +205,7 @@ export class ReviewCommand {
   }
 
   private async outputChangeDocuments(changeId: string): Promise<void> {
-    const changeDir = path.join(this.root, 'openspec', 'changes', changeId);
+    const changeDir = path.join(this.root, 'workspace', 'changes', changeId);
 
     // Output proposal
     try {
@@ -246,7 +246,7 @@ export class ReviewCommand {
   }
 
   private async outputSpecDocuments(specId: string): Promise<void> {
-    const specPath = path.join(this.root, 'openspec', 'specs', specId, 'spec.md');
+    const specPath = path.join(this.root, 'workspace', 'specs', specId, 'spec.md');
     try {
       const content = await fs.readFile(specPath, 'utf-8');
       console.log(chalk.yellow(`═══ Spec: ${specId} ═══\n`));
@@ -262,7 +262,7 @@ export class ReviewCommand {
     documents: Array<{ path: string; content: string }>
   ): Promise<void> {
     // Try to find the task in changes
-    const changesDir = path.join(this.root, 'openspec', 'changes');
+    const changesDir = path.join(this.root, 'workspace', 'changes');
     try {
       const changes = await fs.readdir(changesDir, { withFileTypes: true });
       for (const change of changes) {
@@ -292,7 +292,7 @@ export class ReviewCommand {
 
   private async outputTaskDocuments(taskId: string): Promise<void> {
     // Try to find the task in changes
-    const changesDir = path.join(this.root, 'openspec', 'changes');
+    const changesDir = path.join(this.root, 'workspace', 'changes');
     try {
       const changes = await fs.readdir(changesDir, { withFileTypes: true });
       for (const change of changes) {

@@ -4,7 +4,7 @@ description: Review implementations against specs, changes, or tasks.
 category: PLX
 tags: [plx, review, workflow]
 ---
-<!-- OPENSPEC:START -->
+<!-- PLX:START -->
 **Guardrails**
 - Use CLI to retrieve review context.
 - Output feedback as language-aware markers.
@@ -17,4 +17,4 @@ tags: [plx, review, workflow]
 4. Insert feedback markers in relevant code.
 5. Summarize findings.
 6. Instruct to run `plx parse feedback <name> --change-id <id>`.
-<!-- OPENSPEC:END -->
+<!-- PLX:END -->

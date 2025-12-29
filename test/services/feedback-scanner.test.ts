@@ -264,7 +264,7 @@ const z = 3;`
     it('creates review directory', async () => {
       await scanner.generateReview('my-review', markers, 'change', 'test-change');
 
-      const reviewDir = path.join(tempDir, 'openspec', 'reviews', 'my-review');
+      const reviewDir = path.join(tempDir, 'workspace', 'reviews', 'my-review');
       const stat = await fs.stat(reviewDir);
       expect(stat.isDirectory()).toBe(true);
     });
@@ -274,7 +274,7 @@ const z = 3;`
 
       const reviewPath = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'my-review',
         'review.md'
@@ -292,7 +292,7 @@ const z = 3;`
 
       const reviewPath = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'my-review',
         'review.md'
@@ -308,7 +308,7 @@ const z = 3;`
 
       const reviewPath = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'my-review',
         'review.md'
@@ -325,7 +325,7 @@ const z = 3;`
 
       const reviewPath = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'my-review',
         'review.md'
@@ -341,7 +341,7 @@ const z = 3;`
 
       const tasksDir = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'my-review',
         'tasks'
@@ -355,7 +355,7 @@ const z = 3;`
 
       const tasksDir = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'my-review',
         'tasks'
@@ -372,7 +372,7 @@ const z = 3;`
 
       const tasksDir = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'my-review',
         'tasks'
@@ -391,7 +391,7 @@ const z = 3;`
 
       const tasksDir = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'my-review',
         'tasks'
@@ -412,7 +412,7 @@ const z = 3;`
 
       const tasksDir = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'my-review',
         'tasks'
@@ -431,7 +431,7 @@ const z = 3;`
 
       const reviewPath = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'spec-review',
         'review.md'
@@ -452,7 +452,7 @@ const z = 3;`
 
       const reviewPath = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'task-review',
         'review.md'

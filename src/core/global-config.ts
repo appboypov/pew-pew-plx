@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 
 // Constants
-export const GLOBAL_CONFIG_DIR_NAME = 'openspec';
+export const GLOBAL_CONFIG_DIR_NAME = 'plx';
 export const GLOBAL_CONFIG_FILE_NAME = 'config.json';
 
 // TypeScript interfaces
@@ -18,9 +18,9 @@ const DEFAULT_CONFIG: GlobalConfig = {
 /**
  * Gets the global configuration directory path following XDG Base Directory Specification.
  *
- * - All platforms: $XDG_CONFIG_HOME/openspec/ if XDG_CONFIG_HOME is set
- * - Unix/macOS fallback: ~/.config/openspec/
- * - Windows fallback: %APPDATA%/openspec/
+ * - All platforms: $XDG_CONFIG_HOME/plx/ if XDG_CONFIG_HOME is set
+ * - Unix/macOS fallback: ~/.config/plx/
+ * - Windows fallback: %APPDATA%/plx/
  */
 export function getGlobalConfigDir(): string {
   // XDG_CONFIG_HOME takes precedence on all platforms when explicitly set

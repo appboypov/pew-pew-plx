@@ -9,12 +9,12 @@ describe('ItemRetrievalService', () => {
   let service: ItemRetrievalService;
 
   beforeEach(async () => {
-    tempDir = path.join(os.tmpdir(), `openspec-item-retrieval-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `plx-item-retrieval-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
 
-    // Create openspec structure
-    const changesDir = path.join(tempDir, 'openspec', 'changes');
-    const specsDir = path.join(tempDir, 'openspec', 'specs');
+    // Create workspace structure
+    const changesDir = path.join(tempDir, 'workspace', 'changes');
+    const specsDir = path.join(tempDir, 'workspace', 'specs');
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(specsDir, { recursive: true });
 
@@ -26,7 +26,7 @@ describe('ItemRetrievalService', () => {
   });
 
   async function createChange(changeId: string, proposal: string, design?: string) {
-    const changeDir = path.join(tempDir, 'openspec', 'changes', changeId);
+    const changeDir = path.join(tempDir, 'workspace', 'changes', changeId);
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'proposal.md'), proposal);
     if (design) {
@@ -35,13 +35,13 @@ describe('ItemRetrievalService', () => {
   }
 
   async function createTask(changeId: string, filename: string, content: string) {
-    const tasksDir = path.join(tempDir, 'openspec', 'changes', changeId, 'tasks');
+    const tasksDir = path.join(tempDir, 'workspace', 'changes', changeId, 'tasks');
     await fs.mkdir(tasksDir, { recursive: true });
     await fs.writeFile(path.join(tasksDir, filename), content);
   }
 
   async function createSpec(specId: string, content: string) {
-    const specDir = path.join(tempDir, 'openspec', 'specs', specId);
+    const specDir = path.join(tempDir, 'workspace', 'specs', specId);
     await fs.mkdir(specDir, { recursive: true });
     await fs.writeFile(path.join(specDir, 'spec.md'), content);
   }

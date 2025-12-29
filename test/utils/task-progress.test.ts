@@ -14,7 +14,7 @@ describe('task-progress', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = path.join(os.tmpdir(), `openspec-task-progress-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `plx-task-progress-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
   });
 

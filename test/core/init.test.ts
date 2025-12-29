@@ -39,7 +39,7 @@ describe('InitCommand', () => {
   let prevCodexHome: string | undefined;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-init-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `plx-init-test-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
     selectionQueue = [];
     mockPrompt.mockReset();
@@ -61,21 +61,21 @@ describe('InitCommand', () => {
   });
 
   describe('execute', () => {
-    it('should create OpenSpec directory structure', async () => {
+    it('should create workspace directory structure', async () => {
       queueSelections('claude', DONE);
 
       await initCommand.execute(testDir);
 
-      const openspecPath = path.join(testDir, 'openspec');
-      expect(await directoryExists(openspecPath)).toBe(true);
-      expect(await directoryExists(path.join(openspecPath, 'specs'))).toBe(
+      const workspacePath = path.join(testDir, 'workspace');
+      expect(await directoryExists(workspacePath)).toBe(true);
+      expect(await directoryExists(path.join(workspacePath, 'specs'))).toBe(
         true
       );
-      expect(await directoryExists(path.join(openspecPath, 'changes'))).toBe(
+      expect(await directoryExists(path.join(workspacePath, 'changes'))).toBe(
         true
       );
       expect(
-        await directoryExists(path.join(openspecPath, 'changes', 'archive'))
+        await directoryExists(path.join(workspacePath, 'changes', 'archive'))
       ).toBe(true);
     });
 
@@ -84,17 +84,17 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const openspecPath = path.join(testDir, 'openspec');
-      expect(await fileExists(path.join(openspecPath, 'AGENTS.md'))).toBe(true);
+      const workspacePath = path.join(testDir, 'workspace');
+      expect(await fileExists(path.join(workspacePath, 'AGENTS.md'))).toBe(true);
       expect(await fileExists(path.join(testDir, 'ARCHITECTURE.md'))).toBe(
         true
       );
 
       const agentsContent = await fs.readFile(
-        path.join(openspecPath, 'AGENTS.md'),
+        path.join(workspacePath, 'AGENTS.md'),
         'utf-8'
       );
-      expect(agentsContent).toContain('OpenSpec Instructions');
+      expect(agentsContent).toContain('PLX Instructions');
 
       const architectureContent = await fs.readFile(
         path.join(testDir, 'ARCHITECTURE.md'),
@@ -112,10 +112,10 @@ describe('InitCommand', () => {
       expect(await fileExists(claudePath)).toBe(true);
 
       const content = await fs.readFile(claudePath, 'utf-8');
-      expect(content).toContain('<!-- OPENSPEC:START -->');
-      expect(content).toContain("@/openspec/AGENTS.md");
-      expect(content).toContain('openspec update');
-      expect(content).toContain('<!-- OPENSPEC:END -->');
+      expect(content).toContain('<!-- PLX:START -->');
+      expect(content).toContain("@/workspace/AGENTS.md");
+      expect(content).toContain('plx update');
+      expect(content).toContain('<!-- PLX:END -->');
     });
 
     it('should update existing CLAUDE.md with markers', async () => {
@@ -129,10 +129,10 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const updatedContent = await fs.readFile(claudePath, 'utf-8');
-      expect(updatedContent).toContain('<!-- OPENSPEC:START -->');
-      expect(updatedContent).toContain("@/openspec/AGENTS.md");
-      expect(updatedContent).toContain('openspec update');
-      expect(updatedContent).toContain('<!-- OPENSPEC:END -->');
+      expect(updatedContent).toContain('<!-- PLX:START -->');
+      expect(updatedContent).toContain("@/workspace/AGENTS.md");
+      expect(updatedContent).toContain('plx update');
+      expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).toContain('Custom instructions here');
     });
 
@@ -145,10 +145,10 @@ describe('InitCommand', () => {
       expect(await fileExists(clinePath)).toBe(true);
 
       const content = await fs.readFile(clinePath, 'utf-8');
-      expect(content).toContain('<!-- OPENSPEC:START -->');
-      expect(content).toContain("@/openspec/AGENTS.md");
-      expect(content).toContain('openspec update');
-      expect(content).toContain('<!-- OPENSPEC:END -->');
+      expect(content).toContain('<!-- PLX:START -->');
+      expect(content).toContain("@/workspace/AGENTS.md");
+      expect(content).toContain('plx update');
+      expect(content).toContain('<!-- PLX:END -->');
     });
 
     it('should update existing CLINE.md with markers', async () => {
@@ -162,10 +162,10 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const updatedContent = await fs.readFile(clinePath, 'utf-8');
-      expect(updatedContent).toContain('<!-- OPENSPEC:START -->');
-      expect(updatedContent).toContain("@/openspec/AGENTS.md");
-      expect(updatedContent).toContain('openspec update');
-      expect(updatedContent).toContain('<!-- OPENSPEC:END -->');
+      expect(updatedContent).toContain('<!-- PLX:START -->');
+      expect(updatedContent).toContain("@/workspace/AGENTS.md");
+      expect(updatedContent).toContain('plx update');
+      expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).toContain('Custom Cline instructions here');
     });
 
@@ -176,15 +176,15 @@ describe('InitCommand', () => {
 
       const wsProposal = path.join(
         testDir,
-        '.windsurf/workflows/openspec-proposal.md'
+        '.windsurf/workflows/plx-proposal.md'
       );
       const wsApply = path.join(
         testDir,
-        '.windsurf/workflows/openspec-apply.md'
+        '.windsurf/workflows/plx-apply.md'
       );
       const wsArchive = path.join(
         testDir,
-        '.windsurf/workflows/openspec-archive.md'
+        '.windsurf/workflows/plx-archive.md'
       );
 
       expect(await fileExists(wsProposal)).toBe(true);
@@ -193,24 +193,24 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(wsProposal, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('description: Scaffold a new OpenSpec change and validate strictly.');
+      expect(proposalContent).toContain('description: Scaffold a new PLX change and validate strictly.');
       expect(proposalContent).toContain('auto_execution_mode: 3');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(wsApply, 'utf-8');
       expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
+      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(applyContent).toContain('auto_execution_mode: 3');
-      expect(applyContent).toContain('<!-- OPENSPEC:START -->');
+      expect(applyContent).toContain('<!-- PLX:START -->');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(wsArchive, 'utf-8');
       expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('description: Archive a deployed OpenSpec change and update specs.');
+      expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
       expect(archiveContent).toContain('auto_execution_mode: 3');
-      expect(archiveContent).toContain('<!-- OPENSPEC:START -->');
-      expect(archiveContent).toContain('Run `openspec archive <id> --yes`');
+      expect(archiveContent).toContain('<!-- PLX:START -->');
+      expect(archiveContent).toContain('Run `plx archive <id> --yes`');
     });
 
     it('should create Antigravity workflows when Antigravity is selected', async () => {
@@ -220,15 +220,15 @@ describe('InitCommand', () => {
 
       const agProposal = path.join(
         testDir,
-        '.agent/workflows/openspec-proposal.md'
+        '.agent/workflows/plx-proposal.md'
       );
       const agApply = path.join(
         testDir,
-        '.agent/workflows/openspec-apply.md'
+        '.agent/workflows/plx-apply.md'
       );
       const agArchive = path.join(
         testDir,
-        '.agent/workflows/openspec-archive.md'
+        '.agent/workflows/plx-archive.md'
       );
 
       expect(await fileExists(agProposal)).toBe(true);
@@ -237,23 +237,23 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(agProposal, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('description: Scaffold a new OpenSpec change and validate strictly.');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('description: Scaffold a new PLX change and validate strictly.');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
       expect(proposalContent).not.toContain('auto_execution_mode');
 
       const applyContent = await fs.readFile(agApply, 'utf-8');
       expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
-      expect(applyContent).toContain('<!-- OPENSPEC:START -->');
+      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
+      expect(applyContent).toContain('<!-- PLX:START -->');
       expect(applyContent).toContain('Work through that task');
       expect(applyContent).not.toContain('auto_execution_mode');
 
       const archiveContent = await fs.readFile(agArchive, 'utf-8');
       expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('description: Archive a deployed OpenSpec change and update specs.');
-      expect(archiveContent).toContain('<!-- OPENSPEC:START -->');
-      expect(archiveContent).toContain('Run `openspec archive <id> --yes`');
+      expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
+      expect(archiveContent).toContain('<!-- PLX:START -->');
+      expect(archiveContent).toContain('Run `plx archive <id> --yes`');
       expect(archiveContent).not.toContain('auto_execution_mode');
     });
 
@@ -266,10 +266,10 @@ describe('InitCommand', () => {
       expect(await fileExists(rootAgentsPath)).toBe(true);
 
       const content = await fs.readFile(rootAgentsPath, 'utf-8');
-      expect(content).toContain('<!-- OPENSPEC:START -->');
-      expect(content).toContain("@/openspec/AGENTS.md");
-      expect(content).toContain('openspec update');
-      expect(content).toContain('<!-- OPENSPEC:END -->');
+      expect(content).toContain('<!-- PLX:START -->');
+      expect(content).toContain("@/workspace/AGENTS.md");
+      expect(content).toContain('plx update');
+      expect(content).toContain('<!-- PLX:END -->');
 
       const claudeExists = await fileExists(path.join(testDir, 'CLAUDE.md'));
       expect(claudeExists).toBe(false);
@@ -282,15 +282,15 @@ describe('InitCommand', () => {
 
       const claudeProposal = path.join(
         testDir,
-        '.claude/commands/openspec/proposal.md'
+        '.claude/commands/plx/proposal.md'
       );
       const claudeApply = path.join(
         testDir,
-        '.claude/commands/openspec/apply.md'
+        '.claude/commands/plx/apply.md'
       );
       const claudeArchive = path.join(
         testDir,
-        '.claude/commands/openspec/archive.md'
+        '.claude/commands/plx/archive.md'
       );
 
       expect(await fileExists(claudeProposal)).toBe(true);
@@ -298,17 +298,17 @@ describe('InitCommand', () => {
       expect(await fileExists(claudeArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(claudeProposal, 'utf-8');
-      expect(proposalContent).toContain('name: OpenSpec: Proposal');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('name: PLX: Proposal');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(claudeApply, 'utf-8');
-      expect(applyContent).toContain('name: OpenSpec: Apply');
+      expect(applyContent).toContain('name: PLX: Apply');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(claudeArchive, 'utf-8');
-      expect(archiveContent).toContain('name: OpenSpec: Archive');
-      expect(archiveContent).toContain('openspec archive <id>');
+      expect(archiveContent).toContain('name: PLX: Archive');
+      expect(archiveContent).toContain('plx archive <id>');
       expect(archiveContent).toContain(
         '`--skip-specs` only for tooling-only work'
       );
@@ -321,15 +321,15 @@ describe('InitCommand', () => {
 
       const cursorProposal = path.join(
         testDir,
-        '.cursor/commands/openspec-proposal.md'
+        '.cursor/commands/plx-proposal.md'
       );
       const cursorApply = path.join(
         testDir,
-        '.cursor/commands/openspec-apply.md'
+        '.cursor/commands/plx-apply.md'
       );
       const cursorArchive = path.join(
         testDir,
-        '.cursor/commands/openspec-archive.md'
+        '.cursor/commands/plx-archive.md'
       );
 
       expect(await fileExists(cursorProposal)).toBe(true);
@@ -337,16 +337,16 @@ describe('InitCommand', () => {
       expect(await fileExists(cursorArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(cursorProposal, 'utf-8');
-      expect(proposalContent).toContain('name: /openspec-proposal');
-      expect(proposalContent).toContain('<!-- OPENSPEC:END -->');
+      expect(proposalContent).toContain('name: /plx-proposal');
+      expect(proposalContent).toContain('<!-- PLX:END -->');
 
       const applyContent = await fs.readFile(cursorApply, 'utf-8');
-      expect(applyContent).toContain('id: openspec-apply');
+      expect(applyContent).toContain('id: plx-apply');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(cursorArchive, 'utf-8');
-      expect(archiveContent).toContain('name: /openspec-archive');
-      expect(archiveContent).toContain('openspec list --specs');
+      expect(archiveContent).toContain('name: /plx-archive');
+      expect(archiveContent).toContain('plx list --specs');
     });
 
     it('should create Gemini CLI TOML files when selected', async () => {
@@ -356,15 +356,15 @@ describe('InitCommand', () => {
 
       const geminiProposal = path.join(
         testDir,
-        '.gemini/commands/openspec/proposal.toml'
+        '.gemini/commands/plx/proposal.toml'
       );
       const geminiApply = path.join(
         testDir,
-        '.gemini/commands/openspec/apply.toml'
+        '.gemini/commands/plx/apply.toml'
       );
       const geminiArchive = path.join(
         testDir,
-        '.gemini/commands/openspec/archive.toml'
+        '.gemini/commands/plx/archive.toml'
       );
 
       expect(await fileExists(geminiProposal)).toBe(true);
@@ -372,19 +372,19 @@ describe('InitCommand', () => {
       expect(await fileExists(geminiArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(geminiProposal, 'utf-8');
-      expect(proposalContent).toContain('description = "Scaffold a new OpenSpec change and validate strictly."');
+      expect(proposalContent).toContain('description = "Scaffold a new PLX change and validate strictly."');
       expect(proposalContent).toContain('prompt = """');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
-      expect(proposalContent).toContain('<!-- OPENSPEC:END -->');
+      expect(proposalContent).toContain('<!-- PLX:END -->');
 
       const applyContent = await fs.readFile(geminiApply, 'utf-8');
-      expect(applyContent).toContain('description = "Implement an approved OpenSpec change and keep tasks in sync."');
+      expect(applyContent).toContain('description = "Implement an approved PLX change and keep tasks in sync."');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(geminiArchive, 'utf-8');
-      expect(archiveContent).toContain('description = "Archive a deployed OpenSpec change and update specs."');
-      expect(archiveContent).toContain('openspec archive <id>');
+      expect(archiveContent).toContain('description = "Archive a deployed PLX change and update specs."');
+      expect(archiveContent).toContain('plx archive <id>');
     });
 
     it('should update existing Gemini CLI TOML files with refreshed content', async () => {
@@ -394,14 +394,14 @@ describe('InitCommand', () => {
 
       const geminiProposal = path.join(
         testDir,
-        '.gemini/commands/openspec/proposal.toml'
+        '.gemini/commands/plx/proposal.toml'
       );
 
       // Modify the file to simulate user customization
       const originalContent = await fs.readFile(geminiProposal, 'utf-8');
       const modifiedContent = originalContent.replace(
-        '<!-- OPENSPEC:START -->',
-        '<!-- OPENSPEC:START -->\nCustom instruction added by user\n'
+        '<!-- PLX:START -->',
+        '<!-- PLX:START -->\nCustom instruction added by user\n'
       );
       await fs.writeFile(geminiProposal, modifiedContent);
 
@@ -410,9 +410,9 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const updatedContent = await fs.readFile(geminiProposal, 'utf-8');
-      expect(updatedContent).toContain('<!-- OPENSPEC:START -->');
+      expect(updatedContent).toContain('<!-- PLX:START -->');
       expect(updatedContent).toContain('**Guardrails**');
-      expect(updatedContent).toContain('<!-- OPENSPEC:END -->');
+      expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).not.toContain('Custom instruction added by user');
     });
 
@@ -422,15 +422,15 @@ describe('InitCommand', () => {
 
       const iflowProposal = path.join(
         testDir,
-        '.iflow/commands/openspec-proposal.md'
+        '.iflow/commands/plx-proposal.md'
       );
       const iflowApply = path.join(
         testDir,
-        '.iflow/commands/openspec-apply.md'
+        '.iflow/commands/plx-apply.md'
       );
       const iflowArchive = path.join(
         testDir,
-        '.iflow/commands/openspec-archive.md'
+        '.iflow/commands/plx-archive.md'
       );
 
       expect(await fileExists(iflowProposal)).toBe(true);
@@ -438,18 +438,18 @@ describe('InitCommand', () => {
       expect(await fileExists(iflowArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(iflowProposal, 'utf-8');
-      expect(proposalContent).toContain('description: Scaffold a new OpenSpec change and validate strictly.');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('description: Scaffold a new PLX change and validate strictly.');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
-      expect(proposalContent).toContain('<!-- OPENSPEC:END -->');
+      expect(proposalContent).toContain('<!-- PLX:END -->');
 
       const applyContent = await fs.readFile(iflowApply, 'utf-8');
-      expect(applyContent).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
+      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(iflowArchive, 'utf-8');
-      expect(archiveContent).toContain('description: Archive a deployed OpenSpec change and update specs.');
-      expect(archiveContent).toContain('openspec archive <id>');
+      expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
+      expect(archiveContent).toContain('plx archive <id>');
     });
 
     it('should update existing IFLOW.md with markers', async () => {
@@ -462,10 +462,10 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const updatedContent = await fs.readFile(iflowPath, 'utf-8');
-      expect(updatedContent).toContain('<!-- OPENSPEC:START -->');
-      expect(updatedContent).toContain("@/openspec/AGENTS.md");
-      expect(updatedContent).toContain('openspec update');
-      expect(updatedContent).toContain('<!-- OPENSPEC:END -->');
+      expect(updatedContent).toContain('<!-- PLX:START -->');
+      expect(updatedContent).toContain("@/workspace/AGENTS.md");
+      expect(updatedContent).toContain('plx update');
+      expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).toContain('Custom instructions here');
     });
 
@@ -476,15 +476,15 @@ describe('InitCommand', () => {
 
       const openCodeProposal = path.join(
         testDir,
-        '.opencode/command/openspec-proposal.md'
+        '.opencode/command/plx-proposal.md'
       );
       const openCodeApply = path.join(
         testDir,
-        '.opencode/command/openspec-apply.md'
+        '.opencode/command/plx-apply.md'
       );
       const openCodeArchive = path.join(
         testDir,
-        '.opencode/command/openspec-archive.md'
+        '.opencode/command/plx-archive.md'
       );
 
       expect(await fileExists(openCodeProposal)).toBe(true);
@@ -494,23 +494,23 @@ describe('InitCommand', () => {
       const proposalContent = await fs.readFile(openCodeProposal, 'utf-8');
       expect(proposalContent).not.toContain('agent:');
       expect(proposalContent).toContain(
-        'description: Scaffold a new OpenSpec change and validate strictly.'
+        'description: Scaffold a new PLX change and validate strictly.'
       );
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
 
       const applyContent = await fs.readFile(openCodeApply, 'utf-8');
       expect(applyContent).not.toContain('agent:');
       expect(applyContent).toContain(
-        'description: Implement an approved OpenSpec change and keep tasks in sync.'
+        'description: Implement an approved PLX change and keep tasks in sync.'
       );
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(openCodeArchive, 'utf-8');
       expect(archiveContent).not.toContain('agent:');
       expect(archiveContent).toContain(
-        'description: Archive a deployed OpenSpec change and update specs.'
+        'description: Archive a deployed PLX change and update specs.'
       );
-      expect(archiveContent).toContain('openspec list --specs');
+      expect(archiveContent).toContain('plx list --specs');
     });
 
     it('should create Qwen configuration and slash command files with templates', async () => {
@@ -521,15 +521,15 @@ describe('InitCommand', () => {
       const qwenConfigPath = path.join(testDir, 'QWEN.md');
       const proposalPath = path.join(
         testDir,
-        '.qwen/commands/openspec-proposal.toml'
+        '.qwen/commands/plx-proposal.toml'
       );
       const applyPath = path.join(
         testDir,
-        '.qwen/commands/openspec-apply.toml'
+        '.qwen/commands/plx-apply.toml'
       );
       const archivePath = path.join(
         testDir,
-        '.qwen/commands/openspec-archive.toml'
+        '.qwen/commands/plx-archive.toml'
       );
 
       expect(await fileExists(qwenConfigPath)).toBe(true);
@@ -538,22 +538,22 @@ describe('InitCommand', () => {
       expect(await fileExists(archivePath)).toBe(true);
 
       const qwenConfigContent = await fs.readFile(qwenConfigPath, 'utf-8');
-      expect(qwenConfigContent).toContain('<!-- OPENSPEC:START -->');
-      expect(qwenConfigContent).toContain("@/openspec/AGENTS.md");
-      expect(qwenConfigContent).toContain('<!-- OPENSPEC:END -->');
+      expect(qwenConfigContent).toContain('<!-- PLX:START -->');
+      expect(qwenConfigContent).toContain("@/workspace/AGENTS.md");
+      expect(qwenConfigContent).toContain('<!-- PLX:END -->');
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
-      expect(proposalContent).toContain('description = "Scaffold a new OpenSpec change and validate strictly."');
+      expect(proposalContent).toContain('description = "Scaffold a new PLX change and validate strictly."');
       expect(proposalContent).toContain('prompt = """');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
 
       const applyContent = await fs.readFile(applyPath, 'utf-8');
-      expect(applyContent).toContain('description = "Implement an approved OpenSpec change and keep tasks in sync."');
+      expect(applyContent).toContain('description = "Implement an approved PLX change and keep tasks in sync."');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
-      expect(archiveContent).toContain('description = "Archive a deployed OpenSpec change and update specs."');
-      expect(archiveContent).toContain('openspec archive <id>');
+      expect(archiveContent).toContain('description = "Archive a deployed PLX change and update specs."');
+      expect(archiveContent).toContain('plx archive <id>');
     });
 
     it('should update existing QWEN.md with markers', async () => {
@@ -566,10 +566,10 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const updatedContent = await fs.readFile(qwenPath, 'utf-8');
-      expect(updatedContent).toContain('<!-- OPENSPEC:START -->');
-      expect(updatedContent).toContain("@/openspec/AGENTS.md");
-      expect(updatedContent).toContain('openspec update');
-      expect(updatedContent).toContain('<!-- OPENSPEC:END -->');
+      expect(updatedContent).toContain('<!-- PLX:START -->');
+      expect(updatedContent).toContain("@/workspace/AGENTS.md");
+      expect(updatedContent).toContain('plx update');
+      expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).toContain('Custom instructions here');
     });
 
@@ -580,15 +580,15 @@ describe('InitCommand', () => {
 
       const clineProposal = path.join(
         testDir,
-        '.clinerules/workflows/openspec-proposal.md'
+        '.clinerules/workflows/plx-proposal.md'
       );
       const clineApply = path.join(
         testDir,
-        '.clinerules/workflows/openspec-apply.md'
+        '.clinerules/workflows/plx-apply.md'
       );
       const clineArchive = path.join(
         testDir,
-        '.clinerules/workflows/openspec-archive.md'
+        '.clinerules/workflows/plx-archive.md'
       );
 
       expect(await fileExists(clineProposal)).toBe(true);
@@ -596,20 +596,20 @@ describe('InitCommand', () => {
       expect(await fileExists(clineArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(clineProposal, 'utf-8');
-      expect(proposalContent).toContain('# OpenSpec: Proposal');
-      expect(proposalContent).toContain('Scaffold a new OpenSpec change and validate strictly.');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('# PLX: Proposal');
+      expect(proposalContent).toContain('Scaffold a new PLX change and validate strictly.');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(clineApply, 'utf-8');
-      expect(applyContent).toContain('# OpenSpec: Apply');
-      expect(applyContent).toContain('Implement an approved OpenSpec change and keep tasks in sync.');
+      expect(applyContent).toContain('# PLX: Apply');
+      expect(applyContent).toContain('Implement an approved PLX change and keep tasks in sync.');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(clineArchive, 'utf-8');
-      expect(archiveContent).toContain('# OpenSpec: Archive');
-      expect(archiveContent).toContain('Archive a deployed OpenSpec change and update specs.');
-      expect(archiveContent).toContain('openspec archive <id>');
+      expect(archiveContent).toContain('# PLX: Archive');
+      expect(archiveContent).toContain('Archive a deployed PLX change and update specs.');
+      expect(archiveContent).toContain('plx archive <id>');
     });
 
     it('should create Factory slash command files with templates', async () => {
@@ -619,15 +619,15 @@ describe('InitCommand', () => {
 
       const factoryProposal = path.join(
         testDir,
-        '.factory/commands/openspec-proposal.md'
+        '.factory/commands/plx-proposal.md'
       );
       const factoryApply = path.join(
         testDir,
-        '.factory/commands/openspec-apply.md'
+        '.factory/commands/plx-apply.md'
       );
       const factoryArchive = path.join(
         testDir,
-        '.factory/commands/openspec-archive.md'
+        '.factory/commands/plx-archive.md'
       );
 
       expect(await fileExists(factoryProposal)).toBe(true);
@@ -635,31 +635,31 @@ describe('InitCommand', () => {
       expect(await fileExists(factoryArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(factoryProposal, 'utf-8');
-      expect(proposalContent).toContain('description: Scaffold a new OpenSpec change and validate strictly.');
+      expect(proposalContent).toContain('description: Scaffold a new PLX change and validate strictly.');
       expect(proposalContent).toContain('argument-hint: request or feature description');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(
-        /<!-- OPENSPEC:START -->([\s\S]*?)<!-- OPENSPEC:END -->/u.exec(
+        /<!-- PLX:START -->([\s\S]*?)<!-- PLX:END -->/u.exec(
           proposalContent
         )?.[1]
       ).toContain('$ARGUMENTS');
 
       const applyContent = await fs.readFile(factoryApply, 'utf-8');
-      expect(applyContent).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
+      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(applyContent).toContain('argument-hint: change-id');
       expect(applyContent).toContain('Work through that task');
       expect(
-        /<!-- OPENSPEC:START -->([\s\S]*?)<!-- OPENSPEC:END -->/u.exec(
+        /<!-- PLX:START -->([\s\S]*?)<!-- PLX:END -->/u.exec(
           applyContent
         )?.[1]
       ).toContain('$ARGUMENTS');
 
       const archiveContent = await fs.readFile(factoryArchive, 'utf-8');
-      expect(archiveContent).toContain('description: Archive a deployed OpenSpec change and update specs.');
+      expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
       expect(archiveContent).toContain('argument-hint: change-id');
-      expect(archiveContent).toContain('openspec archive <id> --yes');
+      expect(archiveContent).toContain('plx archive <id> --yes');
       expect(
-        /<!-- OPENSPEC:START -->([\s\S]*?)<!-- OPENSPEC:END -->/u.exec(
+        /<!-- PLX:START -->([\s\S]*?)<!-- PLX:END -->/u.exec(
           archiveContent
         )?.[1]
       ).toContain('$ARGUMENTS');
@@ -672,15 +672,15 @@ describe('InitCommand', () => {
 
       const proposalPath = path.join(
         testDir,
-        '.codex/prompts/openspec-proposal.md'
+        '.codex/prompts/plx-proposal.md'
       );
       const applyPath = path.join(
         testDir,
-        '.codex/prompts/openspec-apply.md'
+        '.codex/prompts/plx-apply.md'
       );
       const archivePath = path.join(
         testDir,
-        '.codex/prompts/openspec-archive.md'
+        '.codex/prompts/plx-archive.md'
       );
 
       expect(await fileExists(proposalPath)).toBe(true);
@@ -688,23 +688,23 @@ describe('InitCommand', () => {
       expect(await fileExists(archivePath)).toBe(true);
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
-      expect(proposalContent).toContain('description: Scaffold a new OpenSpec change and validate strictly.');
+      expect(proposalContent).toContain('description: Scaffold a new PLX change and validate strictly.');
       expect(proposalContent).toContain('argument-hint: request or feature description');
       expect(proposalContent).toContain('$ARGUMENTS');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(applyPath, 'utf-8');
-      expect(applyContent).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
+      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(applyContent).toContain('argument-hint: change-id');
       expect(applyContent).toContain('$ARGUMENTS');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
-      expect(archiveContent).toContain('description: Archive a deployed OpenSpec change and update specs.');
+      expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
       expect(archiveContent).toContain('argument-hint: change-id');
       expect(archiveContent).toContain('$ARGUMENTS');
-      expect(archiveContent).toContain('openspec archive <id> --yes');
+      expect(archiveContent).toContain('plx archive <id> --yes');
     });
 
     it('should create Kilo Code workflows with templates', async () => {
@@ -714,15 +714,15 @@ describe('InitCommand', () => {
 
       const proposalPath = path.join(
         testDir,
-        '.kilocode/workflows/openspec-proposal.md'
+        '.kilocode/workflows/plx-proposal.md'
       );
       const applyPath = path.join(
         testDir,
-        '.kilocode/workflows/openspec-apply.md'
+        '.kilocode/workflows/plx-apply.md'
       );
       const archivePath = path.join(
         testDir,
-        '.kilocode/workflows/openspec-archive.md'
+        '.kilocode/workflows/plx-archive.md'
       );
 
       expect(await fileExists(proposalPath)).toBe(true);
@@ -730,7 +730,7 @@ describe('InitCommand', () => {
       expect(await fileExists(archivePath)).toBe(true);
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
       expect(proposalContent).not.toContain('---\n');
 
@@ -739,7 +739,7 @@ describe('InitCommand', () => {
       expect(applyContent).not.toContain('---\n');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
-      expect(archiveContent).toContain('openspec list --specs');
+      expect(archiveContent).toContain('plx list --specs');
       expect(archiveContent).not.toContain('---\n');
     });
 
@@ -750,15 +750,15 @@ describe('InitCommand', () => {
 
       const proposalPath = path.join(
         testDir,
-        '.github/prompts/openspec-proposal.prompt.md'
+        '.github/prompts/plx-proposal.prompt.md'
       );
       const applyPath = path.join(
         testDir,
-        '.github/prompts/openspec-apply.prompt.md'
+        '.github/prompts/plx-apply.prompt.md'
       );
       const archivePath = path.join(
         testDir,
-        '.github/prompts/openspec-archive.prompt.md'
+        '.github/prompts/plx-archive.prompt.md'
       );
 
       expect(await fileExists(proposalPath)).toBe(true);
@@ -767,32 +767,32 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('description: Scaffold a new OpenSpec change and validate strictly.');
+      expect(proposalContent).toContain('description: Scaffold a new PLX change and validate strictly.');
       expect(proposalContent).toContain('$ARGUMENTS');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(applyPath, 'utf-8');
       expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
+      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(applyContent).toContain('$ARGUMENTS');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
       expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('description: Archive a deployed OpenSpec change and update specs.');
+      expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
       expect(archiveContent).toContain('$ARGUMENTS');
-      expect(archiveContent).toContain('openspec archive <id> --yes');
+      expect(archiveContent).toContain('plx archive <id> --yes');
     });
 
-    it('should add new tool when OpenSpec already exists', async () => {
+    it('should add new tool when PLX already exists', async () => {
       queueSelections('claude', DONE, 'cursor', DONE);
       await initCommand.execute(testDir);
       await initCommand.execute(testDir);
 
       const cursorProposal = path.join(
         testDir,
-        '.cursor/commands/openspec-proposal.md'
+        '.cursor/commands/plx-proposal.md'
       );
       expect(await fileExists(cursorProposal)).toBe(true);
     });
@@ -803,12 +803,12 @@ describe('InitCommand', () => {
       await expect(initCommand.execute(testDir)).resolves.toBeUndefined();
     });
 
-    it('should recreate deleted openspec/AGENTS.md in extend mode', async () => {
+    it('should recreate deleted workspace/AGENTS.md in extend mode', async () => {
       await testFileRecreationInExtendMode(
         testDir,
         initCommand,
-        'openspec/AGENTS.md',
-        'OpenSpec Instructions'
+        'workspace/AGENTS.md',
+        'PLX Instructions'
       );
     });
 
@@ -827,7 +827,7 @@ describe('InitCommand', () => {
       // First init
       await initCommand.execute(testDir);
 
-      const agentsPath = path.join(testDir, 'openspec', 'AGENTS.md');
+      const agentsPath = path.join(testDir, 'workspace', 'AGENTS.md');
       const customContent = '# My Custom AGENTS Content\nDo not overwrite this!';
 
       // Modify the file with custom content
@@ -838,7 +838,7 @@ describe('InitCommand', () => {
 
       const content = await fs.readFile(agentsPath, 'utf-8');
       expect(content).toBe(customContent);
-      expect(content).not.toContain('OpenSpec Instructions');
+      expect(content).not.toContain('PLX Instructions');
     });
 
     it('should handle non-existent target directory', async () => {
@@ -847,8 +847,8 @@ describe('InitCommand', () => {
       const newDir = path.join(testDir, 'new-project');
       await initCommand.execute(newDir);
 
-      const openspecPath = path.join(newDir, 'openspec');
-      expect(await directoryExists(openspecPath)).toBe(true);
+      const workspacePath = path.join(newDir, 'workspace');
+      expect(await directoryExists(workspacePath)).toBe(true);
     });
 
     it('should display success message with selected tool name', async () => {
@@ -1001,15 +1001,15 @@ describe('InitCommand', () => {
 
       const proposalPath = path.join(
         testDir,
-        '.amazonq/prompts/openspec-proposal.md'
+        '.amazonq/prompts/plx-proposal.md'
       );
       const applyPath = path.join(
         testDir,
-        '.amazonq/prompts/openspec-apply.md'
+        '.amazonq/prompts/plx-apply.md'
       );
       const archivePath = path.join(
         testDir,
-        '.amazonq/prompts/openspec-archive.md'
+        '.amazonq/prompts/plx-archive.md'
       );
 
       expect(await fileExists(proposalPath)).toBe(true);
@@ -1018,16 +1018,16 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('description: Scaffold a new OpenSpec change and validate strictly.');
+      expect(proposalContent).toContain('description: Scaffold a new PLX change and validate strictly.');
       expect(proposalContent).toContain('$ARGUMENTS');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(applyPath, 'utf-8');
       expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
+      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(applyContent).toContain('$ARGUMENTS');
-      expect(applyContent).toContain('<!-- OPENSPEC:START -->');
+      expect(applyContent).toContain('<!-- PLX:START -->');
     });
 
     it('should mark Amazon Q Developer as already configured during extend mode', async () => {
@@ -1049,15 +1049,15 @@ describe('InitCommand', () => {
 
       const auggieProposal = path.join(
         testDir,
-        '.augment/commands/openspec-proposal.md'
+        '.augment/commands/plx-proposal.md'
       );
       const auggieApply = path.join(
         testDir,
-        '.augment/commands/openspec-apply.md'
+        '.augment/commands/plx-apply.md'
       );
       const auggieArchive = path.join(
         testDir,
-        '.augment/commands/openspec-archive.md'
+        '.augment/commands/plx-archive.md'
       );
 
       expect(await fileExists(auggieProposal)).toBe(true);
@@ -1066,22 +1066,22 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(auggieProposal, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('description: Scaffold a new OpenSpec change and validate strictly.');
+      expect(proposalContent).toContain('description: Scaffold a new PLX change and validate strictly.');
       expect(proposalContent).toContain('argument-hint: feature description or request');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(auggieApply, 'utf-8');
       expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
+      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(applyContent).toContain('argument-hint: change-id');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(auggieArchive, 'utf-8');
       expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('description: Archive a deployed OpenSpec change and update specs.');
+      expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
       expect(archiveContent).toContain('argument-hint: change-id');
-      expect(archiveContent).toContain('openspec archive <id> --yes');
+      expect(archiveContent).toContain('plx archive <id> --yes');
     });
 
     it('should mark Auggie as already configured during extend mode', async () => {
@@ -1103,15 +1103,15 @@ describe('InitCommand', () => {
 
       const codeBuddyProposal = path.join(
         testDir,
-        '.codebuddy/commands/openspec/proposal.md'
+        '.codebuddy/commands/plx/proposal.md'
       );
       const codeBuddyApply = path.join(
         testDir,
-        '.codebuddy/commands/openspec/apply.md'
+        '.codebuddy/commands/plx/apply.md'
       );
       const codeBuddyArchive = path.join(
         testDir,
-        '.codebuddy/commands/openspec/archive.md'
+        '.codebuddy/commands/plx/archive.md'
       );
 
       expect(await fileExists(codeBuddyProposal)).toBe(true);
@@ -1120,23 +1120,23 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(codeBuddyProposal, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('name: OpenSpec: Proposal');
-      expect(proposalContent).toContain('description: Scaffold a new OpenSpec change and validate strictly.');
-      expect(proposalContent).toContain('category: OpenSpec');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('name: PLX: Proposal');
+      expect(proposalContent).toContain('description: Scaffold a new PLX change and validate strictly.');
+      expect(proposalContent).toContain('category: PLX');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(codeBuddyApply, 'utf-8');
       expect(applyContent).toContain('---');
-      expect(applyContent).toContain('name: OpenSpec: Apply');
-      expect(applyContent).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
+      expect(applyContent).toContain('name: PLX: Apply');
+      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(codeBuddyArchive, 'utf-8');
       expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('name: OpenSpec: Archive');
-      expect(archiveContent).toContain('description: Archive a deployed OpenSpec change and update specs.');
-      expect(archiveContent).toContain('openspec archive <id> --yes');
+      expect(archiveContent).toContain('name: PLX: Archive');
+      expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
+      expect(archiveContent).toContain('plx archive <id> --yes');
     });
 
     it('should mark CodeBuddy as already configured during extend mode', async () => {
@@ -1160,10 +1160,10 @@ describe('InitCommand', () => {
       expect(await fileExists(codeBuddyPath)).toBe(true);
 
       const content = await fs.readFile(codeBuddyPath, 'utf-8');
-      expect(content).toContain('<!-- OPENSPEC:START -->');
-      expect(content).toContain("@/openspec/AGENTS.md");
-      expect(content).toContain('openspec update');
-      expect(content).toContain('<!-- OPENSPEC:END -->');
+      expect(content).toContain('<!-- PLX:START -->');
+      expect(content).toContain("@/workspace/AGENTS.md");
+      expect(content).toContain('plx update');
+      expect(content).toContain('<!-- PLX:END -->');
     });
 
     it('should update existing CODEBUDDY.md with markers', async () => {
@@ -1177,10 +1177,10 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const updatedContent = await fs.readFile(codeBuddyPath, 'utf-8');
-      expect(updatedContent).toContain('<!-- OPENSPEC:START -->');
-      expect(updatedContent).toContain("@/openspec/AGENTS.md");
-      expect(updatedContent).toContain('openspec update');
-      expect(updatedContent).toContain('<!-- OPENSPEC:END -->');
+      expect(updatedContent).toContain('<!-- PLX:START -->');
+      expect(updatedContent).toContain("@/workspace/AGENTS.md");
+      expect(updatedContent).toContain('plx update');
+      expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).toContain('Custom instructions here');
     });
 
@@ -1191,15 +1191,15 @@ describe('InitCommand', () => {
 
       const crushProposal = path.join(
         testDir,
-        '.crush/commands/openspec/proposal.md'
+        '.crush/commands/plx/proposal.md'
       );
       const crushApply = path.join(
         testDir,
-        '.crush/commands/openspec/apply.md'
+        '.crush/commands/plx/apply.md'
       );
       const crushArchive = path.join(
         testDir,
-        '.crush/commands/openspec/archive.md'
+        '.crush/commands/plx/archive.md'
       );
 
       expect(await fileExists(crushProposal)).toBe(true);
@@ -1208,28 +1208,28 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(crushProposal, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('name: OpenSpec: Proposal');
-      expect(proposalContent).toContain('description: Scaffold a new OpenSpec change and validate strictly.');
-      expect(proposalContent).toContain('category: OpenSpec');
-      expect(proposalContent).toContain('tags: [openspec, change]');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('name: PLX: Proposal');
+      expect(proposalContent).toContain('description: Scaffold a new PLX change and validate strictly.');
+      expect(proposalContent).toContain('category: PLX');
+      expect(proposalContent).toContain('tags: [plx, change]');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(crushApply, 'utf-8');
       expect(applyContent).toContain('---');
-      expect(applyContent).toContain('name: OpenSpec: Apply');
-      expect(applyContent).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
-      expect(applyContent).toContain('category: OpenSpec');
-      expect(applyContent).toContain('tags: [openspec, apply]');
+      expect(applyContent).toContain('name: PLX: Apply');
+      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
+      expect(applyContent).toContain('category: PLX');
+      expect(applyContent).toContain('tags: [plx, apply]');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(crushArchive, 'utf-8');
       expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('name: OpenSpec: Archive');
-      expect(archiveContent).toContain('description: Archive a deployed OpenSpec change and update specs.');
-      expect(archiveContent).toContain('category: OpenSpec');
-      expect(archiveContent).toContain('tags: [openspec, archive]');
-      expect(archiveContent).toContain('openspec archive <id> --yes');
+      expect(archiveContent).toContain('name: PLX: Archive');
+      expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
+      expect(archiveContent).toContain('category: PLX');
+      expect(archiveContent).toContain('tags: [plx, archive]');
+      expect(archiveContent).toContain('plx archive <id> --yes');
     });
 
     it('should mark Crush as already configured during extend mode', async () => {
@@ -1251,15 +1251,15 @@ describe('InitCommand', () => {
 
       const costrictProposal = path.join(
         testDir,
-        '.cospec/openspec/commands/openspec-proposal.md'
+        '.cospec/plx/commands/plx-proposal.md'
       );
       const costrictApply = path.join(
         testDir,
-        '.cospec/openspec/commands/openspec-apply.md'
+        '.cospec/plx/commands/plx-apply.md'
       );
       const costrictArchive = path.join(
         testDir,
-        '.cospec/openspec/commands/openspec-archive.md'
+        '.cospec/plx/commands/plx-archive.md'
       );
 
       expect(await fileExists(costrictProposal)).toBe(true);
@@ -1268,22 +1268,22 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(costrictProposal, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('description: "Scaffold a new OpenSpec change and validate strictly."');
+      expect(proposalContent).toContain('description: "Scaffold a new PLX change and validate strictly."');
       expect(proposalContent).toContain('argument-hint: feature description or request');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(costrictApply, 'utf-8');
       expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: "Implement an approved OpenSpec change and keep tasks in sync."');
+      expect(applyContent).toContain('description: "Implement an approved PLX change and keep tasks in sync."');
       expect(applyContent).toContain('argument-hint: change-id');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(costrictArchive, 'utf-8');
       expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('description: "Archive a deployed OpenSpec change and update specs."');
+      expect(archiveContent).toContain('description: "Archive a deployed PLX change and update specs."');
       expect(archiveContent).toContain('argument-hint: change-id');
-      expect(archiveContent).toContain('openspec archive <id> --yes');
+      expect(archiveContent).toContain('plx archive <id> --yes');
     });
 
     it('should mark CoStrict as already configured during extend mode', async () => {
@@ -1305,15 +1305,15 @@ describe('InitCommand', () => {
 
       const rooProposal = path.join(
         testDir,
-        '.roo/commands/openspec-proposal.md'
+        '.roo/commands/plx-proposal.md'
       );
       const rooApply = path.join(
         testDir,
-        '.roo/commands/openspec-apply.md'
+        '.roo/commands/plx-apply.md'
       );
       const rooArchive = path.join(
         testDir,
-        '.roo/commands/openspec-archive.md'
+        '.roo/commands/plx-archive.md'
       );
 
       expect(await fileExists(rooProposal)).toBe(true);
@@ -1321,16 +1321,16 @@ describe('InitCommand', () => {
       expect(await fileExists(rooArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(rooProposal, 'utf-8');
-      expect(proposalContent).toContain('# OpenSpec: Proposal');
+      expect(proposalContent).toContain('# PLX: Proposal');
       expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(rooApply, 'utf-8');
-      expect(applyContent).toContain('# OpenSpec: Apply');
+      expect(applyContent).toContain('# PLX: Apply');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(rooArchive, 'utf-8');
-      expect(archiveContent).toContain('# OpenSpec: Archive');
-      expect(archiveContent).toContain('openspec archive <id> --yes');
+      expect(archiveContent).toContain('# PLX: Archive');
+      expect(archiveContent).toContain('plx archive <id> --yes');
     });
 
     it('should mark RooCode as already configured during extend mode', async () => {
@@ -1352,15 +1352,15 @@ describe('InitCommand', () => {
 
       const qoderProposal = path.join(
         testDir,
-        '.qoder/commands/openspec/proposal.md'
+        '.qoder/commands/plx/proposal.md'
       );
       const qoderApply = path.join(
         testDir,
-        '.qoder/commands/openspec/apply.md'
+        '.qoder/commands/plx/apply.md'
       );
       const qoderArchive = path.join(
         testDir,
-        '.qoder/commands/openspec/archive.md'
+        '.qoder/commands/plx/archive.md'
       );
 
       expect(await fileExists(qoderProposal)).toBe(true);
@@ -1369,23 +1369,23 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(qoderProposal, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('name: OpenSpec: Proposal');
-      expect(proposalContent).toContain('description: Scaffold a new OpenSpec change and validate strictly.');
-      expect(proposalContent).toContain('category: OpenSpec');
-      expect(proposalContent).toContain('<!-- OPENSPEC:START -->');
+      expect(proposalContent).toContain('name: PLX: Proposal');
+      expect(proposalContent).toContain('description: Scaffold a new PLX change and validate strictly.');
+      expect(proposalContent).toContain('category: PLX');
+      expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(qoderApply, 'utf-8');
       expect(applyContent).toContain('---');
-      expect(applyContent).toContain('name: OpenSpec: Apply');
-      expect(applyContent).toContain('description: Implement an approved OpenSpec change and keep tasks in sync.');
+      expect(applyContent).toContain('name: PLX: Apply');
+      expect(applyContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(applyContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(qoderArchive, 'utf-8');
       expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('name: OpenSpec: Archive');
-      expect(archiveContent).toContain('description: Archive a deployed OpenSpec change and update specs.');
-      expect(archiveContent).toContain('openspec archive <id> --yes');
+      expect(archiveContent).toContain('name: PLX: Archive');
+      expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
+      expect(archiveContent).toContain('plx archive <id> --yes');
     });
 
     it('should mark Qoder as already configured during extend mode', async () => {
@@ -1409,10 +1409,10 @@ describe('InitCommand', () => {
       expect(await fileExists(costrictPath)).toBe(true);
 
       const content = await fs.readFile(costrictPath, 'utf-8');
-      expect(content).toContain('<!-- OPENSPEC:START -->');
-      expect(content).toContain("@/openspec/AGENTS.md");
-      expect(content).toContain('openspec update');
-      expect(content).toContain('<!-- OPENSPEC:END -->');
+      expect(content).toContain('<!-- PLX:START -->');
+      expect(content).toContain("@/workspace/AGENTS.md");
+      expect(content).toContain('plx update');
+      expect(content).toContain('<!-- PLX:END -->');
     });
 
     it('should create QODER.md when Qoder is selected', async () => {
@@ -1424,10 +1424,10 @@ describe('InitCommand', () => {
       expect(await fileExists(qoderPath)).toBe(true);
 
       const content = await fs.readFile(qoderPath, 'utf-8');
-      expect(content).toContain('<!-- OPENSPEC:START -->');
-      expect(content).toContain("@/openspec/AGENTS.md");
-      expect(content).toContain('openspec update');
-      expect(content).toContain('<!-- OPENSPEC:END -->');
+      expect(content).toContain('<!-- PLX:START -->');
+      expect(content).toContain("@/workspace/AGENTS.md");
+      expect(content).toContain('plx update');
+      expect(content).toContain('<!-- PLX:END -->');
     });
     it('should update existing COSTRICT.md with markers', async () => {
       queueSelections('costrict', DONE);
@@ -1440,7 +1440,7 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const updatedContent = await fs.readFile(costrictPath, 'utf-8');
-      expect(updatedContent).toContain('<!-- OPENSPEC:START -->');
+      expect(updatedContent).toContain('<!-- PLX:START -->');
       expect(updatedContent).toContain('# My CoStrict Instructions');
       expect(updatedContent).toContain('Custom instructions here');
     });
@@ -1456,10 +1456,10 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const updatedContent = await fs.readFile(qoderPath, 'utf-8');
-      expect(updatedContent).toContain('<!-- OPENSPEC:START -->');
-      expect(updatedContent).toContain("@/openspec/AGENTS.md");
-      expect(updatedContent).toContain('openspec update');
-      expect(updatedContent).toContain('<!-- OPENSPEC:END -->');
+      expect(updatedContent).toContain('<!-- PLX:START -->');
+      expect(updatedContent).toContain("@/workspace/AGENTS.md");
+      expect(updatedContent).toContain('plx update');
+      expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).toContain('Custom instructions here');
     });
   });
@@ -1474,11 +1474,11 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const cursorProposal = path.join(
         testDir,
-        '.cursor/commands/openspec-proposal.md'
+        '.cursor/commands/plx-proposal.md'
       );
       const windsurfProposal = path.join(
         testDir,
-        '.windsurf/workflows/openspec-proposal.md'
+        '.windsurf/workflows/plx-proposal.md'
       );
 
       expect(await fileExists(claudePath)).toBe(true);
@@ -1494,11 +1494,11 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const cursorProposal = path.join(
         testDir,
-        '.cursor/commands/openspec-proposal.md'
+        '.cursor/commands/plx-proposal.md'
       );
       const windsurfProposal = path.join(
         testDir,
-        '.windsurf/workflows/openspec-proposal.md'
+        '.windsurf/workflows/plx-proposal.md'
       );
 
       expect(await fileExists(claudePath)).toBe(true);
@@ -1514,7 +1514,7 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const cursorProposal = path.join(
         testDir,
-        '.cursor/commands/openspec-proposal.md'
+        '.cursor/commands/plx-proposal.md'
       );
 
       // Should still create AGENTS.md but no tool-specific files
@@ -1540,7 +1540,7 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const cursorProposal = path.join(
         testDir,
-        '.cursor/commands/openspec-proposal.md'
+        '.cursor/commands/plx-proposal.md'
       );
 
       expect(await fileExists(claudePath)).toBe(true);
@@ -1558,7 +1558,7 @@ describe('InitCommand', () => {
 
   describe('already configured detection', () => {
     it('should NOT show tools as already configured in fresh project with existing CLAUDE.md', async () => {
-      // Simulate user having their own CLAUDE.md before running openspec init
+      // Simulate user having their own CLAUDE.md before running plx init
       const claudePath = path.join(testDir, 'CLAUDE.md');
       await fs.writeFile(claudePath, '# My Custom Claude Instructions\n');
 
@@ -1619,7 +1619,7 @@ describe('InitCommand', () => {
       const codexPromptsDir = path.join(testDir, '.codex/prompts');
       await fs.mkdir(codexPromptsDir, { recursive: true });
       await fs.writeFile(
-        path.join(codexPromptsDir, 'openspec-proposal.md'),
+        path.join(codexPromptsDir, 'plx-proposal.md'),
         '# Existing prompt\n'
       );
 
@@ -1649,7 +1649,7 @@ describe('InitCommand', () => {
         async (filePath: any, ...args: any[]) => {
           if (
             typeof filePath === 'string' &&
-            filePath.includes('.openspec-test-')
+            filePath.includes('.plx-test-')
           ) {
             throw new Error('EACCES: permission denied');
           }

@@ -27,7 +27,7 @@ describe('item-discovery (reviews)', () => {
   });
 
   async function createReview(reviewId: string): Promise<void> {
-    const reviewDir = path.join(tempDir, 'openspec', 'reviews', reviewId);
+    const reviewDir = path.join(tempDir, 'workspace', 'reviews', reviewId);
     await fs.mkdir(reviewDir, { recursive: true });
     const content = `---
 parent-type: change
@@ -43,7 +43,7 @@ reviewed-at: ${new Date().toISOString()}
   async function createArchivedReview(reviewId: string): Promise<void> {
     const archiveDir = path.join(
       tempDir,
-      'openspec',
+      'workspace',
       'reviews',
       'archive',
       reviewId
@@ -67,7 +67,7 @@ reviewed-at: ${new Date().toISOString()}
     });
 
     it('returns empty array when reviews directory is empty', async () => {
-      await fs.mkdir(path.join(tempDir, 'openspec', 'reviews'), {
+      await fs.mkdir(path.join(tempDir, 'workspace', 'reviews'), {
         recursive: true,
       });
       const result = await getActiveReviewIds(tempDir);
@@ -99,7 +99,7 @@ reviewed-at: ${new Date().toISOString()}
     it('excludes directories without review.md', async () => {
       await createReview('valid-review');
       // Create a directory without review.md
-      const invalidDir = path.join(tempDir, 'openspec', 'reviews', 'invalid-review');
+      const invalidDir = path.join(tempDir, 'workspace', 'reviews', 'invalid-review');
       await fs.mkdir(invalidDir, { recursive: true });
       await fs.writeFile(path.join(invalidDir, 'other.md'), 'content');
 
@@ -109,7 +109,7 @@ reviewed-at: ${new Date().toISOString()}
 
     it('excludes hidden directories', async () => {
       await createReview('visible-review');
-      const hiddenDir = path.join(tempDir, 'openspec', 'reviews', '.hidden-review');
+      const hiddenDir = path.join(tempDir, 'workspace', 'reviews', '.hidden-review');
       await fs.mkdir(hiddenDir, { recursive: true });
       await fs.writeFile(path.join(hiddenDir, 'review.md'), 'content');
 
@@ -132,7 +132,7 @@ reviewed-at: ${new Date().toISOString()}
     });
 
     it('returns empty array when archive directory is empty', async () => {
-      await fs.mkdir(path.join(tempDir, 'openspec', 'reviews', 'archive'), {
+      await fs.mkdir(path.join(tempDir, 'workspace', 'reviews', 'archive'), {
         recursive: true,
       });
       const result = await getArchivedReviewIds(tempDir);
@@ -162,7 +162,7 @@ reviewed-at: ${new Date().toISOString()}
       // Create a directory without review.md
       const invalidDir = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'archive',
         '2025-01-15-invalid'
@@ -178,7 +178,7 @@ reviewed-at: ${new Date().toISOString()}
       await createArchivedReview('2025-01-15-visible');
       const hiddenDir = path.join(
         tempDir,
-        'openspec',
+        'workspace',
         'reviews',
         'archive',
         '.2025-01-15-hidden'

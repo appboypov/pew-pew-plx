@@ -16,20 +16,19 @@
 </p>
 
 <p align="center">
-  <img src="assets/openspec_dashboard.png" alt="OpenSplx dashboard preview" width="90%">
+  <img src="assets/plx_dashboard.png" alt="PLX dashboard preview" width="90%">
 </p>
 
 # OpenSplx
 
 > **Fork Notice:** OpenSplx is a community fork of [OpenSpec](https://github.com/Fission-AI/OpenSpec).
-> It adds the `plx` command alias and extended features while maintaining full compatibility
-> with the original OpenSpec workflow.
+> It uses the `plx` command and `workspace/` directory structure with extended features.
 
 ## What's Different in OpenSplx
 
 | Feature | OpenSpec | OpenSplx |
 |---------|----------|----------|
-| Command | `openspec` | `openspec` + `plx` alias |
+| Command | `openspec` | `plx` |
 | Task Structure | Single `tasks.md` | `tasks/` directory with numbered files |
 | Task Status | Checkbox-based | YAML frontmatter (`to-do`, `in-progress`, `done`) |
 | Task Selection | Manual | `plx get task` for prioritized selection |
@@ -39,6 +38,7 @@
 | Auto-transition | — | `get task` auto-transitions to-do → in-progress |
 | Complete/Undo | — | `complete task`, `complete change`, `undo task`, `undo change` |
 | Review System | — | `plx review`, `plx parse feedback` with feedback markers |
+| Workspace Dir | `openspec/` | `workspace/` |
 | Architecture Docs | `openspec/project.md` | `ARCHITECTURE.md` |
 | Issue Tracking | — | External issue tracking in proposals |
 | Install | `npm i -g @fission-ai/openspec` | `npm i -g @appboypov/opensplx` |
@@ -156,7 +156,7 @@ When you run `plx init`, these additional commands are installed:
 
 ```bash
 npm install -g @appboypov/opensplx
-plx --version  # or openspec --version
+plx --version
 ```
 
 ---

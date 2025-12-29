@@ -77,7 +77,7 @@ export class FeedbackScannerService {
 
   constructor(root: string = process.cwd()) {
     this.root = root;
-    this.reviewsPath = path.join(root, 'openspec', 'reviews');
+    this.reviewsPath = path.join(root, 'workspace', 'reviews');
   }
 
   /**

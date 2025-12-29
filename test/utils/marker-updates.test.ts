@@ -6,11 +6,11 @@ import { FileSystemUtils } from '../../src/utils/file-system.js';
 
 describe('FileSystemUtils.updateFileWithMarkers', () => {
   let testDir: string;
-  const START_MARKER = '<!-- OPENSPEC:START -->';
-  const END_MARKER = '<!-- OPENSPEC:END -->';
+  const START_MARKER = '<!-- PLX:START -->';
+  const END_MARKER = '<!-- PLX:END -->';
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-marker-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `plx-marker-test-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 

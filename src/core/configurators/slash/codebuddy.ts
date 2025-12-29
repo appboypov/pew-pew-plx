@@ -2,29 +2,29 @@ import { SlashCommandConfigurator } from './base.js';
 import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
-  proposal: '.codebuddy/commands/openspec/proposal.md',
-  apply: '.codebuddy/commands/openspec/apply.md',
-  archive: '.codebuddy/commands/openspec/archive.md'
+  proposal: '.codebuddy/commands/plx/proposal.md',
+  apply: '.codebuddy/commands/plx/apply.md',
+  archive: '.codebuddy/commands/plx/archive.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   proposal: `---
-name: OpenSpec: Proposal
-description: Scaffold a new OpenSpec change and validate strictly.
-category: OpenSpec
-tags: [openspec, change]
+name: PLX: Proposal
+description: Scaffold a new PLX change and validate strictly.
+category: PLX
+tags: [plx, change]
 ---`,
   apply: `---
-name: OpenSpec: Apply
-description: Implement an approved OpenSpec change and keep tasks in sync.
-category: OpenSpec
-tags: [openspec, apply]
+name: PLX: Apply
+description: Implement an approved PLX change and keep tasks in sync.
+category: PLX
+tags: [plx, apply]
 ---`,
   archive: `---
-name: OpenSpec: Archive
-description: Archive a deployed OpenSpec change and update specs.
-category: OpenSpec
-tags: [openspec, archive]
+name: PLX: Archive
+description: Archive a deployed PLX change and update specs.
+category: PLX
+tags: [plx, archive]
 ---`
 };
 

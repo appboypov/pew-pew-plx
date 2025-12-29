@@ -4,7 +4,7 @@ description: Parse feedback markers and generate review tasks.
 category: PLX
 tags: [plx, review, workflow]
 ---
-<!-- OPENSPEC:START -->
+<!-- PLX:START -->
 **Guardrails**
 - Scan only tracked files.
 - Generate one task per marker.
@@ -15,4 +15,4 @@ tags: [plx, review, workflow]
 2. Review generated tasks.
 3. Address feedback.
 4. Archive when complete.
-<!-- OPENSPEC:END -->
+<!-- PLX:END -->

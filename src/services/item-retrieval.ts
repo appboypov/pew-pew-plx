@@ -42,8 +42,8 @@ export class ItemRetrievalService {
 
   constructor(root: string = process.cwd()) {
     this.root = root;
-    this.changesPath = path.join(root, 'openspec', 'changes');
-    this.specsPath = path.join(root, 'openspec', 'specs');
+    this.changesPath = path.join(root, 'workspace', 'changes');
+    this.specsPath = path.join(root, 'workspace', 'specs');
   }
 
   /**

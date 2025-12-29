@@ -6,8 +6,8 @@ import { execSync } from 'child_process';
 describe('get task command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-get-command-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
-  const openspecBin = path.join(projectRoot, 'bin', 'openspec.js');
+  const changesDir = path.join(testDir, 'workspace', 'changes');
+  const plxBin = path.join(projectRoot, 'bin', 'plx.js');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
@@ -22,7 +22,7 @@ describe('get task command', () => {
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task 2>&1`, {
+        const output = execSync(`node ${plxBin} get task 2>&1`, {
           encoding: 'utf-8',
         });
         expect(output).toContain('No active changes found');
@@ -60,7 +60,7 @@ status: to-do
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task`, {
+        const output = execSync(`node ${plxBin} get task`, {
           encoding: 'utf-8',
         });
         expect(output).toContain('Proposal: test-change');
@@ -98,7 +98,7 @@ status: done
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task 2>&1`, {
+        const output = execSync(`node ${plxBin} get task 2>&1`, {
           encoding: 'utf-8',
         });
         expect(output).toContain('No active changes found');
@@ -134,7 +134,7 @@ status: in-progress
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task --json`, {
+        const output = execSync(`node ${plxBin} get task --json`, {
           encoding: 'utf-8',
         });
         const json = JSON.parse(output);
@@ -156,7 +156,7 @@ status: in-progress
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task --json`, {
+        const output = execSync(`node ${plxBin} get task --json`, {
           encoding: 'utf-8',
         });
         const json = JSON.parse(output);
@@ -206,7 +206,7 @@ status: to-do
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get task --did-complete-previous`,
+          `node ${plxBin} get task --did-complete-previous`,
           { encoding: 'utf-8' }
         );
 
@@ -261,7 +261,7 @@ status: to-do
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get task --did-complete-previous 2>&1`,
+          `node ${plxBin} get task --did-complete-previous 2>&1`,
           { encoding: 'utf-8' }
         );
         expect(output).toContain('No in-progress task found');
@@ -324,7 +324,7 @@ status: to-do
       try {
         process.chdir(testDir);
         execSync(
-          `node ${openspecBin} get task --did-complete-previous`,
+          `node ${plxBin} get task --did-complete-previous`,
           { encoding: 'utf-8' }
         );
 
@@ -385,7 +385,7 @@ status: to-do
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get task --did-complete-previous --json`,
+          `node ${plxBin} get task --did-complete-previous --json`,
           { encoding: 'utf-8' }
         );
         const json = JSON.parse(output);
@@ -437,7 +437,7 @@ status: to-do
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get task --did-complete-previous`,
+          `node ${plxBin} get task --did-complete-previous`,
           { encoding: 'utf-8' }
         );
 
@@ -493,7 +493,7 @@ status: to-do
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task`, {
+        const output = execSync(`node ${plxBin} get task`, {
           encoding: 'utf-8',
         });
 
@@ -551,7 +551,7 @@ status: in-progress
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task`, {
+        const output = execSync(`node ${plxBin} get task`, {
           encoding: 'utf-8',
         });
 
@@ -615,7 +615,7 @@ status: to-do
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task`, {
+        const output = execSync(`node ${plxBin} get task`, {
           encoding: 'utf-8',
         });
 
@@ -688,7 +688,7 @@ status: to-do
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task`, {
+        const output = execSync(`node ${plxBin} get task`, {
           encoding: 'utf-8',
         });
 
@@ -753,7 +753,7 @@ status: to-do
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task --json`, {
+        const output = execSync(`node ${plxBin} get task --json`, {
           encoding: 'utf-8',
         });
         const json = JSON.parse(output);
@@ -791,7 +791,7 @@ status: to-do
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task --json`, { encoding: 'utf-8' });
+        const output = execSync(`node ${plxBin} get task --json`, { encoding: 'utf-8' });
         const json = JSON.parse(output);
 
         expect(json.autoCompletedTask).toBeDefined();
@@ -814,7 +814,7 @@ status: to-do
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task 2>&1`, { encoding: 'utf-8' });
+        const output = execSync(`node ${plxBin} get task 2>&1`, { encoding: 'utf-8' });
         expect(output).toContain('Auto-completed task');
         expect(output).toContain('All tasks complete');
       } finally {
@@ -853,7 +853,7 @@ status: in-progress
       try {
         process.chdir(testDir);
         // Use 2>&1 to capture both stdout and stderr (ora outputs to stderr)
-        const output = execSync(`node ${openspecBin} get task 2>&1`, {
+        const output = execSync(`node ${plxBin} get task 2>&1`, {
           encoding: 'utf-8',
         });
 
@@ -914,7 +914,7 @@ status: in-progress
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task --json`, {
+        const output = execSync(`node ${plxBin} get task --json`, {
           encoding: 'utf-8',
         });
         const json = JSON.parse(output);
@@ -966,7 +966,7 @@ status: in-progress
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task --json`, {
+        const output = execSync(`node ${plxBin} get task --json`, {
           encoding: 'utf-8',
         });
         const json = JSON.parse(output);
@@ -1024,7 +1024,7 @@ status: to-do
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task --json`, {
+        const output = execSync(`node ${plxBin} get task --json`, {
           encoding: 'utf-8',
         });
         const json = JSON.parse(output);
@@ -1075,7 +1075,7 @@ status: to-do
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get task --id 002-second-task`,
+          `node ${plxBin} get task --id 002-second-task`,
           { encoding: 'utf-8' }
         );
         expect(output).toContain('Task 2: 002-second-task');
@@ -1101,7 +1101,7 @@ status: to-do
         process.chdir(testDir);
         try {
           execSync(
-            `node ${openspecBin} get task --id nonexistent --json`,
+            `node ${plxBin} get task --id nonexistent --json`,
             { encoding: 'utf-8' }
           );
         } catch (error: any) {
@@ -1139,7 +1139,7 @@ status: in-progress
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get task --id test-change/001-my-task --json`,
+          `node ${plxBin} get task --id test-change/001-my-task --json`,
           { encoding: 'utf-8' }
         );
         const json = JSON.parse(output);
@@ -1177,7 +1177,7 @@ status: to-do
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task --json`, {
+        const output = execSync(`node ${plxBin} get task --json`, {
           encoding: 'utf-8',
         });
         const json = JSON.parse(output);
@@ -1222,7 +1222,7 @@ status: to-do
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get task --id 001-my-task --json`,
+          `node ${plxBin} get task --id 001-my-task --json`,
           { encoding: 'utf-8' }
         );
         const json = JSON.parse(output);
@@ -1266,7 +1266,7 @@ status: in-progress
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get task --json`, {
+        const output = execSync(`node ${plxBin} get task --json`, {
           encoding: 'utf-8',
         });
         const json = JSON.parse(output);
@@ -1305,7 +1305,7 @@ status: in-progress
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get task --id 001-task --json`,
+          `node ${plxBin} get task --id 001-task --json`,
           { encoding: 'utf-8' }
         );
         const json = JSON.parse(output);
@@ -1353,7 +1353,7 @@ status: in-progress
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get task --constraints`,
+          `node ${plxBin} get task --constraints`,
           { encoding: 'utf-8' }
         );
         expect(output).toContain('Constraints');
@@ -1398,7 +1398,7 @@ status: in-progress
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get task --acceptance-criteria`,
+          `node ${plxBin} get task --acceptance-criteria`,
           { encoding: 'utf-8' }
         );
         expect(output).toContain('Acceptance Criteria');
@@ -1442,7 +1442,7 @@ status: in-progress
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get task --constraints --acceptance-criteria`,
+          `node ${plxBin} get task --constraints --acceptance-criteria`,
           { encoding: 'utf-8' }
         );
         expect(output).toContain('Constraints');
@@ -1484,7 +1484,7 @@ status: to-do
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get task --id 001-task --constraints`,
+          `node ${plxBin} get task --id 001-task --constraints`,
           { encoding: 'utf-8' }
         );
         expect(output).toContain('Only this');
@@ -1499,8 +1499,8 @@ status: to-do
 describe('get change command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-get-change-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
-  const openspecBin = path.join(projectRoot, 'bin', 'openspec.js');
+  const changesDir = path.join(testDir, 'workspace', 'changes');
+  const plxBin = path.join(projectRoot, 'bin', 'plx.js');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
@@ -1532,7 +1532,7 @@ describe('get change command', () => {
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} get change --id my-change`,
+        `node ${plxBin} get change --id my-change`,
         { encoding: 'utf-8' }
       );
       expect(output).toContain('Proposal: my-change');
@@ -1551,7 +1551,7 @@ describe('get change command', () => {
       process.chdir(testDir);
       try {
         execSync(
-          `node ${openspecBin} get change --id nonexistent --json`,
+          `node ${plxBin} get change --id nonexistent --json`,
           { encoding: 'utf-8' }
         );
       } catch (error: any) {
@@ -1581,7 +1581,7 @@ describe('get change command', () => {
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} get change --id test-change --json`,
+        `node ${plxBin} get change --id test-change --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -1597,8 +1597,8 @@ describe('get change command', () => {
 describe('get spec command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-get-spec-tmp');
-  const specsDir = path.join(testDir, 'openspec', 'specs');
-  const openspecBin = path.join(projectRoot, 'bin', 'openspec.js');
+  const specsDir = path.join(testDir, 'workspace', 'specs');
+  const plxBin = path.join(projectRoot, 'bin', 'plx.js');
 
   beforeEach(async () => {
     await fs.mkdir(specsDir, { recursive: true });
@@ -1621,7 +1621,7 @@ describe('get spec command', () => {
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} get spec --id user-auth`,
+        `node ${plxBin} get spec --id user-auth`,
         { encoding: 'utf-8' }
       );
       expect(output).toContain('Spec: user-auth');
@@ -1638,7 +1638,7 @@ describe('get spec command', () => {
       process.chdir(testDir);
       try {
         execSync(
-          `node ${openspecBin} get spec --id nonexistent --json`,
+          `node ${plxBin} get spec --id nonexistent --json`,
           { encoding: 'utf-8' }
         );
       } catch (error: any) {
@@ -1663,7 +1663,7 @@ describe('get spec command', () => {
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} get spec --id test-spec --json`,
+        `node ${plxBin} get spec --id test-spec --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -1678,8 +1678,8 @@ describe('get spec command', () => {
 describe('get tasks command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-get-tasks-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
-  const openspecBin = path.join(projectRoot, 'bin', 'openspec.js');
+  const changesDir = path.join(testDir, 'workspace', 'changes');
+  const plxBin = path.join(projectRoot, 'bin', 'plx.js');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
@@ -1732,7 +1732,7 @@ status: to-do
     const originalCwd = process.cwd();
     try {
       process.chdir(testDir);
-      const output = execSync(`node ${openspecBin} get tasks --json`, {
+      const output = execSync(`node ${plxBin} get tasks --json`, {
         encoding: 'utf-8',
       });
       const json = JSON.parse(output);
@@ -1773,7 +1773,7 @@ status: in-progress
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${openspecBin} get tasks --id my-change --json`,
+        `node ${plxBin} get tasks --id my-change --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -1804,7 +1804,7 @@ status: done
     const originalCwd = process.cwd();
     try {
       process.chdir(testDir);
-      const output = execSync(`node ${openspecBin} get tasks --json`, {
+      const output = execSync(`node ${plxBin} get tasks --json`, {
         encoding: 'utf-8',
       });
       const json = JSON.parse(output);
@@ -1834,7 +1834,7 @@ status: in-progress
     const originalCwd = process.cwd();
     try {
       process.chdir(testDir);
-      const output = execSync(`node ${openspecBin} get tasks`, {
+      const output = execSync(`node ${plxBin} get tasks`, {
         encoding: 'utf-8',
       });
       expect(output).toContain('Open Tasks');
@@ -1874,7 +1874,7 @@ status: to-do
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get tasks --json`, {
+        const output = execSync(`node ${plxBin} get tasks --json`, {
           encoding: 'utf-8',
         });
         const json = JSON.parse(output);
@@ -1911,7 +1911,7 @@ status: to-do
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${openspecBin} get tasks`, {
+        const output = execSync(`node ${plxBin} get tasks`, {
           encoding: 'utf-8',
         });
 
@@ -1948,7 +1948,7 @@ status: in-progress
         process.chdir(testDir);
 
         // Get the task ID from get tasks
-        const listOutput = execSync(`node ${openspecBin} get tasks --json`, {
+        const listOutput = execSync(`node ${plxBin} get tasks --json`, {
           encoding: 'utf-8',
         });
         const json = JSON.parse(listOutput);
@@ -1956,7 +1956,7 @@ status: in-progress
 
         // The ID should be usable with complete command
         const completeOutput = execSync(
-          `node ${openspecBin} complete task --id ${taskId} --json`,
+          `node ${plxBin} complete task --id ${taskId} --json`,
           { encoding: 'utf-8' }
         );
         const completeJson = JSON.parse(completeOutput);
@@ -1993,7 +1993,7 @@ status: done
 
         // The task ID should work with undo command
         const undoOutput = execSync(
-          `node ${openspecBin} undo task --id 001-undoable-task --json`,
+          `node ${plxBin} undo task --id 001-undoable-task --json`,
           { encoding: 'utf-8' }
         );
         const undoJson = JSON.parse(undoOutput);
@@ -2032,7 +2032,7 @@ status: to-do
       try {
         process.chdir(testDir);
         const output = execSync(
-          `node ${openspecBin} get tasks --id specific-change --json`,
+          `node ${plxBin} get tasks --id specific-change --json`,
           { encoding: 'utf-8' }
         );
         const json = JSON.parse(output);
