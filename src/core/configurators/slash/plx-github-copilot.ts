@@ -9,7 +9,8 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'review': '.github/prompts/plx-review.prompt.md',
   'refine-architecture': '.github/prompts/plx-refine-architecture.prompt.md',
   'refine-review': '.github/prompts/plx-refine-review.prompt.md',
-  'parse-feedback': '.github/prompts/plx-parse-feedback.prompt.md'
+  'parse-feedback': '.github/prompts/plx-parse-feedback.prompt.md',
+  'prepare-release': '.github/prompts/plx-prepare-release.prompt.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -50,6 +51,11 @@ description: Create or update REVIEW.md.
 $ARGUMENTS`,
   'parse-feedback': `---
 description: Parse feedback markers and generate review tasks.
+---
+
+$ARGUMENTS`,
+  'prepare-release': `---
+description: Prepare release by updating changelog, readme, and architecture documentation.
 ---
 
 $ARGUMENTS`

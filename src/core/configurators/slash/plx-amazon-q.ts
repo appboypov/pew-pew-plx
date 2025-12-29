@@ -9,7 +9,8 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'review': '.amazonq/prompts/plx-review.md',
   'refine-architecture': '.amazonq/prompts/plx-refine-architecture.md',
   'refine-review': '.amazonq/prompts/plx-refine-review.md',
-  'parse-feedback': '.amazonq/prompts/plx-parse-feedback.md'
+  'parse-feedback': '.amazonq/prompts/plx-parse-feedback.md',
+  'prepare-release': '.amazonq/prompts/plx-prepare-release.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -50,6 +51,11 @@ description: Create or update REVIEW.md.
 <arguments>$ARGUMENTS</arguments>`,
   'parse-feedback': `---
 description: Parse feedback markers and generate review tasks.
+---
+
+<arguments>$ARGUMENTS</arguments>`,
+  'prepare-release': `---
+description: Prepare release by updating changelog, readme, and architecture documentation.
 ---
 
 <arguments>$ARGUMENTS</arguments>`

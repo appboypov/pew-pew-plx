@@ -9,7 +9,8 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'review': '.augment/commands/plx-review.md',
   'refine-architecture': '.augment/commands/plx-refine-architecture.md',
   'refine-review': '.augment/commands/plx-refine-review.md',
-  'parse-feedback': '.augment/commands/plx-parse-feedback.md'
+  'parse-feedback': '.augment/commands/plx-parse-feedback.md',
+  'prepare-release': '.augment/commands/plx-prepare-release.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -43,6 +44,10 @@ argument-hint: (optional context)
 ---`,
   'parse-feedback': `---
 description: Parse feedback markers and generate review tasks.
+argument-hint: (optional context)
+---`,
+  'prepare-release': `---
+description: Prepare release by updating changelog, readme, and architecture documentation.
 argument-hint: (optional context)
 ---`
 };

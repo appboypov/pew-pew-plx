@@ -9,7 +9,8 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'review': '.qwen/commands/plx-review.toml',
   'refine-architecture': '.qwen/commands/plx-refine-architecture.toml',
   'refine-review': '.qwen/commands/plx-refine-review.toml',
-  'parse-feedback': '.qwen/commands/plx-parse-feedback.toml'
+  'parse-feedback': '.qwen/commands/plx-parse-feedback.toml',
+  'prepare-release': '.qwen/commands/plx-prepare-release.toml'
 };
 
 const DESCRIPTIONS: Record<PlxSlashCommandId, string> = {
@@ -20,7 +21,8 @@ const DESCRIPTIONS: Record<PlxSlashCommandId, string> = {
   'review': 'Review implementations against specs, changes, or tasks.',
   'refine-architecture': 'Create or update ARCHITECTURE.md.',
   'refine-review': 'Create or update REVIEW.md.',
-  'parse-feedback': 'Parse feedback markers and generate review tasks.'
+  'parse-feedback': 'Parse feedback markers and generate review tasks.',
+  'prepare-release': 'Prepare release by updating changelog, readme, and architecture documentation.'
 };
 
 export class PlxQwenSlashCommandConfigurator extends PlxTomlSlashCommandConfigurator {

@@ -16,7 +16,8 @@ export const ALL_PLX_COMMANDS: PlxSlashCommandId[] = [
   'review',
   'refine-architecture',
   'refine-review',
-  'parse-feedback'
+  'parse-feedback',
+  'prepare-release'
 ];
 
 export abstract class PlxSlashCommandConfigurator {

@@ -9,7 +9,8 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'review': '.codebuddy/commands/plx/review.md',
   'refine-architecture': '.codebuddy/commands/plx/refine-architecture.md',
   'refine-review': '.codebuddy/commands/plx/refine-review.md',
-  'parse-feedback': '.codebuddy/commands/plx/parse-feedback.md'
+  'parse-feedback': '.codebuddy/commands/plx/parse-feedback.md',
+  'prepare-release': '.codebuddy/commands/plx/prepare-release.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -60,6 +61,12 @@ name: Pew Pew Plx: Parse Feedback
 description: Parse feedback markers and generate review tasks.
 category: Pew Pew Plx
 tags: [plx, review, workflow]
+---`,
+  'prepare-release': `---
+name: Pew Pew Plx: Prepare Release
+description: Prepare release by updating changelog, readme, and architecture documentation.
+category: Pew Pew Plx
+tags: [plx, release, documentation]
 ---`
 };
 

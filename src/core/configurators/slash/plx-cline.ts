@@ -9,7 +9,8 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'review': '.clinerules/workflows/plx-review.md',
   'refine-architecture': '.clinerules/workflows/plx-refine-architecture.md',
   'refine-review': '.clinerules/workflows/plx-refine-review.md',
-  'parse-feedback': '.clinerules/workflows/plx-parse-feedback.md'
+  'parse-feedback': '.clinerules/workflows/plx-parse-feedback.md',
+  'prepare-release': '.clinerules/workflows/plx-prepare-release.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -36,7 +37,10 @@ Create or update ARCHITECTURE.md.`,
 Create or update REVIEW.md.`,
   'parse-feedback': `# PLX: Parse Feedback
 
-Parse feedback markers and generate review tasks.`
+Parse feedback markers and generate review tasks.`,
+  'prepare-release': `# PLX: Prepare Release
+
+Prepare release by updating changelog, readme, and architecture documentation.`
 };
 
 export class PlxClineSlashCommandConfigurator extends PlxSlashCommandConfigurator {

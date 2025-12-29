@@ -788,6 +788,13 @@ export class InitCommand {
       const reviewContent = TemplateManager.getReviewTemplate();
       await FileSystemUtils.writeFile(reviewPath, reviewContent);
     }
+
+    // Write RELEASE.md at project root
+    const releasePath = path.join(projectPath, 'RELEASE.md');
+    if (!skipExisting || !(await FileSystemUtils.fileExists(releasePath))) {
+      const releaseContent = TemplateManager.getReleaseTemplate();
+      await FileSystemUtils.writeFile(releasePath, releaseContent);
+    }
   }
 
   private async configureAITools(

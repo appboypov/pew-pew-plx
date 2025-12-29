@@ -9,7 +9,8 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'review': '.kilocode/workflows/plx-review.md',
   'refine-architecture': '.kilocode/workflows/plx-refine-architecture.md',
   'refine-review': '.kilocode/workflows/plx-refine-review.md',
-  'parse-feedback': '.kilocode/workflows/plx-parse-feedback.md'
+  'parse-feedback': '.kilocode/workflows/plx-parse-feedback.md',
+  'prepare-release': '.kilocode/workflows/plx-prepare-release.md'
 };
 
 export class PlxKiloCodeSlashCommandConfigurator extends PlxSlashCommandConfigurator {

@@ -9,7 +9,8 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'review': '.cospec/plx/commands/plx-review.md',
   'refine-architecture': '.cospec/plx/commands/plx-refine-architecture.md',
   'refine-review': '.cospec/plx/commands/plx-refine-review.md',
-  'parse-feedback': '.cospec/plx/commands/plx-parse-feedback.md'
+  'parse-feedback': '.cospec/plx/commands/plx-parse-feedback.md',
+  'prepare-release': '.cospec/plx/commands/plx-prepare-release.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -43,6 +44,10 @@ argument-hint: (optional context)
 ---`,
   'parse-feedback': `---
 description: "Parse feedback markers and generate review tasks."
+argument-hint: (optional context)
+---`,
+  'prepare-release': `---
+description: "Prepare release by updating changelog, readme, and architecture documentation."
 argument-hint: (optional context)
 ---`
 };

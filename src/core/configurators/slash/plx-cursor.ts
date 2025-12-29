@@ -9,7 +9,8 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'review': '.cursor/commands/plx-review.md',
   'refine-architecture': '.cursor/commands/plx-refine-architecture.md',
   'refine-review': '.cursor/commands/plx-refine-review.md',
-  'parse-feedback': '.cursor/commands/plx-parse-feedback.md'
+  'parse-feedback': '.cursor/commands/plx-parse-feedback.md',
+  'prepare-release': '.cursor/commands/plx-prepare-release.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
@@ -60,6 +61,12 @@ name: /plx-parse-feedback
 id: plx-parse-feedback
 category: Pew Pew Plx
 description: Parse feedback markers and generate review tasks.
+---`,
+  'prepare-release': `---
+name: /plx-prepare-release
+id: plx-prepare-release
+category: Pew Pew Plx
+description: Prepare release by updating changelog, readme, and architecture documentation.
 ---`
 };
 

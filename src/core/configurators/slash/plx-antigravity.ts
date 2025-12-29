@@ -9,7 +9,8 @@ const FILE_PATHS: Record<PlxSlashCommandId, string> = {
   'review': '.agent/workflows/plx-review.md',
   'refine-architecture': '.agent/workflows/plx-refine-architecture.md',
   'refine-review': '.agent/workflows/plx-refine-review.md',
-  'parse-feedback': '.agent/workflows/plx-parse-feedback.md'
+  'parse-feedback': '.agent/workflows/plx-parse-feedback.md',
+  'prepare-release': '.agent/workflows/plx-prepare-release.md'
 };
 
 const DESCRIPTIONS: Record<PlxSlashCommandId, string> = {
@@ -20,7 +21,8 @@ const DESCRIPTIONS: Record<PlxSlashCommandId, string> = {
   'review': 'Review implementations against specs, changes, or tasks.',
   'refine-architecture': 'Create or update ARCHITECTURE.md.',
   'refine-review': 'Create or update REVIEW.md.',
-  'parse-feedback': 'Parse feedback markers and generate review tasks.'
+  'parse-feedback': 'Parse feedback markers and generate review tasks.',
+  'prepare-release': 'Prepare release by updating changelog, readme, and architecture documentation.'
 };
 
 export class PlxAntigravitySlashCommandConfigurator extends PlxSlashCommandConfigurator {

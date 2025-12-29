@@ -41,7 +41,8 @@ describe('plx-slash-command-templates', () => {
         'review',
         'refine-architecture',
         'refine-review',
-        'parse-feedback'
+        'parse-feedback',
+        'prepare-release'
       ];
 
       for (const id of expectedIds) {
@@ -115,6 +116,15 @@ describe('plx-slash-command-templates', () => {
       expect(body).toContain('plx parse feedback');
       expect(body).toContain('one task per marker');
       expect(body).toContain('parent linkage');
+    });
+
+    it('prepare-release command includes release workflow content', () => {
+      const body = plxSlashCommandBodies['prepare-release'];
+
+      expect(body).toContain('@RELEASE.md');
+      expect(body).toContain('changelog');
+      expect(body).toContain('readme');
+      expect(body).toContain('architecture');
     });
   });
 });

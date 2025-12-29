@@ -6,7 +6,8 @@ export type PlxSlashCommandId =
   | 'review'
   | 'refine-architecture'
   | 'refine-review'
-  | 'parse-feedback';
+  | 'parse-feedback'
+  | 'prepare-release';
 
 const baseGuardrails = `**Guardrails**
 - Focus on practical, usable documentation that enables feature planning.
@@ -95,6 +96,19 @@ const parseFeedbackSteps = `**Steps**
 3. Address feedback.
 4. Archive when complete.`;
 
+const prepareReleaseGuardrails = `**Guardrails**
+- Read @RELEASE.md for full release preparation instructions.
+- Execute steps sequentially: changelog → readme → architecture.
+- User confirms or skips each step before proceeding.
+- Preserve existing content when updating files.`;
+
+const prepareReleaseSteps = `**Steps**
+1. Read @RELEASE.md to understand release preparation workflow.
+2. Execute changelog update step (source, version, format selection).
+3. Execute readme update step (style, sections, badges selection).
+4. Execute architecture update step (refresh from codebase).
+5. Present summary of all changes made.`;
+
 export const plxSlashCommandBodies: Record<PlxSlashCommandId, string> = {
   'init-architecture': [baseGuardrails, initArchitectureSteps].join('\n\n'),
   'update-architecture': [baseGuardrails, updateArchitectureSteps].join('\n\n'),
@@ -103,7 +117,8 @@ export const plxSlashCommandBodies: Record<PlxSlashCommandId, string> = {
   'review': [reviewGuardrails, reviewSteps].join('\n\n'),
   'refine-architecture': [refineArchitectureGuardrails, refineArchitectureSteps].join('\n\n'),
   'refine-review': [refineReviewGuardrails, refineReviewSteps].join('\n\n'),
-  'parse-feedback': [parseFeedbackGuardrails, parseFeedbackSteps].join('\n\n')
+  'parse-feedback': [parseFeedbackGuardrails, parseFeedbackSteps].join('\n\n'),
+  'prepare-release': [prepareReleaseGuardrails, prepareReleaseSteps].join('\n\n')
 };
 
 export function getPlxSlashCommandBody(id: PlxSlashCommandId): string {
