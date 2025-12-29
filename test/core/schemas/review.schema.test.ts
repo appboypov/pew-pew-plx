@@ -146,7 +146,6 @@ describe('review.schema', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.status).toBe('to-do');
-        expect(result.data.specImpact).toBe('none');
       }
     });
 
@@ -166,36 +165,6 @@ describe('review.schema', () => {
       }
     });
 
-    it('defaults specImpact to "none"', () => {
-      const result = ReviewTaskSchema.safeParse({ status: 'to-do' });
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.specImpact).toBe('none');
-      }
-    });
-
-    it('accepts explicit specImpact value', () => {
-      const result = ReviewTaskSchema.safeParse({
-        status: 'to-do',
-        specImpact: 'cli-get-task',
-      });
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.specImpact).toBe('cli-get-task');
-      }
-    });
-
-    it('accepts "none" as specImpact', () => {
-      const result = ReviewTaskSchema.safeParse({
-        status: 'to-do',
-        specImpact: 'none',
-      });
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.specImpact).toBe('none');
-      }
-    });
-
     it('rejects invalid status', () => {
       expect(ReviewTaskSchema.safeParse({ status: 'pending' }).success).toBe(false);
       expect(ReviewTaskSchema.safeParse({ status: 'completed' }).success).toBe(false);
@@ -205,6 +174,18 @@ describe('review.schema', () => {
     it('rejects missing status', () => {
       const result = ReviewTaskSchema.safeParse({});
       expect(result.success).toBe(false);
+    });
+
+    it('strips unknown fields', () => {
+      const result = ReviewTaskSchema.safeParse({
+        status: 'to-do',
+        unknownField: 'value',
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ status: 'to-do' });
+        expect((result.data as Record<string, unknown>).unknownField).toBeUndefined();
+      }
     });
   });
 });

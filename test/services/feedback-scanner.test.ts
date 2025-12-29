@@ -46,21 +46,53 @@ describe('FeedbackScannerService', () => {
       expect(result[0].file).toBe('src/file.ts');
       expect(result[0].line).toBe(2);
       expect(result[0].feedback).toBe('Add validation');
-      expect(result[0].specImpact).toBeNull();
+      expect(result[0].parentType).toBeNull();
+      expect(result[0].parentId).toBeNull();
     });
 
-    it('finds marker with spec impact', async () => {
+    it('finds marker with task parent', async () => {
       const srcDir = path.join(tempDir, 'src');
       await fs.mkdir(srcDir, { recursive: true });
       await fs.writeFile(
         path.join(srcDir, 'file.ts'),
-        '// #FEEDBACK #TODO | Update requirement (spec:cli-get-task)'
+        '// #FEEDBACK #TODO | task:001-implement-feature | Update logic'
+      );
+
+      const result = await scanner.scanDirectory('src');
+      expect(result).toHaveLength(1);
+      expect(result[0].feedback).toBe('Update logic');
+      expect(result[0].parentType).toBe('task');
+      expect(result[0].parentId).toBe('001-implement-feature');
+    });
+
+    it('finds marker with change parent', async () => {
+      const srcDir = path.join(tempDir, 'src');
+      await fs.mkdir(srcDir, { recursive: true });
+      await fs.writeFile(
+        path.join(srcDir, 'file.ts'),
+        '// #FEEDBACK #TODO | change:cli-get-task | Update requirement'
       );
 
       const result = await scanner.scanDirectory('src');
       expect(result).toHaveLength(1);
       expect(result[0].feedback).toBe('Update requirement');
-      expect(result[0].specImpact).toBe('cli-get-task');
+      expect(result[0].parentType).toBe('change');
+      expect(result[0].parentId).toBe('cli-get-task');
+    });
+
+    it('finds marker with spec parent', async () => {
+      const srcDir = path.join(tempDir, 'src');
+      await fs.mkdir(srcDir, { recursive: true });
+      await fs.writeFile(
+        path.join(srcDir, 'file.ts'),
+        '// #FEEDBACK #TODO | spec:api-docs | Update spec'
+      );
+
+      const result = await scanner.scanDirectory('src');
+      expect(result).toHaveLength(1);
+      expect(result[0].feedback).toBe('Update spec');
+      expect(result[0].parentType).toBe('spec');
+      expect(result[0].parentId).toBe('api-docs');
     });
 
     it('finds multiple markers in same file', async () => {
@@ -243,26 +275,182 @@ const z = 3;`
     });
   });
 
+  describe('groupMarkersByParent', () => {
+    it('returns empty groups for empty markers', () => {
+      const result = scanner.groupMarkersByParent([]);
+      expect(result.assigned).toEqual([]);
+      expect(result.unassigned).toEqual([]);
+    });
+
+    it('separates unassigned markers', () => {
+      const markers = [
+        {
+          file: 'src/file.ts',
+          line: 10,
+          feedback: 'No parent',
+          parentType: null,
+          parentId: null,
+          commentStyle: { prefix: '//' },
+        },
+      ];
+
+      const result = scanner.groupMarkersByParent(markers as any);
+      expect(result.assigned).toEqual([]);
+      expect(result.unassigned).toHaveLength(1);
+      expect(result.unassigned[0].feedback).toBe('No parent');
+    });
+
+    it('groups markers by parent', () => {
+      const markers = [
+        {
+          file: 'src/file.ts',
+          line: 10,
+          feedback: 'First for change',
+          parentType: 'change' as const,
+          parentId: 'my-change',
+          commentStyle: { prefix: '//' },
+        },
+        {
+          file: 'src/other.ts',
+          line: 5,
+          feedback: 'Second for change',
+          parentType: 'change' as const,
+          parentId: 'my-change',
+          commentStyle: { prefix: '//' },
+        },
+      ];
+
+      const result = scanner.groupMarkersByParent(markers);
+      expect(result.assigned).toHaveLength(1);
+      expect(result.assigned[0].parentType).toBe('change');
+      expect(result.assigned[0].parentId).toBe('my-change');
+      expect(result.assigned[0].markers).toHaveLength(2);
+      expect(result.unassigned).toEqual([]);
+    });
+
+    it('creates separate groups for different parents', () => {
+      const markers = [
+        {
+          file: 'src/file.ts',
+          line: 10,
+          feedback: 'For change',
+          parentType: 'change' as const,
+          parentId: 'my-change',
+          commentStyle: { prefix: '//' },
+        },
+        {
+          file: 'src/other.ts',
+          line: 5,
+          feedback: 'For spec',
+          parentType: 'spec' as const,
+          parentId: 'my-spec',
+          commentStyle: { prefix: '//' },
+        },
+        {
+          file: 'src/task.ts',
+          line: 15,
+          feedback: 'For task',
+          parentType: 'task' as const,
+          parentId: '001-task',
+          commentStyle: { prefix: '//' },
+        },
+      ];
+
+      const result = scanner.groupMarkersByParent(markers);
+      expect(result.assigned).toHaveLength(3);
+      expect(result.unassigned).toEqual([]);
+
+      const changeGroup = result.assigned.find((g) => g.parentType === 'change');
+      const specGroup = result.assigned.find((g) => g.parentType === 'spec');
+      const taskGroup = result.assigned.find((g) => g.parentType === 'task');
+
+      expect(changeGroup?.parentId).toBe('my-change');
+      expect(specGroup?.parentId).toBe('my-spec');
+      expect(taskGroup?.parentId).toBe('001-task');
+    });
+
+    it('preserves marker order within groups', () => {
+      const markers = [
+        {
+          file: 'src/a.ts',
+          line: 1,
+          feedback: 'First',
+          parentType: 'change' as const,
+          parentId: 'my-change',
+          commentStyle: { prefix: '//' },
+        },
+        {
+          file: 'src/b.ts',
+          line: 2,
+          feedback: 'Second',
+          parentType: 'change' as const,
+          parentId: 'my-change',
+          commentStyle: { prefix: '//' },
+        },
+        {
+          file: 'src/c.ts',
+          line: 3,
+          feedback: 'Third',
+          parentType: 'change' as const,
+          parentId: 'my-change',
+          commentStyle: { prefix: '//' },
+        },
+      ];
+
+      const result = scanner.groupMarkersByParent(markers);
+      expect(result.assigned[0].markers[0].feedback).toBe('First');
+      expect(result.assigned[0].markers[1].feedback).toBe('Second');
+      expect(result.assigned[0].markers[2].feedback).toBe('Third');
+    });
+
+    it('handles mixed assigned and unassigned markers', () => {
+      const markers = [
+        {
+          file: 'src/assigned.ts',
+          line: 10,
+          feedback: 'Has parent',
+          parentType: 'change' as const,
+          parentId: 'my-change',
+          commentStyle: { prefix: '//' },
+        },
+        {
+          file: 'src/unassigned.ts',
+          line: 5,
+          feedback: 'No parent',
+          parentType: null,
+          parentId: null,
+          commentStyle: { prefix: '//' },
+        },
+      ];
+
+      const result = scanner.groupMarkersByParent(markers as any);
+      expect(result.assigned).toHaveLength(1);
+      expect(result.unassigned).toHaveLength(1);
+    });
+  });
+
   describe('generateReview', () => {
     const markers = [
       {
         file: 'src/file.ts',
         line: 10,
         feedback: 'Add validation',
-        specImpact: null,
+        parentType: null,
+        parentId: null,
         commentStyle: { prefix: '//' },
       },
       {
         file: 'src/utils.ts',
         line: 25,
         feedback: 'Update requirement',
-        specImpact: 'cli-get-task',
+        parentType: 'change' as const,
+        parentId: 'cli-get-task',
         commentStyle: { prefix: '//' },
       },
     ];
 
     it('creates review directory', async () => {
-      await scanner.generateReview('my-review', markers, 'change', 'test-change');
+      await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
 
       const reviewDir = path.join(tempDir, 'workspace', 'reviews', 'my-review');
       const stat = await fs.stat(reviewDir);
@@ -270,7 +458,7 @@ const z = 3;`
     });
 
     it('creates review.md with frontmatter', async () => {
-      await scanner.generateReview('my-review', markers, 'change', 'test-change');
+      await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
 
       const reviewPath = path.join(
         tempDir,
@@ -288,7 +476,7 @@ const z = 3;`
     });
 
     it('includes summary with marker count', async () => {
-      await scanner.generateReview('my-review', markers, 'change', 'test-change');
+      await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
 
       const reviewPath = path.join(
         tempDir,
@@ -304,7 +492,7 @@ const z = 3;`
     });
 
     it('includes scope section with files', async () => {
-      await scanner.generateReview('my-review', markers, 'change', 'test-change');
+      await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
 
       const reviewPath = path.join(
         tempDir,
@@ -320,24 +508,8 @@ const z = 3;`
       expect(content).toContain('src/utils.ts');
     });
 
-    it('includes spec impact findings', async () => {
-      await scanner.generateReview('my-review', markers, 'change', 'test-change');
-
-      const reviewPath = path.join(
-        tempDir,
-        'workspace',
-        'reviews',
-        'my-review',
-        'review.md'
-      );
-      const content = await fs.readFile(reviewPath, 'utf-8');
-
-      expect(content).toContain('## Spec Impact Findings');
-      expect(content).toContain('**cli-get-task**');
-    });
-
     it('creates tasks directory', async () => {
-      await scanner.generateReview('my-review', markers, 'change', 'test-change');
+      await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
 
       const tasksDir = path.join(
         tempDir,
@@ -351,7 +523,7 @@ const z = 3;`
     });
 
     it('creates numbered task files', async () => {
-      await scanner.generateReview('my-review', markers, 'change', 'test-change');
+      await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
 
       const tasksDir = path.join(
         tempDir,
@@ -368,7 +540,7 @@ const z = 3;`
     });
 
     it('task files contain frontmatter with status', async () => {
-      await scanner.generateReview('my-review', markers, 'change', 'test-change');
+      await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
 
       const tasksDir = path.join(
         tempDir,
@@ -386,29 +558,8 @@ const z = 3;`
       expect(taskContent).toContain('status: to-do');
     });
 
-    it('task files contain spec-impact field', async () => {
-      await scanner.generateReview('my-review', markers, 'change', 'test-change');
-
-      const tasksDir = path.join(
-        tempDir,
-        'workspace',
-        'reviews',
-        'my-review',
-        'tasks'
-      );
-      const files = await fs.readdir(tasksDir);
-
-      // First task has no spec impact
-      const task1 = await fs.readFile(path.join(tasksDir, files[0]), 'utf-8');
-      expect(task1).toContain('spec-impact: none');
-
-      // Second task has spec impact
-      const task2 = await fs.readFile(path.join(tasksDir, files[1]), 'utf-8');
-      expect(task2).toContain('spec-impact: cli-get-task');
-    });
-
     it('task files include file:line reference', async () => {
-      await scanner.generateReview('my-review', markers, 'change', 'test-change');
+      await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
 
       const tasksDir = path.join(
         tempDir,
@@ -427,7 +578,7 @@ const z = 3;`
     });
 
     it('handles different parent types', async () => {
-      await scanner.generateReview('spec-review', markers, 'spec', 'cli-archive');
+      await scanner.generateReview('spec-review', markers as any, 'spec', 'cli-archive');
 
       const reviewPath = path.join(
         tempDir,
@@ -445,7 +596,7 @@ const z = 3;`
     it('handles task parent type', async () => {
       await scanner.generateReview(
         'task-review',
-        markers,
+        markers as any,
         'task',
         '001-implement-feature'
       );
@@ -481,12 +632,13 @@ const y = 2;`
           file: 'src/file.ts',
           line: 2,
           feedback: 'Remove this',
-          specImpact: null,
+          parentType: null,
+          parentId: null,
           commentStyle: { prefix: '//' },
         },
       ];
 
-      await scanner.removeFeedbackMarkers(markers);
+      await scanner.removeFeedbackMarkers(markers as any);
 
       const content = await fs.readFile(filePath, 'utf-8');
       expect(content).toBe('const x = 1;\nconst y = 2;');
@@ -511,19 +663,21 @@ line 5`
           file: 'src/file.ts',
           line: 2,
           feedback: 'First',
-          specImpact: null,
+          parentType: null,
+          parentId: null,
           commentStyle: { prefix: '//' },
         },
         {
           file: 'src/file.ts',
           line: 4,
           feedback: 'Second',
-          specImpact: null,
+          parentType: null,
+          parentId: null,
           commentStyle: { prefix: '//' },
         },
       ];
 
-      await scanner.removeFeedbackMarkers(markers);
+      await scanner.removeFeedbackMarkers(markers as any);
 
       const content = await fs.readFile(filePath, 'utf-8');
       expect(content).toBe('line 1\nline 3\nline 5');
@@ -554,19 +708,21 @@ more other code`
           file: 'src/file1.ts',
           line: 2,
           feedback: 'In file1',
-          specImpact: null,
+          parentType: null,
+          parentId: null,
           commentStyle: { prefix: '//' },
         },
         {
           file: 'src/file2.ts',
           line: 2,
           feedback: 'In file2',
-          specImpact: null,
+          parentType: null,
+          parentId: null,
           commentStyle: { prefix: '//' },
         },
       ];
 
-      await scanner.removeFeedbackMarkers(markers);
+      await scanner.removeFeedbackMarkers(markers as any);
 
       const content1 = await fs.readFile(file1Path, 'utf-8');
       const content2 = await fs.readFile(file2Path, 'utf-8');
@@ -591,12 +747,13 @@ more other code`
           file: 'src/file.ts',
           line: 2,
           feedback: 'Remove this',
-          specImpact: null,
+          parentType: null,
+          parentId: null,
           commentStyle: { prefix: '//' },
         },
       ];
 
-      await scanner.removeFeedbackMarkers(markers);
+      await scanner.removeFeedbackMarkers(markers as any);
 
       const content = await fs.readFile(filePath, 'utf-8');
       expect(content).toBe('// Regular comment\n// Another regular comment');

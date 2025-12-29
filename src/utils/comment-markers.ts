@@ -13,17 +13,19 @@ export interface CommentStyle {
  */
 export interface ParsedFeedbackMarker {
   feedback: string;
-  specImpact: string | null;
+  parentType: 'task' | 'change' | 'spec' | null;
+  parentId: string | null;
 }
 
 /**
  * Regex pattern for matching feedback markers
- * Group 1: feedback text
- * Group 2: spec-id (optional)
+ * Group 1: parent type (optional): task, change, or spec
+ * Group 2: parent id (optional): kebab-case identifier
+ * Group 3: feedback text
  * Strips trailing block comment suffixes
  */
 export const FEEDBACK_PATTERN =
-  /#FEEDBACK\s+#TODO\s*\|\s*(.+?)(?:\s*\(spec:([a-z0-9-]+)\))?\s*(?:-->|\*\/)?$/;
+  /#FEEDBACK\s+#TODO\s*\|\s*(?:(task|change|spec):([a-z0-9-]+)\s*\|\s*)?(.+?)\s*(?:-->|\*\/)?$/;
 
 /**
  * Comment styles mapped by file extension
@@ -98,11 +100,11 @@ export function getCommentStyle(filepath: string): CommentStyle {
 export function formatFeedbackMarker(
   filepath: string,
   feedback: string,
-  specImpact?: string
+  parent?: { type: 'task' | 'change' | 'spec'; id: string }
 ): string {
   const style = getCommentStyle(filepath);
-  const specPart = specImpact ? ` (spec:${specImpact})` : '';
-  const content = `#FEEDBACK #TODO | ${feedback}${specPart}`;
+  const parentPart = parent ? `${parent.type}:${parent.id} | ` : '';
+  const content = `#FEEDBACK #TODO | ${parentPart}${feedback}`;
 
   if (style.suffix) {
     return `${style.prefix} ${content} ${style.suffix}`;
@@ -121,7 +123,8 @@ export function parseFeedbackMarker(line: string): ParsedFeedbackMarker | null {
   }
 
   return {
-    feedback: match[1].trim(),
-    specImpact: match[2] ?? null,
+    feedback: match[3].trim(),
+    parentType: (match[1] as 'task' | 'change' | 'spec') ?? null,
+    parentId: match[2] ?? null,
   };
 }

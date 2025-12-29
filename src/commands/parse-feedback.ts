@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import ora from 'ora';
-import { FeedbackScannerService } from '../services/feedback-scanner.js';
+import { FeedbackScannerService, GroupedMarkers } from '../services/feedback-scanner.js';
 import { getActiveReviewIds, getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
 import { isInteractive } from '../utils/interactive.js';
 import { ReviewParent } from '../core/schemas/index.js';
@@ -14,14 +14,19 @@ interface ParseFeedbackOptions {
   taskId?: string;
 }
 
-interface ParseFeedbackJsonOutput {
+interface ReviewResult {
   reviewId: string;
   parentType: ReviewParent;
   parentId: string;
   markersFound: number;
   tasksCreated: number;
   files: string[];
-  specImpacts: string[];
+}
+
+interface ParseFeedbackJsonOutput {
+  reviews: ReviewResult[];
+  totalMarkers: number;
+  totalTasks: number;
 }
 
 export class ParseFeedbackCommand {
@@ -31,78 +36,19 @@ export class ParseFeedbackCommand {
   ): Promise<void> {
     const interactive = isInteractive(options);
 
-    // Determine parent type and id
-    let parentType: ReviewParent | undefined;
-    let parentId: string | undefined;
+    // Determine CLI-provided parent type and id (used as fallback for unassigned markers)
+    let cliParentType: ReviewParent | undefined;
+    let cliParentId: string | undefined;
 
     if (options.changeId) {
-      parentType = 'change';
-      parentId = options.changeId;
+      cliParentType = 'change';
+      cliParentId = options.changeId;
     } else if (options.specId) {
-      parentType = 'spec';
-      parentId = options.specId;
+      cliParentType = 'spec';
+      cliParentId = options.specId;
     } else if (options.taskId) {
-      parentType = 'task';
-      parentId = options.taskId;
-    }
-
-    // If no parent specified, prompt interactively or fail
-    if (!parentType || !parentId) {
-      if (interactive) {
-        const { select } = await import('@inquirer/prompts');
-        const parentTypeChoice = await select<ReviewParent>({
-          message: 'What are you reviewing?',
-          choices: [
-            { name: 'Change', value: 'change' },
-            { name: 'Spec', value: 'spec' },
-            { name: 'Task', value: 'task' },
-          ],
-        });
-        parentType = parentTypeChoice;
-
-        if (parentType === 'change') {
-          const changes = await getActiveChangeIds();
-          if (changes.length === 0) {
-            ora().fail('No active changes found');
-            process.exitCode = 1;
-            return;
-          }
-          parentId = await select({
-            message: 'Select the change:',
-            choices: changes.map((id) => ({ name: id, value: id })),
-          });
-        } else if (parentType === 'spec') {
-          const specs = await getSpecIds();
-          if (specs.length === 0) {
-            ora().fail('No specs found');
-            process.exitCode = 1;
-            return;
-          }
-          parentId = await select({
-            message: 'Select the spec:',
-            choices: specs.map((id) => ({ name: id, value: id })),
-          });
-        } else {
-          const { input } = await import('@inquirer/prompts');
-          parentId = await input({
-            message: 'Enter the task ID:',
-            validate: (value) => value.trim() ? true : 'Task ID is required',
-          });
-        }
-      } else {
-        if (options.json) {
-          console.log(
-            JSON.stringify({ error: 'Parent is required: use --change-id, --spec-id, or --task-id' })
-          );
-        } else {
-          ora().fail('Parent is required');
-          console.log(chalk.dim('  Usage: plx parse feedback <review-name> --change-id <id>'));
-          console.log(chalk.dim('         plx parse feedback <review-name> --spec-id <id>'));
-          console.log(chalk.dim('         plx parse feedback <review-name> --task-id <id>'));
-        }
-        process.exitCode = 1;
-        return;
-      }
+      cliParentType = 'task';
+      cliParentId = options.taskId;
     }
 
     // Prompt for review name if not provided
@@ -152,20 +98,6 @@ export class ParseFeedbackCommand {
       return;
     }
 
-    // Check if review already exists
-    const existingReviews = await getActiveReviewIds();
-    if (existingReviews.includes(reviewName)) {
-      if (options.json) {
-        console.log(
-          JSON.stringify({ error: `Review already exists: ${reviewName}` })
-        );
-      } else {
-        ora().fail(`Review already exists: ${reviewName}`);
-      }
-      process.exitCode = 1;
-      return;
-    }
-
     // Scan for feedback markers
     const scanner = new FeedbackScannerService(process.cwd());
     const markers = await scanner.scanDirectory('.');
@@ -175,13 +107,9 @@ export class ParseFeedbackCommand {
       if (options.json) {
         console.log(
           JSON.stringify({
-            reviewId: null,
-            parentType,
-            parentId,
-            markersFound: 0,
-            tasksCreated: 0,
-            files: [],
-            specImpacts: [],
+            reviews: [],
+            totalMarkers: 0,
+            totalTasks: 0,
             message: 'No feedback markers found',
           })
         );
@@ -192,49 +120,231 @@ export class ParseFeedbackCommand {
       return;
     }
 
-    // Generate review entity
-    await scanner.generateReview(reviewName, markers, parentType, parentId);
+    // Group markers by parent
+    const groups = scanner.groupMarkersByParent(markers);
 
-    // Collect unique files and spec impacts
-    const uniqueFiles = [...new Set(markers.map((m) => m.file))];
-    const specImpacts = [
-      ...new Set(markers.filter((m) => m.specImpact).map((m) => m.specImpact!)),
-    ];
+    // Handle unassigned markers
+    if (groups.unassigned.length > 0) {
+      if (cliParentType && cliParentId) {
+        // Use CLI-provided parent as fallback for unassigned markers
+        const existingGroup = groups.assigned.find(
+          (g) => g.parentType === cliParentType && g.parentId === cliParentId
+        );
+        if (existingGroup) {
+          existingGroup.markers.push(...groups.unassigned);
+        } else {
+          groups.assigned.push({
+            parentType: cliParentType,
+            parentId: cliParentId,
+            markers: groups.unassigned,
+          });
+        }
+        groups.unassigned = [];
+      } else if (interactive) {
+        // Prompt user to select parent for unassigned markers
+        const { select } = await import('@inquirer/prompts');
+        const parentTypeChoice = await select<ReviewParent>({
+          message: `${groups.unassigned.length} marker(s) have no parent. What are they reviewing?`,
+          choices: [
+            { name: 'Change', value: 'change' },
+            { name: 'Spec', value: 'spec' },
+            { name: 'Task', value: 'task' },
+          ],
+        });
+
+        let selectedParentId: string;
+        if (parentTypeChoice === 'change') {
+          const changes = await getActiveChangeIds();
+          if (changes.length === 0) {
+            ora().fail('No active changes found');
+            process.exitCode = 1;
+            return;
+          }
+          selectedParentId = await select({
+            message: 'Select the change for unassigned markers:',
+            choices: changes.map((id) => ({ name: id, value: id })),
+          });
+        } else if (parentTypeChoice === 'spec') {
+          const specs = await getSpecIds();
+          if (specs.length === 0) {
+            ora().fail('No specs found');
+            process.exitCode = 1;
+            return;
+          }
+          selectedParentId = await select({
+            message: 'Select the spec for unassigned markers:',
+            choices: specs.map((id) => ({ name: id, value: id })),
+          });
+        } else {
+          const { input } = await import('@inquirer/prompts');
+          selectedParentId = await input({
+            message: 'Enter the task ID for unassigned markers:',
+            validate: (value) => value.trim() ? true : 'Task ID is required',
+          });
+        }
+
+        // Add unassigned markers to appropriate group
+        const existingGroup = groups.assigned.find(
+          (g) => g.parentType === parentTypeChoice && g.parentId === selectedParentId
+        );
+        if (existingGroup) {
+          existingGroup.markers.push(...groups.unassigned);
+        } else {
+          groups.assigned.push({
+            parentType: parentTypeChoice,
+            parentId: selectedParentId,
+            markers: groups.unassigned,
+          });
+        }
+        groups.unassigned = [];
+      } else {
+        // Non-interactive mode with unassigned markers - fail with error
+        const unassignedFiles = [...new Set(groups.unassigned.map((m) => `${m.file}:${m.line}`))];
+        if (options.json) {
+          console.log(
+            JSON.stringify({
+              error: 'Unassigned markers found. Use --change-id, --spec-id, or --task-id to assign them.',
+              unassignedMarkers: unassignedFiles,
+            })
+          );
+        } else {
+          ora().fail(`${groups.unassigned.length} marker(s) have no parent linkage`);
+          console.log(chalk.dim('  Unassigned markers:'));
+          for (const loc of unassignedFiles.slice(0, 10)) {
+            console.log(chalk.dim(`    - ${loc}`));
+          }
+          if (unassignedFiles.length > 10) {
+            console.log(chalk.dim(`    ... and ${unassignedFiles.length - 10} more`));
+          }
+          console.log();
+          console.log(chalk.dim('  To assign these markers, use one of:'));
+          console.log(chalk.dim('    plx parse feedback <review-name> --change-id <id>'));
+          console.log(chalk.dim('    plx parse feedback <review-name> --spec-id <id>'));
+          console.log(chalk.dim('    plx parse feedback <review-name> --task-id <id>'));
+        }
+        process.exitCode = 1;
+        return;
+      }
+    }
+
+    // Check if no assigned groups after handling (shouldn't happen but safety check)
+    if (groups.assigned.length === 0) {
+      if (options.json) {
+        console.log(
+          JSON.stringify({
+            reviews: [],
+            totalMarkers: 0,
+            totalTasks: 0,
+            message: 'No markers to process',
+          })
+        );
+      } else {
+        ora().info('No markers to process');
+      }
+      return;
+    }
+
+    // Check for existing reviews
+    const existingReviews = await getActiveReviewIds();
+
+    // Generate review names based on number of parent groups
+    const reviewNames: string[] = [];
+    if (groups.assigned.length === 1) {
+      // Single parent group - use original review name
+      if (existingReviews.includes(reviewName)) {
+        if (options.json) {
+          console.log(
+            JSON.stringify({ error: `Review already exists: ${reviewName}` })
+          );
+        } else {
+          ora().fail(`Review already exists: ${reviewName}`);
+        }
+        process.exitCode = 1;
+        return;
+      }
+      reviewNames.push(reviewName);
+    } else {
+      // Multiple parent groups - use suffixed names
+      const typeCounters: Record<string, number> = {};
+      for (const group of groups.assigned) {
+        const count = (typeCounters[group.parentType] || 0) + 1;
+        typeCounters[group.parentType] = count;
+        const suffixedName = `${reviewName}-${group.parentType}-${count}`;
+        if (existingReviews.includes(suffixedName)) {
+          if (options.json) {
+            console.log(
+              JSON.stringify({ error: `Review already exists: ${suffixedName}` })
+            );
+          } else {
+            ora().fail(`Review already exists: ${suffixedName}`);
+          }
+          process.exitCode = 1;
+          return;
+        }
+        reviewNames.push(suffixedName);
+      }
+    }
+
+    // Generate reviews
+    const results: ReviewResult[] = [];
+    for (let i = 0; i < groups.assigned.length; i++) {
+      const group = groups.assigned[i];
+      const name = reviewNames[i];
+      await scanner.generateReview(name, group.markers, group.parentType, group.parentId);
+
+      const uniqueFiles = [...new Set(group.markers.map((m) => m.file))];
+      results.push({
+        reviewId: name,
+        parentType: group.parentType,
+        parentId: group.parentId,
+        markersFound: group.markers.length,
+        tasksCreated: group.markers.length,
+        files: uniqueFiles,
+      });
+    }
+
+    // Calculate totals
+    const totalMarkers = results.reduce((sum, r) => sum + r.markersFound, 0);
+    const totalTasks = results.reduce((sum, r) => sum + r.tasksCreated, 0);
 
     // Output results
     if (options.json) {
       const output: ParseFeedbackJsonOutput = {
-        reviewId: reviewName,
-        parentType,
-        parentId,
-        markersFound: markers.length,
-        tasksCreated: markers.length,
-        files: uniqueFiles,
-        specImpacts,
+        reviews: results,
+        totalMarkers,
+        totalTasks,
       };
       console.log(JSON.stringify(output, null, 2));
     } else {
-      console.log(chalk.green(`\n✓ Created review: ${reviewName}`));
-      console.log(chalk.dim(`  Parent: ${parentType}/${parentId}`));
-      console.log(chalk.dim(`  Markers found: ${markers.length}`));
-      console.log(chalk.dim(`  Tasks created: ${markers.length}`));
-      console.log(chalk.dim(`  Files scanned: ${uniqueFiles.length}`));
+      console.log(chalk.green(`\n✓ Created ${results.length} review${results.length === 1 ? '' : 's'}`));
 
-      if (uniqueFiles.length <= 5) {
-        for (const file of uniqueFiles) {
-          console.log(chalk.dim(`    - ${file}`));
+      for (const result of results) {
+        console.log();
+        console.log(chalk.cyan(`  Review: ${result.reviewId}`));
+        console.log(chalk.dim(`    Parent: ${result.parentType}/${result.parentId}`));
+        console.log(chalk.dim(`    Markers: ${result.markersFound}`));
+        console.log(chalk.dim(`    Tasks: ${result.tasksCreated}`));
+        if (result.files.length <= 3) {
+          for (const file of result.files) {
+            console.log(chalk.dim(`      - ${file}`));
+          }
+        } else {
+          console.log(chalk.dim(`    Files: ${result.files.length}`));
         }
       }
 
-      if (specImpacts.length > 0) {
-        console.log(chalk.dim(`  Spec impacts: ${specImpacts.join(', ')}`));
-      }
-
+      console.log();
+      console.log(chalk.dim(`Total markers: ${totalMarkers}`));
+      console.log(chalk.dim(`Total tasks: ${totalTasks}`));
       console.log();
       console.log(chalk.cyan('Next steps:'));
-      console.log(chalk.dim(`  1. Work on tasks: plx get task`));
+      console.log(chalk.dim('  1. Work on tasks: plx get task'));
       console.log(chalk.dim('  2. Address feedback and remove markers'));
-      console.log(chalk.dim(`  3. Archive when complete: plx archive ${reviewName}`));
+      if (results.length === 1) {
+        console.log(chalk.dim(`  3. Archive when complete: plx archive ${results[0].reviewId}`));
+      } else {
+        console.log(chalk.dim('  3. Archive when complete: plx archive <review-id>'));
+      }
     }
   }
 }
