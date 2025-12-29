@@ -25,8 +25,10 @@ interface ReviewInfo {
 
 export class ListCommand {
   async execute(targetPath: string = '.', mode: 'changes' | 'specs' | 'reviews' = 'changes'): Promise<void> {
+    const resolvedPath = path.resolve(targetPath);
+
     if (mode === 'changes') {
-      const changesDir = path.join(targetPath, 'workspace', 'changes');
+      const changesDir = path.join(resolvedPath, 'workspace', 'changes');
 
       // Check if changes directory exists
       try {
@@ -101,7 +103,7 @@ export class ListCommand {
     }
 
     if (mode === 'specs') {
-      const specsDir = path.join(targetPath, 'workspace', 'specs');
+      const specsDir = path.join(resolvedPath, 'workspace', 'specs');
       try {
         await fs.access(specsDir);
       } catch {
@@ -142,13 +144,13 @@ export class ListCommand {
     }
 
     // reviews mode
-    const reviewIds = await getActiveReviewIds(targetPath);
+    const reviewIds = await getActiveReviewIds(resolvedPath);
     if (reviewIds.length === 0) {
       console.log('No active reviews found.');
       return;
     }
 
-    const reviewsDir = path.join(targetPath, 'workspace', 'reviews');
+    const reviewsDir = path.join(resolvedPath, 'workspace', 'reviews');
     const reviews: ReviewInfo[] = [];
 
     for (const reviewId of reviewIds) {

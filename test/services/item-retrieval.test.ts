@@ -226,4 +226,82 @@ status: in-progress
       expect(wipTask!.status).toBe('in-progress');
     });
   });
+
+  describe('review task retrieval', () => {
+    async function createReview(reviewId: string) {
+      const reviewDir = path.join(tempDir, 'workspace', 'reviews', reviewId);
+      await fs.mkdir(reviewDir, { recursive: true });
+      await fs.writeFile(
+        path.join(reviewDir, 'review.md'),
+        '---\nparent-type: change\nparent-id: test\n---\n# Review'
+      );
+    }
+
+    async function createReviewTask(reviewId: string, filename: string, content: string) {
+      const tasksDir = path.join(tempDir, 'workspace', 'reviews', reviewId, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.writeFile(path.join(tasksDir, filename), content);
+    }
+
+    beforeEach(async () => {
+      const reviewsDir = path.join(tempDir, 'workspace', 'reviews');
+      await fs.mkdir(reviewsDir, { recursive: true });
+    });
+
+    it('should find review task by full ID (reviewId/taskFilename)', async () => {
+      await createReview('my-review');
+      await createReviewTask('my-review', '001-fix.md', '---\nstatus: to-do\n---\n# Fix');
+
+      const result = await service.getTaskById('my-review/001-fix');
+      expect(result).not.toBeNull();
+      expect(result!.changeId).toBe('my-review');
+      expect(result!.task.name).toBe('fix');
+    });
+
+    it('should find review task by short ID (searches reviews after changes)', async () => {
+      await createReview('my-review');
+      await createReviewTask('my-review', '001-fix.md', '---\nstatus: to-do\n---\n# Fix');
+
+      const result = await service.getTaskById('001-fix');
+      expect(result).not.toBeNull();
+      expect(result!.changeId).toBe('my-review');
+      expect(result!.task.name).toBe('fix');
+    });
+
+    it('should return tasks for review via getTasksForChange', async () => {
+      await createReview('my-review');
+      await createReviewTask('my-review', '001-first.md', '---\nstatus: to-do\n---\n# First');
+      await createReviewTask('my-review', '002-second.md', '---\nstatus: to-do\n---\n# Second');
+
+      const result = await service.getTasksForChange('my-review');
+      expect(result).toHaveLength(2);
+    });
+
+    it('should include review tasks in getAllOpenTasks', async () => {
+      await createReview('my-review');
+      await createReviewTask('my-review', '001-wip.md', '---\nstatus: in-progress\n---\n# WIP');
+
+      const result = await service.getAllOpenTasks();
+      expect(result.some((t) => t.changeId === 'my-review')).toBe(true);
+    });
+
+    it('should prioritize change tasks over review tasks with same ID', async () => {
+      await createChange('shared-id', '# Proposal');
+      await createTask('shared-id', '001-task.md', '---\nstatus: to-do\n---\n# Change Task');
+
+      await createReview('shared-id');
+      await createReviewTask('shared-id', '001-task.md', '---\nstatus: to-do\n---\n# Review Task');
+
+      const result = await service.getTaskById('shared-id/001-task');
+      expect(result).not.toBeNull();
+      expect(result!.content).toContain('# Change Task');
+    });
+
+    it('should return empty array for review without tasks', async () => {
+      await createReview('empty-review');
+
+      const result = await service.getTasksForChange('empty-review');
+      expect(result).toEqual([]);
+    });
+  });
 });

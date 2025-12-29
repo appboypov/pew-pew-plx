@@ -1,6 +1,9 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { getActiveChangeIds } from '../utils/item-discovery.js';
+import {
+  getActiveChangeIds,
+  getActiveReviewIds,
+} from '../utils/item-discovery.js';
 import {
   parseTaskFilename,
   sortTaskFilesBySequence,
@@ -38,11 +41,13 @@ export interface OpenTaskInfo {
 export class ItemRetrievalService {
   private root: string;
   private changesPath: string;
+  private reviewsPath: string;
   private specsPath: string;
 
   constructor(root: string = process.cwd()) {
     this.root = root;
     this.changesPath = path.join(root, 'workspace', 'changes');
+    this.reviewsPath = path.join(root, 'workspace', 'reviews');
     this.specsPath = path.join(root, 'workspace', 'specs');
   }
 
@@ -75,14 +80,27 @@ export class ItemRetrievalService {
     }
 
     if (changeId) {
-      // Search specific change
-      return this.findTaskInChange(changeId, taskName);
+      // Search specific change first, then specific review
+      const changeResult = await this.findTaskInChange(changeId, taskName);
+      if (changeResult) {
+        return changeResult;
+      }
+      return this.findTaskInReview(changeId, taskName);
     }
 
     // Search all active changes
     const activeChanges = await getActiveChangeIds(this.root);
     for (const cid of activeChanges) {
       const result = await this.findTaskInChange(cid, taskName);
+      if (result) {
+        return result;
+      }
+    }
+
+    // Search all active reviews
+    const activeReviews = await getActiveReviewIds(this.root);
+    for (const rid of activeReviews) {
+      const result = await this.findTaskInReview(rid, taskName);
       if (result) {
         return result;
       }
@@ -121,6 +139,41 @@ export class ItemRetrievalService {
       };
 
       return { task, content, changeId };
+    } catch {
+      return null;
+    }
+  }
+
+  private async findTaskInReview(
+    reviewId: string,
+    taskFilename: string
+  ): Promise<TaskWithContext | null> {
+    const tasksDir = path.join(
+      this.reviewsPath,
+      reviewId,
+      TASKS_DIRECTORY_NAME
+    );
+    const taskPath = path.join(tasksDir, taskFilename);
+
+    try {
+      const content = await fs.readFile(taskPath, 'utf-8');
+      const parsed = parseTaskFilename(taskFilename);
+
+      if (!parsed) {
+        return null;
+      }
+
+      const progress = { total: 0, completed: 0 };
+
+      const task: TaskFileInfo = {
+        filename: taskFilename,
+        filepath: taskPath,
+        sequence: parsed.sequence,
+        name: parsed.name,
+        progress,
+      };
+
+      return { task, content, changeId: reviewId };
     } catch {
       return null;
     }
@@ -176,20 +229,30 @@ export class ItemRetrievalService {
   }
 
   /**
-   * Retrieves all tasks for a specific change.
-   * @param changeId The change identifier
-   * @returns Array of task file info, or empty array if change not found
+   * Retrieves all tasks for a specific change or review.
+   * @param itemId The change or review identifier
+   * @returns Array of task file info, or empty array if item not found
    */
-  async getTasksForChange(changeId: string): Promise<TaskFileInfo[]> {
-    const structure = await getTaskStructureForChange(
+  async getTasksForChange(itemId: string): Promise<TaskFileInfo[]> {
+    // Try changes first
+    const changeStructure = await getTaskStructureForChange(
       this.changesPath,
-      changeId
+      itemId
     );
-    return structure.files;
+    if (changeStructure.files.length > 0) {
+      return changeStructure.files;
+    }
+
+    // Try reviews if not found in changes
+    const reviewStructure = await getTaskStructureForChange(
+      this.reviewsPath,
+      itemId
+    );
+    return reviewStructure.files;
   }
 
   /**
-   * Retrieves all open tasks (status: to-do or in-progress) across all active changes.
+   * Retrieves all open tasks (status: to-do or in-progress) across all active changes and reviews.
    * @returns Array of open task info with change context
    */
   async getAllOpenTasks(): Promise<OpenTaskInfo[]> {
@@ -239,6 +302,54 @@ export class ItemRetrievalService {
         }
       } catch {
         // Skip changes without tasks directory
+      }
+    }
+
+    const activeReviews = await getActiveReviewIds(this.root);
+
+    for (const reviewId of activeReviews) {
+      const tasksDir = path.join(
+        this.reviewsPath,
+        reviewId,
+        TASKS_DIRECTORY_NAME
+      );
+
+      try {
+        const entries = await fs.readdir(tasksDir);
+        const sortedFiles = sortTaskFilesBySequence(entries);
+
+        for (const filename of sortedFiles) {
+          const parsed = parseTaskFilename(filename);
+          if (!parsed) continue;
+
+          const filepath = path.join(tasksDir, filename);
+
+          try {
+            const content = await fs.readFile(filepath, 'utf-8');
+            const status = parseStatus(content);
+
+            if (status === 'to-do' || status === 'in-progress') {
+              const task: TaskFileInfo = {
+                filename,
+                filepath,
+                sequence: parsed.sequence,
+                name: parsed.name,
+                progress: { total: 0, completed: 0 },
+              };
+
+              openTasks.push({
+                taskId: getTaskIdFromFilename(filename),
+                changeId: reviewId,
+                task,
+                status,
+              });
+            }
+          } catch {
+            // Skip files that can't be read
+          }
+        }
+      } catch {
+        // Skip reviews without tasks directory
       }
     }
 
