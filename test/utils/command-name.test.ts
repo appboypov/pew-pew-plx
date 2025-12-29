@@ -50,7 +50,7 @@ describe('getCommandName', () => {
       expect(getCommandName()).toBe('plx');
     });
 
-    it('should return plx for openspec.exe (backward compatibility)', () => {
+    it('should treat legacy openspec.exe executable as plx (backward compatibility with pre-rebrand name)', () => {
       process.argv = ['node', 'C:\\Program Files\\openspec.exe'];
       expect(getCommandName()).toBe('plx');
     });
@@ -74,7 +74,7 @@ describe('getCommandName', () => {
   });
 
   describe('defaults to plx', () => {
-    it('should return plx for openspec.js (backward compatibility)', () => {
+    it('should treat legacy openspec.js executable as plx (backward compatibility with pre-rebrand name)', () => {
       process.argv = ['node', '/path/to/openspec.js'];
       expect(getCommandName()).toBe('plx');
     });
