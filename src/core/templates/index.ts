@@ -7,6 +7,7 @@ import { getSlashCommandBody, SlashCommandId } from './slash-command-templates.j
 import { getPlxSlashCommandBody, PlxSlashCommandId } from './plx-slash-command-templates.js';
 import { architectureTemplate, ArchitectureContext } from './architecture-template.js';
 import { reviewTemplate } from './review-template.js';
+import { releaseTemplate } from './release-template.js';
 
 export interface Template {
   path: string;
@@ -53,6 +54,10 @@ export class TemplateManager {
 
   static getReviewTemplate(): string {
     return reviewTemplate();
+  }
+
+  static getReleaseTemplate(): string {
+    return releaseTemplate();
   }
 }
 

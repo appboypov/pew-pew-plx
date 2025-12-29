@@ -1,5 +1,23 @@
 # Pew Pew Plx Changelog
 
+## 0.6.1 - 2025-12-29
+
+### Added
+
+- `/plx:prepare-release` slash command for guided release preparation workflow
+- `/plx:refine-release` slash command for updating RELEASE.md template
+
+### Changed
+
+- Slash commands now use `@` file references for better context loading
+- Removed deprecated `/plx:init-architecture` and `/plx:update-architecture` commands (use `/plx:refine-architecture` instead)
+
+### Fixed
+
+- Windows path separators now normalized correctly in slash command file paths
+
+---
+
 ## 0.6.0 - 2025-12-29
 
 ### Changed

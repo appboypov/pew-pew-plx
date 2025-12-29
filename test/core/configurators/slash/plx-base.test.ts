@@ -27,22 +27,22 @@ describe('PlxSlashCommandConfigurator base class', () => {
       const plxDir = path.join(testDir, '.claude', 'commands', 'plx');
       await fs.mkdir(plxDir, { recursive: true });
 
-      const initArchPath = path.join(plxDir, 'init-architecture.md');
+      const getTaskPath = path.join(plxDir, 'get-task.md');
       const originalContent = `---
-name: Pew Pew Plx: Init Architecture
+name: Pew Pew Plx: Get Task
 ---
 ${PLX_MARKERS.start}
 Old body content
 ${PLX_MARKERS.end}
 `;
-      await fs.writeFile(initArchPath, originalContent);
+      await fs.writeFile(getTaskPath, originalContent);
 
       const updated = await configurator.updateExisting(testDir);
 
       expect(updated).toHaveLength(1);
-      expect(updated[0]).toBe('.claude/commands/plx/init-architecture.md');
+      expect(updated[0]).toBe('.claude/commands/plx/get-task.md');
 
-      const newContent = await fs.readFile(initArchPath, 'utf-8');
+      const newContent = await fs.readFile(getTaskPath, 'utf-8');
       expect(newContent).toContain(PLX_MARKERS.start);
       expect(newContent).toContain(PLX_MARKERS.end);
       expect(newContent).not.toContain('Old body content');
@@ -58,20 +58,20 @@ ${PLX_MARKERS.end}
       const plxDir = path.join(testDir, '.claude', 'commands', 'plx');
       await fs.mkdir(plxDir, { recursive: true });
 
-      const initArchPath = path.join(plxDir, 'init-architecture.md');
+      const getTaskPath = path.join(plxDir, 'get-task.md');
       const originalContent = `---
-name: Pew Pew Plx: Init Architecture
+name: Pew Pew Plx: Get Task
 description: Custom description
 ---
 ${PLX_MARKERS.start}
 Old body
 ${PLX_MARKERS.end}
 `;
-      await fs.writeFile(initArchPath, originalContent);
+      await fs.writeFile(getTaskPath, originalContent);
 
       await configurator.updateExisting(testDir);
 
-      const newContent = await fs.readFile(initArchPath, 'utf-8');
+      const newContent = await fs.readFile(getTaskPath, 'utf-8');
       expect(newContent).toContain('Custom description');
     });
   });

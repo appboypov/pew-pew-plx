@@ -1,33 +1,12 @@
 export type PlxSlashCommandId =
-  | 'init-architecture'
-  | 'update-architecture'
   | 'get-task'
   | 'compact'
   | 'review'
   | 'refine-architecture'
   | 'refine-review'
-  | 'parse-feedback';
-
-const baseGuardrails = `**Guardrails**
-- Focus on practical, usable documentation that enables feature planning.
-- Document patterns and conventions, not implementation details.
-- Keep the document maintainable - avoid copying code.
-- Structure information for quick reference and navigation.`;
-
-const initArchitectureSteps = `**Steps**
-1. Read the project's manifest files to identify technology stack and dependencies.
-2. Explore the directory structure to understand project organization.
-3. Identify key patterns: services, APIs, state management, routing, etc.
-4. Create ARCHITECTURE.md at the project root with comprehensive documentation.
-5. Include: Project setup, tech stack, folder structure, service patterns, state management, and conventions.
-6. Ensure the document is practical and usable for feature planning without additional codebase research.`;
-
-const updateArchitectureSteps = `**Steps**
-1. Read the existing ARCHITECTURE.md to understand current documentation state.
-2. Explore the codebase for any new patterns, services, or architectural changes.
-3. Update ARCHITECTURE.md to reflect the current state of the codebase.
-4. Preserve user-added content that doesn't conflict with generated sections.
-5. Ensure all sections remain accurate and complete for feature planning.`;
+  | 'refine-release'
+  | 'parse-feedback'
+  | 'prepare-release';
 
 const getTaskGuardrails = `**Guardrails**
 - Complete tasks sequentially, marking each done before starting the next.
@@ -60,27 +39,28 @@ const reviewGuardrails = `**Guardrails**
 
 const reviewSteps = `**Steps**
 1. Run \`plx review --change-id <id>\` (or --spec-id, --task-id).
-2. Read the output: REVIEW.md guidelines + parent documents.
+2. Read the output: @REVIEW.md guidelines + parent documents.
 3. Review implementation against constraints/acceptance criteria.
 4. Insert feedback markers in relevant code.
 5. Summarize findings.
 6. Instruct to run \`plx parse feedback <name> --change-id <id>\`.`;
 
 const refineArchitectureGuardrails = `**Guardrails**
+- Reference @ARCHITECTURE.md template structure.
 - Focus on practical documentation.
 - Preserve user content.`;
 
 const refineArchitectureSteps = `**Steps**
-1. Check if ARCHITECTURE.md exists.
+1. Check if @ARCHITECTURE.md exists.
 2. If not: create from template.
 3. If exists: read and update.`;
 
 const refineReviewGuardrails = `**Guardrails**
-- Use REVIEW.md template structure.
+- Reference @REVIEW.md template structure.
 - Preserve existing guidelines.`;
 
 const refineReviewSteps = `**Steps**
-1. Check if REVIEW.md exists.
+1. Check if @REVIEW.md exists.
 2. If not: create from template.
 3. If exists: read and update.`;
 
@@ -95,15 +75,38 @@ const parseFeedbackSteps = `**Steps**
 3. Address feedback.
 4. Archive when complete.`;
 
+const refineReleaseGuardrails = `**Guardrails**
+- Reference @RELEASE.md template structure.
+- Preserve existing release configuration.`;
+
+const refineReleaseSteps = `**Steps**
+1. Check if @RELEASE.md exists.
+2. If not: create from template.
+3. If exists: read and update.`;
+
+const prepareReleaseGuardrails = `**Guardrails**
+- Read @RELEASE.md for full release preparation instructions.
+- Reference @README.md, @CHANGELOG.md, and @ARCHITECTURE.md for updates.
+- Execute steps sequentially: changelog → readme → architecture.
+- User confirms or skips each step before proceeding.
+- Preserve existing content when updating files.`;
+
+const prepareReleaseSteps = `**Steps**
+1. Read @RELEASE.md to understand release preparation workflow.
+2. Execute changelog update step (source, version, format selection).
+3. Execute readme update step (style, sections, badges selection).
+4. Execute architecture update step (refresh from codebase).
+5. Present summary of all changes made.`;
+
 export const plxSlashCommandBodies: Record<PlxSlashCommandId, string> = {
-  'init-architecture': [baseGuardrails, initArchitectureSteps].join('\n\n'),
-  'update-architecture': [baseGuardrails, updateArchitectureSteps].join('\n\n'),
   'get-task': [getTaskGuardrails, getTaskSteps].join('\n\n'),
   'compact': [compactGuardrails, compactSteps].join('\n\n'),
   'review': [reviewGuardrails, reviewSteps].join('\n\n'),
   'refine-architecture': [refineArchitectureGuardrails, refineArchitectureSteps].join('\n\n'),
   'refine-review': [refineReviewGuardrails, refineReviewSteps].join('\n\n'),
-  'parse-feedback': [parseFeedbackGuardrails, parseFeedbackSteps].join('\n\n')
+  'refine-release': [refineReleaseGuardrails, refineReleaseSteps].join('\n\n'),
+  'parse-feedback': [parseFeedbackGuardrails, parseFeedbackSteps].join('\n\n'),
+  'prepare-release': [prepareReleaseGuardrails, prepareReleaseSteps].join('\n\n')
 };
 
 export function getPlxSlashCommandBody(id: PlxSlashCommandId): string {

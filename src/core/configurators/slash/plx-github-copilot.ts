@@ -2,27 +2,17 @@ import { PlxSlashCommandConfigurator } from './plx-base.js';
 import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
-  'init-architecture': '.github/prompts/plx-init-architecture.prompt.md',
-  'update-architecture': '.github/prompts/plx-update-architecture.prompt.md',
   'get-task': '.github/prompts/plx-get-task.prompt.md',
   'compact': '.github/prompts/plx-compact.prompt.md',
   'review': '.github/prompts/plx-review.prompt.md',
   'refine-architecture': '.github/prompts/plx-refine-architecture.prompt.md',
   'refine-review': '.github/prompts/plx-refine-review.prompt.md',
-  'parse-feedback': '.github/prompts/plx-parse-feedback.prompt.md'
+  'refine-release': '.github/prompts/plx-refine-release.prompt.md',
+  'parse-feedback': '.github/prompts/plx-parse-feedback.prompt.md',
+  'prepare-release': '.github/prompts/plx-prepare-release.prompt.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
-  'init-architecture': `---
-description: Generate comprehensive ARCHITECTURE.md from codebase analysis.
----
-
-$ARGUMENTS`,
-  'update-architecture': `---
-description: Refresh ARCHITECTURE.md based on current codebase state.
----
-
-$ARGUMENTS`,
   'get-task': `---
 description: Select and display the next prioritized task to work on.
 ---
@@ -48,8 +38,18 @@ description: Create or update REVIEW.md.
 ---
 
 $ARGUMENTS`,
+  'refine-release': `---
+description: Create or update RELEASE.md.
+---
+
+$ARGUMENTS`,
   'parse-feedback': `---
 description: Parse feedback markers and generate review tasks.
+---
+
+$ARGUMENTS`,
+  'prepare-release': `---
+description: Prepare release by updating changelog, readme, and architecture documentation.
 ---
 
 $ARGUMENTS`

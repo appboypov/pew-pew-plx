@@ -2,29 +2,17 @@ import { PlxSlashCommandConfigurator } from './plx-base.js';
 import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
-  'init-architecture': '.cursor/commands/plx-init-architecture.md',
-  'update-architecture': '.cursor/commands/plx-update-architecture.md',
   'get-task': '.cursor/commands/plx-get-task.md',
   'compact': '.cursor/commands/plx-compact.md',
   'review': '.cursor/commands/plx-review.md',
   'refine-architecture': '.cursor/commands/plx-refine-architecture.md',
   'refine-review': '.cursor/commands/plx-refine-review.md',
-  'parse-feedback': '.cursor/commands/plx-parse-feedback.md'
+  'refine-release': '.cursor/commands/plx-refine-release.md',
+  'parse-feedback': '.cursor/commands/plx-parse-feedback.md',
+  'prepare-release': '.cursor/commands/plx-prepare-release.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
-  'init-architecture': `---
-name: /plx-init-architecture
-id: plx-init-architecture
-category: Pew Pew Plx
-description: Generate comprehensive ARCHITECTURE.md from codebase analysis.
----`,
-  'update-architecture': `---
-name: /plx-update-architecture
-id: plx-update-architecture
-category: Pew Pew Plx
-description: Refresh ARCHITECTURE.md based on current codebase state.
----`,
   'get-task': `---
 name: /plx-get-task
 id: plx-get-task
@@ -55,11 +43,23 @@ id: plx-refine-review
 category: Pew Pew Plx
 description: Create or update REVIEW.md.
 ---`,
+  'refine-release': `---
+name: /plx-refine-release
+id: plx-refine-release
+category: Pew Pew Plx
+description: Create or update RELEASE.md.
+---`,
   'parse-feedback': `---
 name: /plx-parse-feedback
 id: plx-parse-feedback
 category: Pew Pew Plx
 description: Parse feedback markers and generate review tasks.
+---`,
+  'prepare-release': `---
+name: /plx-prepare-release
+id: plx-prepare-release
+category: Pew Pew Plx
+description: Prepare release by updating changelog, readme, and architecture documentation.
 ---`
 };
 

@@ -151,10 +151,11 @@ Parse markers with: `plx parse feedback review-name --change-id <id>`
 When you run `plx init`, these commands are installed for supported AI tools:
 
 - `/plx/get-task` - Get next prioritized task
-- `/plx/init-architecture` - Generate `ARCHITECTURE.md`
-- `/plx/update-architecture` - Refresh architecture documentation
+- `/plx/refine-architecture` - Create or update `ARCHITECTURE.md`
 - `/plx/review` - Review implementations
 - `/plx/parse-feedback` - Parse feedback markers
+- `/plx/prepare-release` - Guided release preparation workflow
+- `/plx/refine-release` - Create or update `RELEASE.md` template
 
 ## Supported AI Tools
 

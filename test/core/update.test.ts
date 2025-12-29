@@ -1666,27 +1666,27 @@ Old content
       await updateCommand.execute(testDir);
 
       // Check PLX commands were created
-      const plxInitPath = path.join(
+      const plxGetTaskPath = path.join(
         testDir,
-        '.claude/commands/plx/init-architecture.md'
+        '.claude/commands/plx/get-task.md'
       );
-      const plxUpdatePath = path.join(
+      const plxCompactPath = path.join(
         testDir,
-        '.claude/commands/plx/update-architecture.md'
+        '.claude/commands/plx/compact.md'
       );
 
-      await expect(FileSystemUtils.fileExists(plxInitPath)).resolves.toBe(true);
-      await expect(FileSystemUtils.fileExists(plxUpdatePath)).resolves.toBe(true);
+      await expect(FileSystemUtils.fileExists(plxGetTaskPath)).resolves.toBe(true);
+      await expect(FileSystemUtils.fileExists(plxCompactPath)).resolves.toBe(true);
 
       // Check content has PLX markers
-      const initContent = await fs.readFile(plxInitPath, 'utf-8');
-      expect(initContent).toContain('<!-- PLX:START -->');
-      expect(initContent).toContain('<!-- PLX:END -->');
+      const getTaskContent = await fs.readFile(plxGetTaskPath, 'utf-8');
+      expect(getTaskContent).toContain('<!-- PLX:START -->');
+      expect(getTaskContent).toContain('<!-- PLX:END -->');
 
       // Check console output includes PLX commands
       const [logMessage] = consoleSpy.mock.calls[0];
-      expect(logMessage).toContain('.claude/commands/plx/init-architecture.md');
-      expect(logMessage).toContain('.claude/commands/plx/update-architecture.md');
+      expect(logMessage).toContain('.claude/commands/plx/get-task.md');
+      expect(logMessage).toContain('.claude/commands/plx/compact.md');
 
       consoleSpy.mockRestore();
     });
@@ -1716,22 +1716,22 @@ Old body
       await updateCommand.execute(testDir);
 
       // Check PLX commands were created in global Codex directory
-      const plxInitPath = path.join(
+      const plxGetTaskPath = path.join(
         testDir,
-        '.codex/prompts/plx-init-architecture.md'
+        '.codex/prompts/plx-get-task.md'
       );
-      const plxUpdatePath = path.join(
+      const plxCompactPath = path.join(
         testDir,
-        '.codex/prompts/plx-update-architecture.md'
+        '.codex/prompts/plx-compact.md'
       );
 
-      await expect(FileSystemUtils.fileExists(plxInitPath)).resolves.toBe(true);
-      await expect(FileSystemUtils.fileExists(plxUpdatePath)).resolves.toBe(true);
+      await expect(FileSystemUtils.fileExists(plxGetTaskPath)).resolves.toBe(true);
+      await expect(FileSystemUtils.fileExists(plxCompactPath)).resolves.toBe(true);
 
       // Check console output includes PLX commands
       const [logMessage] = consoleSpy.mock.calls[0];
-      expect(logMessage).toContain('plx-init-architecture.md');
-      expect(logMessage).toContain('plx-update-architecture.md');
+      expect(logMessage).toContain('plx-get-task.md');
+      expect(logMessage).toContain('plx-compact.md');
 
       consoleSpy.mockRestore();
     });
@@ -1742,17 +1742,17 @@ Old body
       await updateCommand.execute(testDir);
 
       // Check that no PLX commands were created for Claude
-      const plxInitPath = path.join(
+      const plxGetTaskPath = path.join(
         testDir,
-        '.claude/commands/plx/init-architecture.md'
+        '.claude/commands/plx/get-task.md'
       );
-      const plxUpdatePath = path.join(
+      const plxCompactPath = path.join(
         testDir,
-        '.claude/commands/plx/update-architecture.md'
+        '.claude/commands/plx/compact.md'
       );
 
-      await expect(FileSystemUtils.fileExists(plxInitPath)).resolves.toBe(false);
-      await expect(FileSystemUtils.fileExists(plxUpdatePath)).resolves.toBe(false);
+      await expect(FileSystemUtils.fileExists(plxGetTaskPath)).resolves.toBe(false);
+      await expect(FileSystemUtils.fileExists(plxCompactPath)).resolves.toBe(false);
     });
 
     it('should generate PLX commands for multiple tools when their slash commands are updated', async () => {
@@ -1798,20 +1798,20 @@ Old
       // Check Claude PLX commands
       await expect(
         FileSystemUtils.fileExists(
-          path.join(testDir, '.claude/commands/plx/init-architecture.md')
+          path.join(testDir, '.claude/commands/plx/get-task.md')
         )
       ).resolves.toBe(true);
 
       // Check Cursor PLX commands
       await expect(
         FileSystemUtils.fileExists(
-          path.join(testDir, '.cursor/commands/plx-init-architecture.md')
+          path.join(testDir, '.cursor/commands/plx-get-task.md')
         )
       ).resolves.toBe(true);
 
       const [logMessage] = consoleSpy.mock.calls[0];
-      expect(logMessage).toContain('.claude/commands/plx/init-architecture.md');
-      expect(logMessage).toContain('.cursor/commands/plx-init-architecture.md');
+      expect(logMessage).toContain('.claude/commands/plx/get-task.md');
+      expect(logMessage).toContain('.cursor/commands/plx-get-task.md');
 
       consoleSpy.mockRestore();
     });
@@ -1839,15 +1839,15 @@ Old
       // First update - creates PLX commands
       await updateCommand.execute(testDir);
 
-      const plxInitPath = path.join(
+      const plxGetTaskPath = path.join(
         testDir,
-        '.claude/commands/plx/init-architecture.md'
+        '.claude/commands/plx/get-task.md'
       );
-      const firstContent = await fs.readFile(plxInitPath, 'utf-8');
+      const firstContent = await fs.readFile(plxGetTaskPath, 'utf-8');
 
       // Modify the PLX file to simulate outdated content
       await fs.writeFile(
-        plxInitPath,
+        plxGetTaskPath,
         firstContent.replace(
           /<!-- PLX:START -->[\s\S]*<!-- PLX:END -->/,
           '<!-- PLX:START -->\nOutdated content\n<!-- PLX:END -->'
@@ -1857,7 +1857,7 @@ Old
       // Second update - should refresh PLX commands
       await updateCommand.execute(testDir);
 
-      const refreshedContent = await fs.readFile(plxInitPath, 'utf-8');
+      const refreshedContent = await fs.readFile(plxGetTaskPath, 'utf-8');
       expect(refreshedContent).not.toContain('Outdated content');
       expect(refreshedContent).toContain('<!-- PLX:START -->');
     });

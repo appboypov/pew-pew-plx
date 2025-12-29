@@ -2,29 +2,17 @@ import { PlxSlashCommandConfigurator } from './plx-base.js';
 import { PlxSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<PlxSlashCommandId, string> = {
-  'init-architecture': '.factory/commands/plx-init-architecture.md',
-  'update-architecture': '.factory/commands/plx-update-architecture.md',
   'get-task': '.factory/commands/plx-get-task.md',
   'compact': '.factory/commands/plx-compact.md',
   'review': '.factory/commands/plx-review.md',
   'refine-architecture': '.factory/commands/plx-refine-architecture.md',
   'refine-review': '.factory/commands/plx-refine-review.md',
-  'parse-feedback': '.factory/commands/plx-parse-feedback.md'
+  'refine-release': '.factory/commands/plx-refine-release.md',
+  'parse-feedback': '.factory/commands/plx-parse-feedback.md',
+  'prepare-release': '.factory/commands/plx-prepare-release.md'
 };
 
 const FRONTMATTER: Record<PlxSlashCommandId, string> = {
-  'init-architecture': `---
-description: Generate comprehensive ARCHITECTURE.md from codebase analysis.
-argument-hint: (optional context)
----
-
-$ARGUMENTS`,
-  'update-architecture': `---
-description: Refresh ARCHITECTURE.md based on current codebase state.
-argument-hint: (optional context)
----
-
-$ARGUMENTS`,
   'get-task': `---
 description: Select and display the next prioritized task to work on.
 argument-hint: (optional context)
@@ -55,8 +43,20 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS`,
+  'refine-release': `---
+description: Create or update RELEASE.md.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
   'parse-feedback': `---
 description: Parse feedback markers and generate review tasks.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'prepare-release': `---
+description: Prepare release by updating changelog, readme, and architecture documentation.
 argument-hint: (optional context)
 ---
 
