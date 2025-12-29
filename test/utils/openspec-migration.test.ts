@@ -77,22 +77,30 @@ describe('openspec-migration', () => {
       expect(result.error).toBeUndefined();
     });
 
-    it('should return migrated: false when workspace/ already exists', async () => {
+    it('should merge openspec/ into workspace/ when both exist', async () => {
       const openspecDir = path.join(tempDir, OPENSPEC_DIR_NAME);
       const workspaceDir = path.join(tempDir, PLX_DIR_NAME);
       await fs.mkdir(openspecDir, { recursive: true });
       await fs.mkdir(workspaceDir, { recursive: true });
 
+      // Create file in openspec/
+      await fs.writeFile(path.join(openspecDir, 'from-openspec.md'), 'openspec content');
+      // Create file in workspace/
+      await fs.writeFile(path.join(workspaceDir, 'existing.md'), 'workspace content');
+
       const result = await migrateDirectoryStructure(tempDir);
 
-      expect(result.migrated).toBe(false);
+      expect(result.migrated).toBe(true);
       expect(result.error).toBeUndefined();
 
-      // Verify both directories still exist
-      const openspecStat = await fs.stat(openspecDir);
-      const workspaceStat = await fs.stat(workspaceDir);
-      expect(openspecStat.isDirectory()).toBe(true);
-      expect(workspaceStat.isDirectory()).toBe(true);
+      // Verify openspec/ is deleted
+      await expect(fs.access(openspecDir)).rejects.toThrow();
+
+      // Verify workspace/ has both files
+      const fromOpenspec = await fs.readFile(path.join(workspaceDir, 'from-openspec.md'), 'utf-8');
+      const existing = await fs.readFile(path.join(workspaceDir, 'existing.md'), 'utf-8');
+      expect(fromOpenspec).toBe('openspec content');
+      expect(existing).toBe('workspace content');
     });
 
     it('should preserve directory contents during migration', async () => {

@@ -36,8 +36,7 @@ export async function detectOpenSpecProject(projectPath: string): Promise<boolea
 }
 
 /**
- * Renames openspec/ to workspace/.
- * Skips if workspace/ already exists (returns migrated: false, no error).
+ * Moves all contents from openspec/ to workspace/ and deletes openspec/.
  */
 export async function migrateDirectoryStructure(
   projectPath: string
@@ -51,18 +50,32 @@ export async function migrateDirectoryStructure(
       return { migrated: false };
     }
 
-    const workspaceExists = await directoryExists(workspaceDir);
-    if (workspaceExists) {
-      return { migrated: false };
-    }
+    await fs.mkdir(workspaceDir, { recursive: true });
+    await moveContents(openspecDir, workspaceDir);
+    await fs.rm(openspecDir, { recursive: true });
 
-    await fs.rename(openspecDir, workspaceDir);
     return { migrated: true };
   } catch (error: any) {
     const message = error.code === 'EACCES' || error.code === 'EPERM'
       ? `Permission denied when migrating directory: ${error.message}`
       : `Failed to migrate directory: ${error.message}`;
     return { migrated: false, error: message };
+  }
+}
+
+async function moveContents(srcDir: string, destDir: string): Promise<void> {
+  const entries = await fs.readdir(srcDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = path.join(srcDir, entry.name);
+    const destPath = path.join(destDir, entry.name);
+
+    if (entry.isDirectory()) {
+      await fs.mkdir(destPath, { recursive: true });
+      await moveContents(srcPath, destPath);
+    } else {
+      await fs.rename(srcPath, destPath);
+    }
   }
 }
 

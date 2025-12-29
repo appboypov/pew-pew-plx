@@ -27,7 +27,7 @@ Projects created with the original OpenSpec CLI have `openspec/` directories and
 
 ## Constraints
 
-1. Migration must be non-destructive (never overwrite existing `workspace/` if both exist)
+1. Migration must merge `openspec/` contents into `workspace/` when both exist (files from openspec/ moved, then openspec/ deleted)
 2. Migration must handle partial states gracefully
 3. Silent operation when no OpenSpec artifacts found
 4. Log clear messages when migration occurs
