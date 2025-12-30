@@ -11,7 +11,7 @@ description: Scaffold a new Pew Pew Plx change and validate strictly.
 - Refer to `workspace/AGENTS.md` (located inside the `workspace/` directory—run `ls workspace` or `plx update` if you don't see it) if you need additional Pew Pew Plx conventions or clarifications.
 - When clarification is needed, use your available question tool (if one exists) instead of asking in chat. If no question tool is available, ask in chat.
 - Identify any vague or ambiguous details and gather the necessary clarifications before editing files.
-- Do not write any code during the proposal stage. Only create design documents (proposal.md, tasks/ directory, design.md, and spec deltas). Implementation happens in the apply stage after approval.
+- Do not write any code during the proposal stage. Only create design documents (proposal.md, tasks/ directory, design.md, and spec deltas). Implementation happens in the implement stage after approval.
 
 **Steps**
 1. Review `ARCHITECTURE.md`, run `plx list` and `plx list --specs`, and inspect related code or docs (e.g., via `rg`/`ls`) to ground the proposal in current behaviour; note any gaps that require clarification.
