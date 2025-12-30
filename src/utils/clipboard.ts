@@ -34,32 +34,22 @@ export class ClipboardUtils {
   }
 
   private static readLinux(): string {
-    try {
-      const result = execSync('xclip -selection clipboard -o', { encoding: 'utf-8' });
-      if (!result.trim()) {
-        throw new Error('Clipboard is empty');
-      }
-      return result;
-    } catch (error: any) {
-      // If xclip fails due to empty clipboard (exit code 1 with "Error: target STRING not available")
-      // vs not installed (ENOENT), we need to distinguish
-      if (error.message?.includes('Clipboard is empty')) {
-        throw error;
-      }
+    let result: string;
 
-      // Try xsel as fallback
+    try {
+      result = execSync('xclip -selection clipboard -o', { encoding: 'utf-8' });
+    } catch {
       try {
-        const result = execSync('xsel --clipboard --output', { encoding: 'utf-8' });
-        if (!result.trim()) {
-          throw new Error('Clipboard is empty');
-        }
-        return result;
-      } catch (xselError: any) {
-        if (xselError.message?.includes('Clipboard is empty')) {
-          throw xselError;
-        }
+        result = execSync('xsel --clipboard --output', { encoding: 'utf-8' });
+      } catch {
         throw new Error('Clipboard utility not found. Install xclip or xsel.');
       }
     }
+
+    if (!result.trim()) {
+      throw new Error('Clipboard is empty');
+    }
+
+    return result;
   }
 }

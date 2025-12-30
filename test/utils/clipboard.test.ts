@@ -119,6 +119,19 @@ describe('ClipboardUtils', () => {
 
       expect(() => ClipboardUtils.read()).toThrow('Clipboard is empty');
     });
+
+    it('throws error when clipboard is empty with xsel fallback', async () => {
+      mockPlatform.mockReturnValue('linux');
+      mockExecSync
+        .mockImplementationOnce(() => {
+          throw new Error('xclip not found');
+        })
+        .mockReturnValueOnce('  \n  ');
+
+      const { ClipboardUtils } = await import('../../src/utils/clipboard.js');
+
+      expect(() => ClipboardUtils.read()).toThrow('Clipboard is empty');
+    });
   });
 
   describe('Unsupported OS', () => {

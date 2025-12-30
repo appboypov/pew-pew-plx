@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
@@ -138,17 +138,14 @@ describe('paste request command', () => {
       process.chdir(testDir);
 
       // Clear clipboard
-      execSync('echo -n "" | pbcopy');
+      execSync('pbcopy < /dev/null');
 
-      try {
-        execSync(
-          `node ${plxBin} paste request --json`,
-          { encoding: 'utf-8' }
-        );
-      } catch (error: any) {
-        const json = JSON.parse(error.stdout);
-        expect(json.error).toContain('Clipboard is empty');
-      }
+      const result = execSync(
+        `node ${plxBin} paste request --json 2>&1 || true`,
+        { encoding: 'utf-8' }
+      );
+      const json = JSON.parse(result.trim());
+      expect(json.error).toContain('Clipboard is empty');
     } finally {
       process.chdir(originalCwd);
     }
