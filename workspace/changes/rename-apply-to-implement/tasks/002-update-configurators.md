@@ -25,9 +25,9 @@ Each tool configurator defines a `PATHS` object with `apply: '<path>'` entries p
 
 ## Acceptance Criteria
 
-- [ ] All 24+ configurators updated
-- [ ] File paths use `implement` instead of `apply`
-- [ ] Frontmatter references updated where applicable
+- [x] All 24+ configurators updated
+- [x] File paths use `implement` instead of `apply`
+- [x] Frontmatter references updated where applicable
 
 ## Implementation Checklist
 

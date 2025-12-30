@@ -234,19 +234,19 @@ describe('ParseFeedbackCommand', () => {
 
       await command.execute('multi-review', { noInteractive: true });
 
-      // Check both reviews were created with suffixed names
+      // Check both reviews were created with suffixed names (type-id format prevents collisions)
       const review1Path = path.join(
         tempDir,
         'workspace',
         'reviews',
-        'multi-review-change-1',
+        'multi-review-change-change-1',
         'review.md'
       );
       const review2Path = path.join(
         tempDir,
         'workspace',
         'reviews',
-        'multi-review-spec-1',
+        'multi-review-spec-spec-1',
         'review.md'
       );
 

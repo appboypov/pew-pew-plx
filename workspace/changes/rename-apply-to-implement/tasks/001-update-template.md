@@ -27,11 +27,11 @@ The template defines `SlashCommandId` with `'apply'` and `applySteps` that instr
 
 ## Acceptance Criteria
 
-- [ ] `SlashCommandId` type changed from `'apply'` to `'implement'`
-- [ ] Template body uses `plx get task` command
-- [ ] Template body supports `--id <task-id>` flag for specific task
-- [ ] Template body does not reference manual task file scanning
-- [ ] Template body says "Run implement again" not "Run apply again"
+- [x] `SlashCommandId` type changed from `'apply'` to `'implement'`
+- [x] Template body uses `plx get task` command
+- [x] Template body supports `--id <task-id>` flag for specific task
+- [x] Template body does not reference manual task file scanning
+- [x] Template body says "Run implement again" not "Run apply again"
 
 ## Implementation Checklist
 

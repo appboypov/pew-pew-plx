@@ -10,13 +10,11 @@
 ### Changed
 
 - Renamed `/plx:apply` slash command to `/plx:implement` with enhanced task workflow integration
-- Renamed `/plx:compact` slash command to `/plx:prepare-compact`
 
 ### Fixed
 
 - `ItemRetrievalService` now searches `workspace/reviews` for task retrieval (previously only searched `workspace/changes`)
 - `ListCommand` path resolution: `plx list` now works correctly when invoked with relative paths
-- `ParseFeedbackCommand` multi-review suffix naming: uses `${reviewName}-${parentId}` instead of redundant `${reviewName}-${parentType}-${parentId}`
 
 ---
 

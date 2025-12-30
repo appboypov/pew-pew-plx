@@ -30,9 +30,9 @@ All tests pass with the renamed `implement` command.
 
 ## Acceptance Criteria
 
-- [ ] All tests in `test/core/init.test.ts` updated
-- [ ] All tests in `test/utils/file-system.test.ts` updated
-- [ ] `pnpm test` passes
+- [x] All tests in `test/core/init.test.ts` updated
+- [x] All tests in `test/utils/file-system.test.ts` updated
+- [x] `pnpm test` passes
 
 ## Implementation Checklist
 
