@@ -70,6 +70,7 @@ pew-pew-plx/
 │   │   └── validation/     # Validation rules and constants
 │   └── utils/              # Shared utilities
 │       ├── change-prioritization.ts # Change priority scoring
+│       ├── clipboard.ts    # Cross-platform clipboard reading
 │       ├── command-name.ts # CLI command name detection
 │       ├── file-system.ts  # File operations with markers
 │       ├── interactive.ts  # Interactive mode helpers
@@ -117,6 +118,7 @@ Each command class encapsulates its own logic:
 - `UndoCommand` - Revert tasks/changes to to-do status
 - `ReviewCommand` - Review implementations against specs/changes/tasks
 - `ParseFeedbackCommand` - Parse feedback markers from code and generate review tasks
+- `PasteCommand` - Paste clipboard content as draft request
 
 ### Registry Pattern
 
@@ -747,6 +749,7 @@ Pew Pew Plx provides:
 9. **Complete/Undo Commands**: Explicit commands for task/change completion and undo (`complete task`, `complete change`, `undo task`, `undo change`)
 10. **Services Layer**: Domain services for item retrieval and content filtering
 11. **Review System**: Structured review workflow with feedback markers (`plx review`, `plx parse feedback`)
+12. **Paste Command**: Capture clipboard content as draft request (`plx paste request`) with cross-platform clipboard support (macOS, Windows, Linux)
 
 ## Extending the System
 
