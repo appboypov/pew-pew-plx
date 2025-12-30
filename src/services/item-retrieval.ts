@@ -83,7 +83,7 @@ export class ItemRetrievalService {
   private workspaces: DiscoveredWorkspace[] = [];
   private isMulti: boolean = false;
 
-  constructor(root: string = process.cwd()) {
+  private constructor(root: string = process.cwd()) {
     this.root = root;
   }
 
@@ -104,15 +104,28 @@ export class ItemRetrievalService {
   /**
    * Parses a prefixed ID to extract project name and item ID.
    * Format: "projectName/itemId" or just "itemId"
+   * Only treats the prefix as a project name if it matches a known workspace.
    */
   private parsePrefixedId(id: string): ParsedPrefixedId {
     const slashIndex = id.indexOf('/');
     if (slashIndex === -1) {
       return { projectName: null, itemId: id };
     }
+
+    const candidateProjectName = id.substring(0, slashIndex);
+    const candidateItemId = id.substring(slashIndex + 1);
+
+    const hasMatchingWorkspace = this.workspaces.some(
+      (w) => w.projectName === candidateProjectName
+    );
+
+    if (!hasMatchingWorkspace) {
+      return { projectName: null, itemId: id };
+    }
+
     return {
-      projectName: id.substring(0, slashIndex),
-      itemId: id.substring(slashIndex + 1),
+      projectName: candidateProjectName,
+      itemId: candidateItemId,
     };
   }
 
@@ -184,32 +197,25 @@ export class ItemRetrievalService {
     const parsed = this.parsePrefixedId(taskId);
 
     if (parsed.projectName) {
-      // Check if projectName matches an actual workspace project
-      const isValidProject = this.workspaces.some(
-        (w) => w.projectName === parsed.projectName
-      );
+      // Has valid project prefix: projectName/changeId/taskName or projectName/taskName
+      const remainingParts = parsed.itemId.split('/');
 
-      if (isValidProject) {
-        // Has project prefix: projectName/changeId/taskName or projectName/taskName
-        const remainingParts = parsed.itemId.split('/');
-
-        if (remainingParts.length === 2) {
-          // projectName/changeId/taskName
-          const [changeId, taskName] = remainingParts;
-          return this.findTaskWithWorkspace(
-            parsed.projectName,
-            changeId,
-            taskName
-          );
-        } else {
-          // projectName/taskName - search all changes in that project
-          const taskName = parsed.itemId;
-          return this.searchTaskInProject(parsed.projectName, taskName);
-        }
+      if (remainingParts.length === 2) {
+        // projectName/changeId/taskName
+        const [changeId, taskName] = remainingParts;
+        return this.findTaskWithWorkspace(
+          parsed.projectName,
+          changeId,
+          taskName
+        );
+      } else {
+        // projectName/taskName - search all changes in that project
+        const taskName = parsed.itemId;
+        return this.searchTaskInProject(parsed.projectName, taskName);
       }
     }
 
-    // No project prefix (or projectName didn't match any known workspace)
+    // No project prefix
     const parts = taskId.split('/');
 
     if (parts.length === 2) {

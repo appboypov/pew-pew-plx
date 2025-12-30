@@ -23,14 +23,17 @@ interface TaskCompletionResult {
 }
 
 export class CompleteCommand {
-  private itemRetrievalService: ItemRetrievalService;
+  private itemRetrievalService: ItemRetrievalService | null = null;
 
-  constructor() {
-    this.itemRetrievalService = new ItemRetrievalService();
+  private async ensureInitialized(): Promise<void> {
+    if (!this.itemRetrievalService) {
+      this.itemRetrievalService = await ItemRetrievalService.create();
+    }
   }
 
   async task(options: TaskOptions): Promise<void> {
-    const result = await this.itemRetrievalService.getTaskById(options.id);
+    await this.ensureInitialized();
+    const result = await this.itemRetrievalService!.getTaskById(options.id);
 
     if (!result) {
       if (options.json) {
@@ -83,7 +86,8 @@ export class CompleteCommand {
   }
 
   async change(options: ChangeOptions): Promise<void> {
-    const change = await this.itemRetrievalService.getChangeById(options.id);
+    await this.ensureInitialized();
+    const change = await this.itemRetrievalService!.getChangeById(options.id);
 
     if (!change) {
       if (options.json) {
@@ -95,7 +99,7 @@ export class CompleteCommand {
       return;
     }
 
-    const tasks = await this.itemRetrievalService.getTasksForChange(options.id);
+    const tasks = await this.itemRetrievalService!.getTasksForChange(options.id);
     const completedTasks: TaskCompletionResult[] = [];
     const skippedTasks: string[] = [];
 
