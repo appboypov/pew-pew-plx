@@ -87,6 +87,12 @@ This creates the `workspace/` directory structure and configures slash commands 
 | `plx review --task-id <id>` | Review a task |
 | `plx parse feedback <name> --change-id <id>` | Parse feedback markers |
 
+### Draft Management
+
+| Command | Description |
+|---------|-------------|
+| `plx paste request` | Paste clipboard content as draft request |
+
 ### Validation & Archival
 
 | Command | Description |

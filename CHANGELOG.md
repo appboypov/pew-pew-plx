@@ -1,5 +1,23 @@
 # Pew Pew Plx Changelog
 
+## 0.7.0 - 2025-12-30
+
+### Added
+
+- `plx paste request` command: Capture clipboard content as a new change proposal draft
+  - Supports pasting markdown, text, and structured content directly into a change request
+  - Creates proposal.md with clipboard content wrapped in appropriate sections
+
+### Changed
+
+- Renamed "apply stage" to "implement stage" in proposal guardrails for clarity
+
+### Fixed
+
+- Skip paste integration tests on non-macOS platforms for CI compatibility
+
+---
+
 ## 0.6.2 - 2025-12-30
 
 ### Added

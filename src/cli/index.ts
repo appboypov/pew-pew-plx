@@ -19,6 +19,7 @@ import { CompleteCommand } from '../commands/complete.js';
 import { UndoCommand } from '../commands/undo.js';
 import { ParseFeedbackCommand } from '../commands/parse-feedback.js';
 import { ReviewCommand } from '../commands/review.js';
+import { PasteCommand } from '../commands/paste.js';
 
 // Import command name detection utility
 import { commandName } from '../utils/command-name.js';
@@ -512,6 +513,26 @@ program
     try {
       const command = new ReviewCommand();
       await command.execute(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Paste command with subcommands
+const pasteCmd = program
+  .command('paste')
+  .description('Paste content from clipboard');
+
+pasteCmd
+  .command('request')
+  .description('Paste clipboard content as a draft request')
+  .option('--json', 'Output as JSON')
+  .action(async (options?: { json?: boolean }) => {
+    try {
+      const pasteCommand = new PasteCommand();
+      await pasteCommand.request(options);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);

@@ -193,6 +193,7 @@ project-root/
     │       └── design.md       # Technical patterns
     └── changes/                # Proposals - what SHOULD change
         ├── [change-name]/
+        │   ├── request.md      # User's initial request (optional, raw input from plx paste request)
         │   ├── proposal.md     # Why, what, impact
         │   ├── tasks/          # Task files (directory)
         │   │   ├── 001-*.md    # First task file
@@ -545,6 +546,7 @@ Only add complexity with:
 - `archive/` - Completed changes
 
 ### File Purposes
+- `request.md` - User's initial request (raw, unedited input from `plx paste request`)
 - `proposal.md` - Why and what
 - `tasks/` - Implementation steps (directory with numbered files)
 - `design.md` - Technical decisions
