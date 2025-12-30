@@ -116,7 +116,7 @@ export class ItemRetrievalService {
     const candidateItemId = id.substring(slashIndex + 1);
 
     const hasMatchingWorkspace = this.workspaces.some(
-      (w) => w.projectName === candidateProjectName
+      (w) => w.projectName.toLowerCase() === candidateProjectName.toLowerCase()
     );
 
     if (!hasMatchingWorkspace) {
@@ -154,7 +154,7 @@ export class ItemRetrievalService {
 
     if (projectName) {
       const workspace = this.workspaces.find(
-        (w) => w.projectName === projectName
+        (w) => w.projectName.toLowerCase() === projectName.toLowerCase()
       );
       if (!workspace) return [];
       return [

@@ -40,10 +40,13 @@ export class ReviewCommand {
   private parseWorkspacePrefixedId(input: string): { projectName: string | null; itemId: string } {
     if (input.includes('/')) {
       const slashIndex = input.indexOf('/');
-      return {
-        projectName: input.slice(0, slashIndex),
-        itemId: input.slice(slashIndex + 1),
-      };
+      const candidatePrefix = input.slice(0, slashIndex);
+      if (this.workspaces.some(w => w.projectName.toLowerCase() === candidatePrefix.toLowerCase())) {
+        return {
+          projectName: candidatePrefix,
+          itemId: input.slice(slashIndex + 1),
+        };
+      }
     }
     return { projectName: null, itemId: input };
   }
