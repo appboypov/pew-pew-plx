@@ -5,14 +5,11 @@ import { Validator } from '../core/validation/validator.js';
 import { ChangeParser } from '../core/parsers/change-parser.js';
 import { Change, TrackedIssue } from '../core/schemas/index.js';
 import { isInteractive } from '../utils/interactive.js';
-import { getActiveChangeIds } from '../utils/item-discovery.js';
+import { getActiveChangeIdsMulti, ChangeIdWithWorkspace } from '../utils/item-discovery.js';
 import { migrateIfNeeded } from '../utils/task-migration.js';
 import { getTaskStructureForChange } from '../utils/task-progress.js';
-
-// Constants for better maintainability
-const ARCHIVE_DIR = 'archive';
-const TASK_PATTERN = /^[-*]\s+\[[\sx]\]/i;
-const COMPLETED_TASK_PATTERN = /^[-*]\s+\[x\]/i;
+import { getFilteredWorkspaces } from '../utils/workspace-filter.js';
+import { isMultiWorkspace, DiscoveredWorkspace } from '../utils/workspace-discovery.js';
 
 interface ChangeListItem {
   id: string;
@@ -20,13 +17,47 @@ interface ChangeListItem {
   deltaCount: number;
   taskStatus: { total: number; completed: number };
   trackedIssues?: TrackedIssue[];
+  projectName?: string;
+  displayId?: string;
 }
 
 export class ChangeCommand {
   private converter: JsonConverter;
+  private workspaces: DiscoveredWorkspace[] = [];
+  private isMulti: boolean = false;
 
   constructor() {
     this.converter = new JsonConverter();
+  }
+
+  private async ensureInitialized(): Promise<void> {
+    if (this.workspaces.length > 0) return;
+    this.workspaces = await getFilteredWorkspaces(process.cwd());
+    this.isMulti = isMultiWorkspace(this.workspaces);
+  }
+
+  private parseWorkspacePrefixedId(input: string): { projectName: string | null; itemId: string } {
+    if (input.includes('/')) {
+      const slashIndex = input.indexOf('/');
+      return {
+        projectName: input.slice(0, slashIndex),
+        itemId: input.slice(slashIndex + 1),
+      };
+    }
+    return { projectName: null, itemId: input };
+  }
+
+  private findWorkspaceForItem(
+    projectName: string | null,
+    itemId: string,
+    changeItems: ChangeIdWithWorkspace[]
+  ): ChangeIdWithWorkspace | undefined {
+    if (projectName) {
+      return changeItems.find(
+        (c) => c.projectName.toLowerCase() === projectName.toLowerCase() && c.id === itemId
+      );
+    }
+    return changeItems.find((c) => c.id === itemId);
   }
 
   /**
@@ -36,30 +67,45 @@ export class ChangeCommand {
    *   Note: --requirements-only is deprecated alias for --deltas-only
    */
   async show(changeName?: string, options?: { json?: boolean; requirementsOnly?: boolean; deltasOnly?: boolean; noInteractive?: boolean }): Promise<void> {
-    const changesPath = path.join(process.cwd(), 'workspace', 'changes');
+    await this.ensureInitialized();
+    const changeItems = await getActiveChangeIdsMulti(this.workspaces);
+
+    let resolvedChange: ChangeIdWithWorkspace | undefined;
 
     if (!changeName) {
       const canPrompt = isInteractive(options);
-      const changes = await this.getActiveChanges(changesPath);
-      if (canPrompt && changes.length > 0) {
+      if (canPrompt && changeItems.length > 0) {
         const { select } = await import('@inquirer/prompts');
         const selected = await select({
           message: 'Select a change to show',
-          choices: changes.map(id => ({ name: id, value: id })),
+          choices: changeItems.map((c) => ({ name: c.displayId, value: c })),
         });
-        changeName = selected;
+        resolvedChange = selected;
+        changeName = resolvedChange.id;
       } else {
-        if (changes.length === 0) {
+        if (changeItems.length === 0) {
           console.error('No change specified. No active changes found.');
         } else {
-          console.error(`No change specified. Available IDs: ${changes.join(', ')}`);
+          const displayIds = changeItems.map((c) => c.displayId);
+          console.error(`No change specified. Available IDs: ${displayIds.join(', ')}`);
         }
         console.error('Hint: use "plx change list" to view available changes.');
         process.exitCode = 1;
         return;
       }
+    } else {
+      const { projectName, itemId } = this.parseWorkspacePrefixedId(changeName);
+      resolvedChange = this.findWorkspaceForItem(projectName, itemId, changeItems);
+      if (resolvedChange) {
+        changeName = resolvedChange.id;
+      }
     }
 
+    if (!resolvedChange) {
+      throw new Error(`Change "${changeName}" not found`);
+    }
+
+    const changesPath = path.join(resolvedChange.workspacePath, 'changes');
     const proposalPath = path.join(changesPath, changeName, 'proposal.md');
 
     try {
@@ -100,6 +146,11 @@ export class ChangeCommand {
         output.trackedIssues = trackedIssues;
       }
 
+      if (this.isMulti && resolvedChange.projectName) {
+        output.projectName = resolvedChange.projectName;
+        output.displayId = resolvedChange.displayId;
+      }
+
       console.log(JSON.stringify(output, null, 2));
     } else {
       const content = await fs.readFile(proposalPath, 'utf-8');
@@ -113,15 +164,15 @@ export class ChangeCommand {
    * - JSON: array of { id, title, deltaCount, taskStatus }, sorted by id
    */
   async list(options?: { json?: boolean; long?: boolean }): Promise<void> {
-    const changesPath = path.join(process.cwd(), 'workspace', 'changes');
-    
-    const changes = await this.getActiveChanges(changesPath);
-    
+    await this.ensureInitialized();
+    const changeItems = await getActiveChangeIdsMulti(this.workspaces);
+
     if (options?.json) {
       const changeDetails = await Promise.all(
-        changes.map(async (changeName) => {
-          const proposalPath = path.join(changesPath, changeName, 'proposal.md');
-          const changeDir = path.join(changesPath, changeName);
+        changeItems.map(async (changeItem) => {
+          const changesPath = path.join(changeItem.workspacePath, 'changes');
+          const proposalPath = path.join(changesPath, changeItem.id, 'proposal.md');
+          const changeDir = path.join(changesPath, changeItem.id);
 
           try {
             // Trigger migration silently in JSON mode
@@ -129,15 +180,15 @@ export class ChangeCommand {
 
             const content = await fs.readFile(proposalPath, 'utf-8');
             const parser = new ChangeParser(content, changeDir);
-            const change = await parser.parseChangeWithDeltas(changeName);
+            const change = await parser.parseChangeWithDeltas(changeItem.id);
 
             // Use task structure to get aggregate progress
-            const taskStructure = await getTaskStructureForChange(changesPath, changeName);
+            const taskStructure = await getTaskStructureForChange(changesPath, changeItem.id);
             const taskStatus = taskStructure.aggregateProgress;
-            
+
             const result: ChangeListItem = {
-              id: changeName,
-              title: this.extractTitle(content, changeName),
+              id: changeItem.id,
+              title: this.extractTitle(content, changeItem.id),
               deltaCount: change.deltas.length,
               taskStatus,
             };
@@ -146,36 +197,56 @@ export class ChangeCommand {
               result.trackedIssues = change.trackedIssues;
             }
 
+            if (this.isMulti && changeItem.projectName) {
+              result.projectName = changeItem.projectName;
+              result.displayId = changeItem.displayId;
+            }
+
             return result;
-          } catch (error) {
-            return {
-              id: changeName,
+          } catch {
+            const result: ChangeListItem = {
+              id: changeItem.id,
               title: 'Unknown',
               deltaCount: 0,
               taskStatus: { total: 0, completed: 0 },
             };
+            if (this.isMulti && changeItem.projectName) {
+              result.projectName = changeItem.projectName;
+              result.displayId = changeItem.displayId;
+            }
+            return result;
           }
         })
       );
-      
-      const sorted = changeDetails.sort((a, b) => a.id.localeCompare(b.id));
+
+      const sorted = changeDetails.sort((a, b) => {
+        if (!a.projectName && b.projectName) return -1;
+        if (a.projectName && !b.projectName) return 1;
+        const projCmp = (a.projectName || '').localeCompare(b.projectName || '');
+        if (projCmp !== 0) return projCmp;
+        return a.id.localeCompare(b.id);
+      });
       console.log(JSON.stringify(sorted, null, 2));
     } else {
-      if (changes.length === 0) {
+      if (changeItems.length === 0) {
         console.log('No items found');
         return;
       }
-      const sorted = [...changes].sort();
+
       if (!options?.long) {
         // IDs only
-        sorted.forEach(id => console.log(id));
+        for (const changeItem of changeItems) {
+          const displayName = this.isMulti ? changeItem.displayId : changeItem.id;
+          console.log(displayName);
+        }
         return;
       }
 
       // Long format: id: title and minimal counts
-      for (const changeName of sorted) {
-        const proposalPath = path.join(changesPath, changeName, 'proposal.md');
-        const changeDir = path.join(changesPath, changeName);
+      for (const changeItem of changeItems) {
+        const changesPath = path.join(changeItem.workspacePath, 'changes');
+        const proposalPath = path.join(changesPath, changeItem.id, 'proposal.md');
+        const changeDir = path.join(changesPath, changeItem.id);
         try {
           // Trigger migration if needed
           const migrationResult = await migrateIfNeeded(changeDir);
@@ -184,52 +255,69 @@ export class ChangeCommand {
           }
 
           const content = await fs.readFile(proposalPath, 'utf-8');
-          const title = this.extractTitle(content, changeName);
+          const title = this.extractTitle(content, changeItem.id);
 
           // Use task structure to get aggregate progress
-          const taskStructure = await getTaskStructureForChange(changesPath, changeName);
+          const taskStructure = await getTaskStructureForChange(changesPath, changeItem.id);
           const { total, completed } = taskStructure.aggregateProgress;
           const taskStatusText = total > 0 ? ` [tasks ${completed}/${total}]` : '';
 
           const parser = new ChangeParser(await fs.readFile(proposalPath, 'utf-8'), changeDir);
-          const change = await parser.parseChangeWithDeltas(changeName);
+          const change = await parser.parseChangeWithDeltas(changeItem.id);
           const deltaCountText = ` [deltas ${change.deltas.length}]`;
           const issueText = change.trackedIssues && change.trackedIssues.length > 0
             ? ` (${change.trackedIssues[0].id})`
             : '';
-          console.log(`${changeName}: ${title}${issueText}${deltaCountText}${taskStatusText}`);
+          const displayName = this.isMulti ? changeItem.displayId : changeItem.id;
+          console.log(`${displayName}: ${title}${issueText}${deltaCountText}${taskStatusText}`);
         } catch {
-          console.log(`${changeName}: (unable to read)`);
+          const displayName = this.isMulti ? changeItem.displayId : changeItem.id;
+          console.log(`${displayName}: (unable to read)`);
         }
       }
     }
   }
 
   async validate(changeName?: string, options?: { strict?: boolean; json?: boolean; noInteractive?: boolean }): Promise<void> {
-    const changesPath = path.join(process.cwd(), 'workspace', 'changes');
-    
+    await this.ensureInitialized();
+    const changeItems = await getActiveChangeIdsMulti(this.workspaces);
+
+    let resolvedChange: ChangeIdWithWorkspace | undefined;
+
     if (!changeName) {
       const canPrompt = isInteractive(options);
-      const changes = await getActiveChangeIds();
-      if (canPrompt && changes.length > 0) {
+      if (canPrompt && changeItems.length > 0) {
         const { select } = await import('@inquirer/prompts');
         const selected = await select({
           message: 'Select a change to validate',
-          choices: changes.map(id => ({ name: id, value: id })),
+          choices: changeItems.map((c) => ({ name: c.displayId, value: c })),
         });
-        changeName = selected;
+        resolvedChange = selected;
+        changeName = resolvedChange.id;
       } else {
-        if (changes.length === 0) {
+        if (changeItems.length === 0) {
           console.error('No change specified. No active changes found.');
         } else {
-          console.error(`No change specified. Available IDs: ${changes.join(', ')}`);
+          const displayIds = changeItems.map((c) => c.displayId);
+          console.error(`No change specified. Available IDs: ${displayIds.join(', ')}`);
         }
         console.error('Hint: use "plx change list" to view available changes.');
         process.exitCode = 1;
         return;
       }
+    } else {
+      const { projectName, itemId } = this.parseWorkspacePrefixedId(changeName);
+      resolvedChange = this.findWorkspaceForItem(projectName, itemId, changeItems);
+      if (resolvedChange) {
+        changeName = resolvedChange.id;
+      }
     }
-    
+
+    if (!resolvedChange) {
+      throw new Error(`Change "${changeName}" not found`);
+    }
+
+    const changesPath = path.join(resolvedChange.workspacePath, 'changes');
     const changeDir = path.join(changesPath, changeName);
 
     try {
@@ -246,14 +334,16 @@ export class ChangeCommand {
 
     const validator = new Validator(options?.strict || false);
     const report = await validator.validateChangeDeltaSpecs(changeDir);
-    
+
+    const displayName = this.isMulti ? resolvedChange.displayId : changeName;
+
     if (options?.json) {
       console.log(JSON.stringify(report, null, 2));
     } else {
       if (report.valid) {
-        console.log(`Change "${changeName}" is valid`);
+        console.log(`Change "${displayName}" is valid`);
       } else {
-        console.error(`Change "${changeName}" has issues`);
+        console.error(`Change "${displayName}" has issues`);
         report.issues.forEach(issue => {
           const label = issue.level === 'ERROR' ? 'ERROR' : 'WARNING';
           const prefix = issue.level === 'ERROR' ? '✗' : '⚠';
@@ -268,46 +358,9 @@ export class ChangeCommand {
     }
   }
 
-  private async getActiveChanges(changesPath: string): Promise<string[]> {
-    try {
-      const entries = await fs.readdir(changesPath, { withFileTypes: true });
-      const result: string[] = [];
-      for (const entry of entries) {
-        if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === ARCHIVE_DIR) continue;
-        const proposalPath = path.join(changesPath, entry.name, 'proposal.md');
-        try {
-          await fs.access(proposalPath);
-          result.push(entry.name);
-        } catch {
-          // skip directories without proposal.md
-        }
-      }
-      return result.sort();
-    } catch {
-      return [];
-    }
-  }
-
   private extractTitle(content: string, changeName: string): string {
     const match = content.match(/^#\s+(?:Change:\s+)?(.+)$/im);
     return match ? match[1].trim() : changeName;
-  }
-
-  private countTasks(content: string): { total: number; completed: number } {
-    const lines = content.split('\n');
-    let total = 0;
-    let completed = 0;
-    
-    for (const line of lines) {
-      if (line.match(TASK_PATTERN)) {
-        total++;
-        if (line.match(COMPLETED_TASK_PATTERN)) {
-          completed++;
-        }
-      }
-    }
-    
-    return { total, completed };
   }
 
   private printNextSteps(): void {

@@ -22,3 +22,8 @@ export {
   formatFeedbackMarker,
   parseFeedbackMarker,
 } from './comment-markers.js';
+
+export {
+  getWorkspaceFilter,
+  getFilteredWorkspaces,
+} from './workspace-filter.js';

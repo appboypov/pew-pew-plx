@@ -2,9 +2,16 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import chalk from 'chalk';
 import ora from 'ora';
-import { getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
+import {
+  getActiveChangeIdsMulti,
+  getSpecIdsMulti,
+  ChangeIdWithWorkspace,
+  SpecIdWithWorkspace,
+} from '../utils/item-discovery.js';
 import { isInteractive } from '../utils/interactive.js';
 import { ReviewParent } from '../core/schemas/index.js';
+import { getFilteredWorkspaces } from '../utils/workspace-filter.js';
+import { isMultiWorkspace, DiscoveredWorkspace } from '../utils/workspace-discovery.js';
 
 interface ReviewOptions {
   changeId?: string;
@@ -17,24 +24,87 @@ interface ReviewOptions {
 
 export class ReviewCommand {
   private root: string;
+  private workspaces: DiscoveredWorkspace[] = [];
+  private isMulti: boolean = false;
 
   constructor(root: string = process.cwd()) {
     this.root = root;
   }
 
+  private async ensureInitialized(): Promise<void> {
+    if (this.workspaces.length > 0) return;
+    this.workspaces = await getFilteredWorkspaces(this.root);
+    this.isMulti = isMultiWorkspace(this.workspaces);
+  }
+
+  private parseWorkspacePrefixedId(input: string): { projectName: string | null; itemId: string } {
+    if (input.includes('/')) {
+      const slashIndex = input.indexOf('/');
+      return {
+        projectName: input.slice(0, slashIndex),
+        itemId: input.slice(slashIndex + 1),
+      };
+    }
+    return { projectName: null, itemId: input };
+  }
+
+  private findChangeForItem(
+    projectName: string | null,
+    itemId: string,
+    changeItems: ChangeIdWithWorkspace[]
+  ): ChangeIdWithWorkspace | undefined {
+    if (projectName) {
+      return changeItems.find(
+        (c) => c.projectName.toLowerCase() === projectName.toLowerCase() && c.id === itemId
+      );
+    }
+    return changeItems.find((c) => c.id === itemId);
+  }
+
+  private findSpecForItem(
+    projectName: string | null,
+    itemId: string,
+    specItems: SpecIdWithWorkspace[]
+  ): SpecIdWithWorkspace | undefined {
+    if (projectName) {
+      return specItems.find(
+        (s) => s.projectName.toLowerCase() === projectName.toLowerCase() && s.id === itemId
+      );
+    }
+    return specItems.find((s) => s.id === itemId);
+  }
+
   async execute(options: ReviewOptions = {}): Promise<void> {
+    await this.ensureInitialized();
     const interactive = isInteractive(options);
 
     // Determine what to review
     let parentType: ReviewParent | undefined;
     let parentId: string | undefined;
+    let resolvedWorkspacePath: string | undefined;
 
     if (options.changeId) {
       parentType = 'change';
-      parentId = options.changeId;
+      const { projectName, itemId } = this.parseWorkspacePrefixedId(options.changeId);
+      const changeItems = await getActiveChangeIdsMulti(this.workspaces);
+      const resolved = this.findChangeForItem(projectName, itemId, changeItems);
+      if (resolved) {
+        parentId = resolved.id;
+        resolvedWorkspacePath = resolved.workspacePath;
+      } else {
+        parentId = itemId;
+      }
     } else if (options.specId) {
       parentType = 'spec';
-      parentId = options.specId;
+      const { projectName, itemId } = this.parseWorkspacePrefixedId(options.specId);
+      const specItems = await getSpecIdsMulti(this.workspaces);
+      const resolved = this.findSpecForItem(projectName, itemId, specItems);
+      if (resolved) {
+        parentId = resolved.id;
+        resolvedWorkspacePath = resolved.workspacePath;
+      } else {
+        parentId = itemId;
+      }
     } else if (options.taskId) {
       parentType = 'task';
       parentId = options.taskId;
@@ -55,27 +125,45 @@ export class ReviewCommand {
         parentType = parentTypeChoice;
 
         if (parentType === 'change') {
-          const changes = await getActiveChangeIds();
-          if (changes.length === 0) {
+          const changeItems = await getActiveChangeIdsMulti(this.workspaces);
+          if (changeItems.length === 0) {
             ora().fail('No active changes found');
             process.exitCode = 1;
             return;
           }
-          parentId = await select({
+          const selected = await select({
             message: 'Select the change to review:',
-            choices: changes.map((id) => ({ name: id, value: id })),
+            choices: changeItems.map((c) => ({ name: c.displayId, value: c })),
           });
+          // Handle both object (ChangeIdWithWorkspace) and string (legacy/test) selection
+          if (typeof selected === 'string') {
+            parentId = selected;
+            const found = changeItems.find((c) => c.id === selected || c.displayId === selected);
+            resolvedWorkspacePath = found?.workspacePath;
+          } else {
+            parentId = selected.id;
+            resolvedWorkspacePath = selected.workspacePath;
+          }
         } else if (parentType === 'spec') {
-          const specs = await getSpecIds();
-          if (specs.length === 0) {
+          const specItems = await getSpecIdsMulti(this.workspaces);
+          if (specItems.length === 0) {
             ora().fail('No specs found');
             process.exitCode = 1;
             return;
           }
-          parentId = await select({
+          const selected = await select({
             message: 'Select the spec to review:',
-            choices: specs.map((id) => ({ name: id, value: id })),
+            choices: specItems.map((s) => ({ name: s.displayId, value: s })),
           });
+          // Handle both object (SpecIdWithWorkspace) and string (legacy/test) selection
+          if (typeof selected === 'string') {
+            parentId = selected;
+            const found = specItems.find((s) => s.id === selected || s.displayId === selected);
+            resolvedWorkspacePath = found?.workspacePath;
+          } else {
+            parentId = selected.id;
+            resolvedWorkspacePath = selected.workspacePath;
+          }
         } else {
           const { input } = await import('@inquirer/prompts');
           parentId = await input({
@@ -101,14 +189,18 @@ export class ReviewCommand {
 
     // Output review context
     if (options.json) {
-      const output = await this.buildJsonOutput(parentType, parentId);
+      const output = await this.buildJsonOutput(parentType, parentId, resolvedWorkspacePath);
       console.log(JSON.stringify(output, null, 2));
     } else {
-      await this.outputReviewContext(parentType, parentId);
+      await this.outputReviewContext(parentType, parentId, resolvedWorkspacePath);
     }
   }
 
-  private async buildJsonOutput(parentType: ReviewParent, parentId: string): Promise<object> {
+  private async buildJsonOutput(
+    parentType: ReviewParent,
+    parentId: string,
+    workspacePath?: string
+  ): Promise<object> {
     const output: Record<string, unknown> = {
       parentType,
       parentId,
@@ -128,10 +220,18 @@ export class ReviewCommand {
 
     // Add parent documents
     if (parentType === 'change') {
-      const changeDir = path.join(this.root, 'workspace', 'changes', parentId);
+      let basePath = workspacePath;
+      if (!basePath) {
+        basePath = this.workspaces.length > 0 ? this.workspaces[0].path : path.join(this.root, 'workspace');
+      }
+      const changeDir = path.join(basePath, 'changes', parentId);
       await this.addChangeDocuments(changeDir, documents);
     } else if (parentType === 'spec') {
-      const specPath = path.join(this.root, 'workspace', 'specs', parentId, 'spec.md');
+      let basePath = workspacePath;
+      if (!basePath) {
+        basePath = this.workspaces.length > 0 ? this.workspaces[0].path : path.join(this.root, 'workspace');
+      }
+      const specPath = path.join(basePath, 'specs', parentId, 'spec.md');
       try {
         const content = await fs.readFile(specPath, 'utf-8');
         documents.push({ path: `workspace/specs/${parentId}/spec.md`, content });
@@ -147,7 +247,11 @@ export class ReviewCommand {
     return output;
   }
 
-  private async outputReviewContext(parentType: ReviewParent, parentId: string): Promise<void> {
+  private async outputReviewContext(
+    parentType: ReviewParent,
+    parentId: string,
+    workspacePath?: string
+  ): Promise<void> {
     console.log(chalk.cyan(`\n═══ Review: ${parentType}/${parentId} ═══\n`));
 
     // Output REVIEW.md if exists
@@ -163,9 +267,9 @@ export class ReviewCommand {
 
     // Output parent documents
     if (parentType === 'change') {
-      await this.outputChangeDocuments(parentId);
+      await this.outputChangeDocuments(parentId, workspacePath);
     } else if (parentType === 'spec') {
-      await this.outputSpecDocuments(parentId);
+      await this.outputSpecDocuments(parentId, workspacePath);
     } else if (parentType === 'task') {
       await this.outputTaskDocuments(parentId);
     }
@@ -204,8 +308,17 @@ export class ReviewCommand {
     }
   }
 
-  private async outputChangeDocuments(changeId: string): Promise<void> {
-    const changeDir = path.join(this.root, 'workspace', 'changes', changeId);
+  private async outputChangeDocuments(changeId: string, workspacePath?: string): Promise<void> {
+    // If workspacePath is not provided, discover it from the first available workspace
+    let basePath = workspacePath;
+    if (!basePath) {
+      if (this.workspaces.length > 0) {
+        basePath = this.workspaces[0].path;
+      } else {
+        basePath = path.join(this.root, 'workspace');
+      }
+    }
+    const changeDir = path.join(basePath, 'changes', changeId);
 
     // Output proposal
     try {
@@ -245,8 +358,17 @@ export class ReviewCommand {
     }
   }
 
-  private async outputSpecDocuments(specId: string): Promise<void> {
-    const specPath = path.join(this.root, 'workspace', 'specs', specId, 'spec.md');
+  private async outputSpecDocuments(specId: string, workspacePath?: string): Promise<void> {
+    // If workspacePath is not provided, discover it from the first available workspace
+    let basePath = workspacePath;
+    if (!basePath) {
+      if (this.workspaces.length > 0) {
+        basePath = this.workspaces[0].path;
+      } else {
+        basePath = path.join(this.root, 'workspace');
+      }
+    }
+    const specPath = path.join(basePath, 'specs', specId, 'spec.md');
     try {
       const content = await fs.readFile(specPath, 'utf-8');
       console.log(chalk.yellow(`═══ Spec: ${specId} ═══\n`));
@@ -261,64 +383,68 @@ export class ReviewCommand {
     taskId: string,
     documents: Array<{ path: string; content: string }>
   ): Promise<void> {
-    // Try to find the task in changes
-    const changesDir = path.join(this.root, 'workspace', 'changes');
-    try {
-      const changes = await fs.readdir(changesDir, { withFileTypes: true });
-      for (const change of changes) {
-        if (!change.isDirectory() || change.name === 'archive') continue;
-        const tasksDir = path.join(changesDir, change.name, 'tasks');
-        try {
-          const taskFiles = await fs.readdir(tasksDir);
-          for (const taskFile of taskFiles) {
-            if (taskFile.includes(taskId) || taskFile === `${taskId}.md`) {
-              const content = await fs.readFile(path.join(tasksDir, taskFile), 'utf-8');
-              documents.push({ path: `${change.name}/tasks/${taskFile}`, content });
+    // Search across all workspaces
+    for (const workspace of this.workspaces) {
+      const changesDir = path.join(workspace.path, 'changes');
+      try {
+        const changes = await fs.readdir(changesDir, { withFileTypes: true });
+        for (const change of changes) {
+          if (!change.isDirectory() || change.name === 'archive') continue;
+          const tasksDir = path.join(changesDir, change.name, 'tasks');
+          try {
+            const taskFiles = await fs.readdir(tasksDir);
+            for (const taskFile of taskFiles) {
+              if (taskFile.includes(taskId) || taskFile === `${taskId}.md`) {
+                const content = await fs.readFile(path.join(tasksDir, taskFile), 'utf-8');
+                documents.push({ path: `${change.name}/tasks/${taskFile}`, content });
 
-              // Also add parent change documents
-              const changeDir = path.join(changesDir, change.name);
-              await this.addChangeDocuments(changeDir, documents);
-              return;
+                // Also add parent change documents
+                const changeDir = path.join(changesDir, change.name);
+                await this.addChangeDocuments(changeDir, documents);
+                return;
+              }
             }
+          } catch {
+            // Tasks dir may not exist
           }
-        } catch {
-          // Tasks dir may not exist
         }
+      } catch {
+        // Changes dir may not exist
       }
-    } catch {
-      // Changes dir may not exist
     }
   }
 
   private async outputTaskDocuments(taskId: string): Promise<void> {
-    // Try to find the task in changes
-    const changesDir = path.join(this.root, 'workspace', 'changes');
-    try {
-      const changes = await fs.readdir(changesDir, { withFileTypes: true });
-      for (const change of changes) {
-        if (!change.isDirectory() || change.name === 'archive') continue;
-        const tasksDir = path.join(changesDir, change.name, 'tasks');
-        try {
-          const taskFiles = await fs.readdir(tasksDir);
-          for (const taskFile of taskFiles) {
-            if (taskFile.includes(taskId) || taskFile === `${taskId}.md`) {
-              // Output the task
-              const content = await fs.readFile(path.join(tasksDir, taskFile), 'utf-8');
-              console.log(chalk.yellow(`═══ Task: ${taskFile} ═══\n`));
-              console.log(content);
+    // Search across all workspaces
+    for (const workspace of this.workspaces) {
+      const changesDir = path.join(workspace.path, 'changes');
+      try {
+        const changes = await fs.readdir(changesDir, { withFileTypes: true });
+        for (const change of changes) {
+          if (!change.isDirectory() || change.name === 'archive') continue;
+          const tasksDir = path.join(changesDir, change.name, 'tasks');
+          try {
+            const taskFiles = await fs.readdir(tasksDir);
+            for (const taskFile of taskFiles) {
+              if (taskFile.includes(taskId) || taskFile === `${taskId}.md`) {
+                // Output the task
+                const content = await fs.readFile(path.join(tasksDir, taskFile), 'utf-8');
+                console.log(chalk.yellow(`═══ Task: ${taskFile} ═══\n`));
+                console.log(content);
 
-              // Also output parent change documents
-              console.log(chalk.yellow(`\n═══ Parent Change: ${change.name} ═══\n`));
-              await this.outputChangeDocuments(change.name);
-              return;
+                // Also output parent change documents
+                console.log(chalk.yellow(`\n═══ Parent Change: ${change.name} ═══\n`));
+                await this.outputChangeDocuments(change.name, workspace.path);
+                return;
+              }
             }
+          } catch {
+            // Tasks dir may not exist
           }
-        } catch {
-          // Tasks dir may not exist
         }
+      } catch {
+        // Changes dir may not exist
       }
-    } catch {
-      // Changes dir may not exist
     }
 
     console.log(chalk.red(`Task not found: ${taskId}`));

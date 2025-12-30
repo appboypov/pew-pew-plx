@@ -1,5 +1,27 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { DiscoveredWorkspace, isMultiWorkspace } from './workspace-discovery.js';
+
+export interface ChangeIdWithWorkspace {
+  id: string;
+  workspacePath: string;
+  projectName: string;
+  displayId: string;
+}
+
+export interface SpecIdWithWorkspace {
+  id: string;
+  workspacePath: string;
+  projectName: string;
+  displayId: string;
+}
+
+export interface ReviewIdWithWorkspace {
+  id: string;
+  workspacePath: string;
+  projectName: string;
+  displayId: string;
+}
 
 export async function getActiveChangeIds(root: string = process.cwd()): Promise<string[]> {
   const changesPath = path.join(root, 'workspace', 'changes');
@@ -104,4 +126,129 @@ export async function getArchivedReviewIds(root: string = process.cwd()): Promis
   } catch {
     return [];
   }
+}
+
+function sortWithWorkspace<T extends { projectName: string; id: string }>(items: T[]): T[] {
+  return items.sort((a, b) => {
+    if (!a.projectName && b.projectName) return -1;
+    if (a.projectName && !b.projectName) return 1;
+    const projCmp = a.projectName.localeCompare(b.projectName);
+    if (projCmp !== 0) return projCmp;
+    return a.id.localeCompare(b.id);
+  });
+}
+
+export async function getActiveChangeIdsMulti(
+  workspaces: DiscoveredWorkspace[]
+): Promise<ChangeIdWithWorkspace[]> {
+  const isMulti = isMultiWorkspace(workspaces);
+  const results: ChangeIdWithWorkspace[] = [];
+
+  for (const workspace of workspaces) {
+    const parentDir = path.dirname(workspace.path);
+    const ids = await getActiveChangeIds(parentDir);
+
+    for (const id of ids) {
+      results.push({
+        id,
+        workspacePath: workspace.path,
+        projectName: workspace.projectName,
+        displayId: isMulti && workspace.projectName ? `${workspace.projectName}/${id}` : id,
+      });
+    }
+  }
+
+  return sortWithWorkspace(results);
+}
+
+export async function getSpecIdsMulti(
+  workspaces: DiscoveredWorkspace[]
+): Promise<SpecIdWithWorkspace[]> {
+  const isMulti = isMultiWorkspace(workspaces);
+  const results: SpecIdWithWorkspace[] = [];
+
+  for (const workspace of workspaces) {
+    const parentDir = path.dirname(workspace.path);
+    const ids = await getSpecIds(parentDir);
+
+    for (const id of ids) {
+      results.push({
+        id,
+        workspacePath: workspace.path,
+        projectName: workspace.projectName,
+        displayId: isMulti && workspace.projectName ? `${workspace.projectName}/${id}` : id,
+      });
+    }
+  }
+
+  return sortWithWorkspace(results);
+}
+
+export async function getActiveReviewIdsMulti(
+  workspaces: DiscoveredWorkspace[]
+): Promise<ReviewIdWithWorkspace[]> {
+  const isMulti = isMultiWorkspace(workspaces);
+  const results: ReviewIdWithWorkspace[] = [];
+
+  for (const workspace of workspaces) {
+    const parentDir = path.dirname(workspace.path);
+    const ids = await getActiveReviewIds(parentDir);
+
+    for (const id of ids) {
+      results.push({
+        id,
+        workspacePath: workspace.path,
+        projectName: workspace.projectName,
+        displayId: isMulti && workspace.projectName ? `${workspace.projectName}/${id}` : id,
+      });
+    }
+  }
+
+  return sortWithWorkspace(results);
+}
+
+export async function getArchivedChangeIdsMulti(
+  workspaces: DiscoveredWorkspace[]
+): Promise<ChangeIdWithWorkspace[]> {
+  const isMulti = isMultiWorkspace(workspaces);
+  const results: ChangeIdWithWorkspace[] = [];
+
+  for (const workspace of workspaces) {
+    const parentDir = path.dirname(workspace.path);
+    const ids = await getArchivedChangeIds(parentDir);
+
+    for (const id of ids) {
+      results.push({
+        id,
+        workspacePath: workspace.path,
+        projectName: workspace.projectName,
+        displayId: isMulti && workspace.projectName ? `${workspace.projectName}/${id}` : id,
+      });
+    }
+  }
+
+  return sortWithWorkspace(results);
+}
+
+export async function getArchivedReviewIdsMulti(
+  workspaces: DiscoveredWorkspace[]
+): Promise<ReviewIdWithWorkspace[]> {
+  const isMulti = isMultiWorkspace(workspaces);
+  const results: ReviewIdWithWorkspace[] = [];
+
+  for (const workspace of workspaces) {
+    const parentDir = path.dirname(workspace.path);
+    const ids = await getArchivedReviewIds(parentDir);
+
+    for (const id of ids) {
+      results.push({
+        id,
+        workspacePath: workspace.path,
+        projectName: workspace.projectName,
+        displayId: isMulti && workspace.projectName ? `${workspace.projectName}/${id}` : id,
+      });
+    }
+  }
+
+  return sortWithWorkspace(results);
 }

@@ -165,6 +165,12 @@ plx complete change --id <change-id>  # Complete all tasks in a change
 # Undo task/change completion
 plx undo task --id <task-id>          # Revert task to to-do, uncheck Implementation Checklist items
 plx undo change --id <change-id>      # Revert all tasks in a change to to-do
+
+# Multi-workspace operations (monorepo support)
+plx list --workspace project-a    # List items from project-a only
+plx get task --workspace project-a # Get task from project-a
+plx validate --all --workspace project-a  # Validate project-a only
+plx show project-a/add-feature    # Show change with workspace prefix
 ```
 
 ### Command Flags
@@ -178,6 +184,7 @@ plx undo change --id <change-id>      # Revert all tasks in a change to to-do
 - `--did-complete-previous` - Complete current task and advance to next
 - `--constraints` - Show only Constraints section (get task)
 - `--acceptance-criteria` - Show only Acceptance Criteria section (get task)
+- `--workspace <name>` - Filter operations to specific workspace (multi-workspace mode)
 
 ## Directory Structure
 
@@ -477,6 +484,88 @@ notifications/spec.md
 ## ADDED Requirements
 ### Requirement: OTP Email Notification
 ...
+```
+
+## Multi-Workspace Mode
+
+When running PLX from a directory containing multiple projects with `workspace/` directories, PLX operates in multi-workspace mode.
+
+### Detection
+
+PLX automatically discovers workspaces by scanning for `workspace/` directories:
+- Root workspace (if present) appears first
+- Child workspaces sorted alphabetically by project name
+- Maximum scan depth: 5 levels
+- Skip: `node_modules`, `.git`, `dist`, `build`, `.next`, etc.
+
+### Item Prefixes
+
+In multi-workspace mode, items are prefixed with project names:
+
+```bash
+# Single workspace output:
+add-feature
+
+# Multi-workspace output:
+project-a/add-feature
+project-b/update-auth
+```
+
+### Filtering
+
+Use `--workspace` to focus on a single project:
+
+```bash
+plx list --workspace project-a
+plx get task --workspace project-a
+plx validate project-a/add-feature
+```
+
+### Commands that Support Multi-Workspace
+
+All item discovery commands support multi-workspace:
+- `plx list` - Aggregates from all workspaces
+- `plx get task` - Searches across all workspaces (prioritizes by completion)
+- `plx get change/spec/tasks` - Resolves workspace-prefixed IDs
+- `plx validate` - Validates across all workspaces
+- `plx show` - Resolves workspace-prefixed IDs
+- `plx view` - Dashboard shows aggregated data
+
+### Monorepo Example
+
+```
+monorepo/
+├── project-a/
+│   └── workspace/
+│       ├── specs/
+│       └── changes/
+└── project-b/
+    └── workspace/
+        ├── specs/
+        └── changes/
+```
+
+Running `plx list` from `monorepo/` shows:
+```
+project-a/add-feature    (1/3 tasks)
+project-b/update-auth    (2/5 tasks)
+```
+
+### Root + Child Workspaces
+
+If `monorepo/workspace/` also exists:
+```
+monorepo/
+├── workspace/           # Root workspace (no prefix)
+├── project-a/workspace/ # project-a
+└── project-b/workspace/ # project-b
+```
+
+Running `plx list`:
+```
+add-shared-types         (0/2 tasks)   # From root
+project-a/add-feature    (1/3 tasks)
+project-b/update-auth    (2/5 tasks)
 ```
 
 ## Best Practices

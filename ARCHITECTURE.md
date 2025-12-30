@@ -81,7 +81,9 @@ pew-pew-plx/
 │       ├── task-file-parser.ts # Parse task filenames (NNN-name.md)
 │       ├── task-migration.ts # Legacy tasks.md migration
 │       ├── task-progress.ts # Task completion tracking
-│       └── task-status.ts  # Task status (to-do/in-progress/done)
+│       ├── task-status.ts  # Task status (to-do/in-progress/done)
+│       ├── workspace-discovery.ts # Multi-workspace discovery
+│       └── workspace-filter.ts # Workspace filtering
 ├── test/                   # Test files (mirrors src structure)
 ├── workspace/              # PLX workspace directory (dogfooding)
 ├── .claude/commands/       # Claude Code slash commands
@@ -617,6 +619,69 @@ Task status utilities in `src/utils/task-status.ts`:
 - `completeImplementationChecklist(content)` - Check Implementation Checklist items only
 - `uncompleteImplementationChecklist(content)` - Uncheck Implementation Checklist items only
 
+## Multi-Workspace Support
+
+Pew Pew Plx supports monorepo and multi-project setups through automatic workspace discovery.
+
+### Workspace Discovery
+
+When running any command, PLX automatically scans for workspaces:
+- Recursively searches from current directory for directories containing a `workspace/` subdirectory
+- Maximum scan depth: 5 levels
+- Skip directories: `node_modules`, `.git`, `dist`, `build`, `.next`, `__pycache__`, `venv`, `coverage`, `.cache`
+
+### Data Structures
+
+```typescript
+interface DiscoveredWorkspace {
+  path: string;           // Absolute path to workspace/ directory
+  relativePath: string;   // Relative path from scan root ('.' for root)
+  projectName: string;    // Parent directory name (empty for root workspace)
+  isRoot: boolean;        // True if workspace is at scan root
+}
+```
+
+### Workspace Filter Flag
+
+The global `--workspace <name>` flag filters operations to a specific workspace:
+
+```bash
+plx list --workspace project-a          # List only project-a items
+plx validate --all --workspace project-a # Validate only project-a
+plx get task --workspace project-a       # Get task from project-a only
+```
+
+### Item Prefixing
+
+In multi-workspace mode, item IDs are prefixed with the project name:
+- Single workspace: `add-feature`
+- Multi-workspace: `project-a/add-feature`
+
+Commands accept both prefixed and unprefixed IDs. When unprefixed and multiple matches exist, an error is returned with suggestions.
+
+### Workspace Discovery Flow
+
+```
+User runs: plx list
+    ↓
+discoverWorkspaces(cwd)
+    ↓
+Recursive scan for workspace/ directories
+    ↓
+Apply --workspace filter (if set)
+    ↓
+Aggregate items from all filtered workspaces
+    ↓
+Display with prefixes (if multi-workspace)
+```
+
+### Backward Compatibility
+
+Single-workspace projects work identically to before:
+- No prefix shown in output
+- Same directory structure
+- Existing commands unchanged
+
 ### Review System
 
 Pew Pew Plx provides a structured review workflow for validating implementations against specifications, changes, and tasks.
@@ -767,6 +832,29 @@ Pew Pew Plx provides:
 1. Create command file in `src/commands/<name>.ts` or `src/core/<name>.ts`
 2. Register in `src/cli/index.ts` using Commander.js
 3. Add tests in `test/commands/<name>.test.ts`
+
+### Adding Multi-Workspace Support to Commands
+
+When adding or modifying commands to support multi-workspace:
+
+1. Import workspace utilities:
+   ```typescript
+   import { getFilteredWorkspaces } from '../utils/workspace-filter.js';
+   import { isMultiWorkspace } from '../utils/workspace-discovery.js';
+   import { getActiveChangeIdsMulti } from '../utils/item-discovery.js';
+   ```
+
+2. Discover workspaces early in command execution:
+   ```typescript
+   const workspaces = await getFilteredWorkspaces();
+   const isMulti = isMultiWorkspace(workspaces);
+   ```
+
+3. Use multi-variants of discovery functions (`*Multi`) for aggregation
+
+4. Include workspace context in output when `isMulti` is true
+
+5. Accept prefixed IDs and resolve to correct workspace
 
 ### Adding New Validation Rules
 

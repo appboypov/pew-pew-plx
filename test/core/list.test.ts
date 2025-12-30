@@ -53,7 +53,13 @@ describe('ListCommand', () => {
       const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'archive'), { recursive: true });
       await fs.mkdir(path.join(changesDir, 'my-change'), { recursive: true });
-      
+
+      // Create proposal.md (required for change detection)
+      await fs.writeFile(
+        path.join(changesDir, 'my-change', 'proposal.md'),
+        '# Change: My Change\n\n## Why\nTest\n\n## What Changes\nTest'
+      );
+
       // Create tasks.md with some tasks
       await fs.writeFile(
         path.join(changesDir, 'my-change', 'tasks.md'),
@@ -71,7 +77,13 @@ describe('ListCommand', () => {
     it('should count tasks correctly', async () => {
       const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'test-change'), { recursive: true });
-      
+
+      // Create proposal.md (required for change detection)
+      await fs.writeFile(
+        path.join(changesDir, 'test-change', 'proposal.md'),
+        '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\nTest'
+      );
+
       await fs.writeFile(
         path.join(changesDir, 'test-change', 'tasks.md'),
         `# Tasks
@@ -93,7 +105,13 @@ Regular text that should be ignored
     it('should show complete status for fully completed changes', async () => {
       const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'completed-change'), { recursive: true });
-      
+
+      // Create proposal.md (required for change detection)
+      await fs.writeFile(
+        path.join(changesDir, 'completed-change', 'proposal.md'),
+        '# Change: Completed Change\n\n## Why\nTest\n\n## What Changes\nTest'
+      );
+
       await fs.writeFile(
         path.join(changesDir, 'completed-change', 'tasks.md'),
         '- [x] Task 1\n- [x] Task 2\n- [x] Task 3\n'
@@ -109,6 +127,12 @@ Regular text that should be ignored
       const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'no-tasks'), { recursive: true });
 
+      // Create proposal.md (required for change detection)
+      await fs.writeFile(
+        path.join(changesDir, 'no-tasks', 'proposal.md'),
+        '# Change: No Tasks\n\n## Why\nTest\n\n## What Changes\nTest'
+      );
+
       const listCommand = new ListCommand();
       await listCommand.execute(tempDir, 'changes');
 
@@ -120,6 +144,20 @@ Regular text that should be ignored
       await fs.mkdir(path.join(changesDir, 'zebra'), { recursive: true });
       await fs.mkdir(path.join(changesDir, 'alpha'), { recursive: true });
       await fs.mkdir(path.join(changesDir, 'middle'), { recursive: true });
+
+      // Create proposal.md for each change (required for change detection)
+      await fs.writeFile(
+        path.join(changesDir, 'zebra', 'proposal.md'),
+        '# Change: Zebra\n\n## Why\nTest\n\n## What Changes\nTest'
+      );
+      await fs.writeFile(
+        path.join(changesDir, 'alpha', 'proposal.md'),
+        '# Change: Alpha\n\n## Why\nTest\n\n## What Changes\nTest'
+      );
+      await fs.writeFile(
+        path.join(changesDir, 'middle', 'proposal.md'),
+        '# Change: Middle\n\n## Why\nTest\n\n## What Changes\nTest'
+      );
 
       const listCommand = new ListCommand();
       await listCommand.execute(tempDir);
@@ -139,6 +177,10 @@ Regular text that should be ignored
       // Complete change
       await fs.mkdir(path.join(changesDir, 'completed'), { recursive: true });
       await fs.writeFile(
+        path.join(changesDir, 'completed', 'proposal.md'),
+        '# Change: Completed\n\n## Why\nTest\n\n## What Changes\nTest'
+      );
+      await fs.writeFile(
         path.join(changesDir, 'completed', 'tasks.md'),
         '- [x] Task 1\n- [x] Task 2\n'
       );
@@ -146,12 +188,20 @@ Regular text that should be ignored
       // Partial change
       await fs.mkdir(path.join(changesDir, 'partial'), { recursive: true });
       await fs.writeFile(
+        path.join(changesDir, 'partial', 'proposal.md'),
+        '# Change: Partial\n\n## Why\nTest\n\n## What Changes\nTest'
+      );
+      await fs.writeFile(
         path.join(changesDir, 'partial', 'tasks.md'),
         '- [x] Done\n- [ ] Not done\n- [ ] Also not done\n'
       );
 
       // No tasks
       await fs.mkdir(path.join(changesDir, 'no-tasks'), { recursive: true });
+      await fs.writeFile(
+        path.join(changesDir, 'no-tasks', 'proposal.md'),
+        '# Change: No Tasks\n\n## Why\nTest\n\n## What Changes\nTest'
+      );
 
       const listCommand = new ListCommand();
       await listCommand.execute(tempDir);

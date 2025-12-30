@@ -144,8 +144,8 @@ status: in-progress
 
       const result = await service.getSpecById('my-spec');
       expect(result).not.toBeNull();
-      expect(result).toContain('# Spec');
-      expect(result).toContain('## Requirements');
+      expect(result!.content).toContain('# Spec');
+      expect(result!.content).toContain('## Requirements');
     });
 
     it('should return null for non-existent spec', async () => {

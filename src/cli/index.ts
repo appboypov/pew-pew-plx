@@ -35,12 +35,16 @@ program
 
 // Global options
 program.option('--no-color', 'Disable color output');
+program.option('--workspace <name>', 'Filter operations to a specific workspace');
 
 // Apply global flags before any command runs
 program.hook('preAction', (thisCommand) => {
   const opts = thisCommand.opts();
   if (opts.color === false) {
     process.env.NO_COLOR = '1';
+  }
+  if (opts.workspace) {
+    process.env.PLX_WORKSPACE_FILTER = opts.workspace;
   }
 });
 

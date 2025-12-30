@@ -13,9 +13,14 @@ import {
   completeTaskFully,
 } from '../utils/task-status.js';
 import { TaskFileInfo, countTasksFromContent } from '../utils/task-progress.js';
-import { ItemRetrievalService } from '../services/item-retrieval.js';
+import { ItemRetrievalService, OpenTaskInfo } from '../services/item-retrieval.js';
 import { ContentFilterService } from '../services/content-filter.js';
 import { getTaskId } from '../services/task-id.js';
+import { getFilteredWorkspaces } from '../utils/workspace-filter.js';
+import {
+  isMultiWorkspace,
+  DiscoveredWorkspace,
+} from '../utils/workspace-discovery.js';
 
 interface TaskOptions {
   id?: string;
@@ -47,6 +52,9 @@ interface CompletedTaskInfo {
 
 interface JsonOutput {
   changeId: string;
+  workspacePath?: string;
+  projectName?: string;
+  displayId?: string;
   task: {
     id: string;
     filename: string;
@@ -66,27 +74,61 @@ interface JsonOutput {
 }
 
 export class GetCommand {
-  private changesPath: string;
-  private itemRetrievalService: ItemRetrievalService;
+  private itemRetrievalService: ItemRetrievalService | null = null;
   private contentFilterService: ContentFilterService;
+  private workspaces: DiscoveredWorkspace[] = [];
+  private isMulti: boolean = false;
 
   constructor() {
-    this.changesPath = path.join(process.cwd(), 'workspace', 'changes');
-    this.itemRetrievalService = new ItemRetrievalService();
     this.contentFilterService = new ContentFilterService();
   }
 
+  private async ensureInitialized(): Promise<void> {
+    if (this.itemRetrievalService) return;
+
+    this.workspaces = await getFilteredWorkspaces(process.cwd());
+    this.isMulti = isMultiWorkspace(this.workspaces);
+    this.itemRetrievalService = await ItemRetrievalService.create(
+      process.cwd(),
+      this.workspaces
+    );
+  }
+
+  private getDisplayId(projectName: string, itemId: string): string {
+    if (!this.isMulti || !projectName) {
+      return itemId;
+    }
+    return `${projectName}/${itemId}`;
+  }
+
   async task(options: TaskOptions = {}): Promise<void> {
+    await this.ensureInitialized();
+
     // Handle ID-based retrieval
     if (options.id) {
       await this.taskById(options);
       return;
     }
 
-    // Original prioritization-based flow
-    let prioritizedChange = await getPrioritizedChange(this.changesPath);
+    // Find best prioritized change across all workspaces
+    let prioritizedChange: PrioritizedChange | null = null;
+    let currentWorkspace: DiscoveredWorkspace | null = null;
 
-    if (!prioritizedChange) {
+    for (const workspace of this.workspaces) {
+      const changesPath = path.join(workspace.path, 'changes');
+      const change = await getPrioritizedChange(changesPath);
+
+      if (
+        change &&
+        (!prioritizedChange ||
+          change.completionPercentage > prioritizedChange.completionPercentage)
+      ) {
+        prioritizedChange = change;
+        currentWorkspace = workspace;
+      }
+    }
+
+    if (!prioritizedChange || !currentWorkspace) {
       if (options.json) {
         console.log(JSON.stringify({ error: 'No active changes found' }));
       } else {
@@ -101,6 +143,12 @@ export class GetCommand {
         console.log(
           JSON.stringify({
             changeId: prioritizedChange.id,
+            workspacePath: currentWorkspace.path,
+            projectName: currentWorkspace.projectName,
+            displayId: this.getDisplayId(
+              currentWorkspace.projectName,
+              prioritizedChange.id
+            ),
             task: null,
             taskContent: null,
             message: 'All tasks complete',
@@ -173,12 +221,29 @@ export class GetCommand {
 
     // Check again if we have a next task after transitions
     if (!nextTask) {
-      // Current change is complete - check for other actionable changes
-      const nextPrioritizedChange = await getPrioritizedChange(this.changesPath);
+      // Current change is complete - check for other actionable changes across all workspaces
+      let nextPrioritizedChange: PrioritizedChange | null = null;
+      let nextWorkspace: DiscoveredWorkspace | null = null;
 
-      if (nextPrioritizedChange && nextPrioritizedChange.nextTask) {
+      for (const workspace of this.workspaces) {
+        const changesPath = path.join(workspace.path, 'changes');
+        const change = await getPrioritizedChange(changesPath);
+
+        if (
+          change &&
+          change.nextTask &&
+          (!nextPrioritizedChange ||
+            change.completionPercentage > nextPrioritizedChange.completionPercentage)
+        ) {
+          nextPrioritizedChange = change;
+          nextWorkspace = workspace;
+        }
+      }
+
+      if (nextPrioritizedChange && nextWorkspace && nextPrioritizedChange.nextTask) {
         // Another change has pending work - update to use it
         prioritizedChange = nextPrioritizedChange;
+        currentWorkspace = nextWorkspace;
         nextTask = nextPrioritizedChange.nextTask;
         // Continue to task output logic below (auto-transition handled there)
       } else {
@@ -186,6 +251,12 @@ export class GetCommand {
         if (options.json) {
           const output: JsonOutput = {
             changeId: prioritizedChange.id,
+            workspacePath: currentWorkspace.path,
+            projectName: currentWorkspace.projectName,
+            displayId: this.getDisplayId(
+              currentWorkspace.projectName,
+              prioritizedChange.id
+            ),
             task: null,
             taskContent: null,
           };
@@ -198,13 +269,17 @@ export class GetCommand {
           if (warning) {
             output.warning = warning;
           }
-          console.log(JSON.stringify({ ...output, message: 'All tasks complete' }, null, 2));
+          console.log(
+            JSON.stringify({ ...output, message: 'All tasks complete' }, null, 2)
+          );
         } else {
           if (completedTaskInfo) {
             this.printCompletedTaskInfo(completedTaskInfo);
           }
           if (autoCompletedTaskInfo) {
-            console.log(chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.id}\n`));
+            console.log(
+              chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.id}\n`)
+            );
           }
           if (warning) {
             ora().warn(warning);
@@ -232,9 +307,20 @@ export class GetCommand {
     // Apply content filtering if requested
     taskContent = this.applyContentFiltering(taskContent, options);
 
+    const taskDisplayId = this.getDisplayId(
+      currentWorkspace.projectName,
+      `${prioritizedChange.id}/${getTaskId(nextTask)}`
+    );
+
     if (options.json) {
       const output: JsonOutput = {
         changeId: prioritizedChange.id,
+        workspacePath: currentWorkspace.path,
+        projectName: currentWorkspace.projectName,
+        displayId: this.getDisplayId(
+          currentWorkspace.projectName,
+          prioritizedChange.id
+        ),
         task: {
           id: getTaskId(nextTask),
           filename: nextTask.filename,
@@ -248,7 +334,8 @@ export class GetCommand {
       // Include change documents unless --did-complete-previous or auto-completed
       if (!options.didCompletePrevious && !autoCompletedTaskInfo) {
         output.changeDocuments = await this.readChangeDocuments(
-          prioritizedChange.id
+          prioritizedChange.id,
+          currentWorkspace.path
         );
       }
 
@@ -276,11 +363,13 @@ export class GetCommand {
       }
 
       if (autoCompletedTaskInfo) {
-        console.log(chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.id}\n`));
+        console.log(
+          chalk.green(`\n✓ Auto-completed task: ${autoCompletedTaskInfo.id}\n`)
+        );
       }
 
       if (transitionedToInProgress) {
-        console.log(chalk.blue(`→ Transitioned to in-progress: ${getTaskId(nextTask)}`));
+        console.log(chalk.blue(`→ Transitioned to in-progress: ${taskDisplayId}`));
       }
 
       if (warning) {
@@ -290,19 +379,20 @@ export class GetCommand {
 
       // Show change documents unless --did-complete-previous or auto-completed
       if (!options.didCompletePrevious && !autoCompletedTaskInfo) {
-        await this.printChangeDocuments(prioritizedChange.id);
+        await this.printChangeDocuments(prioritizedChange.id, currentWorkspace.path);
       }
 
-      // Print task header
+      // Print task header with display ID in multi-workspace mode
+      const headerTaskId = this.isMulti ? taskDisplayId : getTaskId(nextTask);
       console.log(
-        chalk.bold.cyan(`\n═══ Task ${nextTask.sequence}: ${getTaskId(nextTask)} ═══\n`)
+        chalk.bold.cyan(`\n═══ Task ${nextTask.sequence}: ${headerTaskId} ═══\n`)
       );
       console.log(taskContent);
     }
   }
 
   private async taskById(options: TaskOptions): Promise<void> {
-    const result = await this.itemRetrievalService.getTaskById(options.id!);
+    const result = await this.itemRetrievalService!.getTaskById(options.id!);
 
     if (!result) {
       if (options.json) {
@@ -314,7 +404,8 @@ export class GetCommand {
       return;
     }
 
-    const { task, content, changeId } = result;
+    const { task, content, changeId, workspacePath, projectName, displayId } =
+      result;
     let taskStatus = parseStatus(content);
     let transitionedToInProgress = false;
 
@@ -334,8 +425,11 @@ export class GetCommand {
     const filteredContent = this.applyContentFiltering(updatedContent, options);
 
     if (options.json) {
-      const output: any = {
+      const output: JsonOutput = {
         changeId,
+        workspacePath,
+        projectName,
+        displayId,
         task: {
           id: getTaskId(task),
           filename: task.filename,
@@ -350,11 +444,12 @@ export class GetCommand {
       }
       console.log(JSON.stringify(output, null, 2));
     } else {
+      const taskDisplayId = this.isMulti ? displayId : getTaskId(task);
       if (transitionedToInProgress) {
-        console.log(chalk.blue(`\n→ Transitioned to in-progress: ${getTaskId(task)}`));
+        console.log(chalk.blue(`\n→ Transitioned to in-progress: ${taskDisplayId}`));
       }
       console.log(
-        chalk.bold.cyan(`\n═══ Task ${task.sequence}: ${getTaskId(task)} ═══\n`)
+        chalk.bold.cyan(`\n═══ Task ${task.sequence}: ${taskDisplayId} ═══\n`)
       );
       console.log(filteredContent);
     }
@@ -403,9 +498,13 @@ export class GetCommand {
   }
 
   private async readChangeDocuments(
-    changeId: string
+    changeId: string,
+    workspacePath?: string
   ): Promise<{ proposal: string; design?: string }> {
-    const changeDir = path.join(this.changesPath, changeId);
+    const changesPath = workspacePath
+      ? path.join(workspacePath, 'changes')
+      : path.join(process.cwd(), 'workspace', 'changes');
+    const changeDir = path.join(changesPath, changeId);
     const proposalPath = path.join(changeDir, 'proposal.md');
     const designPath = path.join(changeDir, 'design.md');
 
@@ -421,8 +520,11 @@ export class GetCommand {
     return { proposal, design };
   }
 
-  private async printChangeDocuments(changeId: string): Promise<void> {
-    const docs = await this.readChangeDocuments(changeId);
+  private async printChangeDocuments(
+    changeId: string,
+    workspacePath?: string
+  ): Promise<void> {
+    const docs = await this.readChangeDocuments(changeId, workspacePath);
 
     console.log(chalk.bold.blue(`\n═══ Proposal: ${changeId} ═══\n`));
     console.log(docs.proposal);
@@ -434,7 +536,8 @@ export class GetCommand {
   }
 
   async change(options: ChangeOptions): Promise<void> {
-    const result = await this.itemRetrievalService.getChangeById(options.id);
+    await this.ensureInitialized();
+    const result = await this.itemRetrievalService!.getChangeById(options.id);
 
     if (!result) {
       if (options.json) {
@@ -446,21 +549,32 @@ export class GetCommand {
       return;
     }
 
-    const { proposal, design, tasks } = result;
+    const { proposal, design, tasks, workspacePath, projectName, displayId } =
+      result;
 
     if (options.json) {
-      console.log(JSON.stringify({
-        changeId: options.id,
-        proposal,
-        design,
-        tasks: tasks.map(t => ({
-          id: getTaskId(t),
-          filename: t.filename,
-          sequence: t.sequence,
-        })),
-      }, null, 2));
+      console.log(
+        JSON.stringify(
+          {
+            changeId: options.id,
+            workspacePath,
+            projectName,
+            displayId,
+            proposal,
+            design,
+            tasks: tasks.map((t) => ({
+              id: getTaskId(t),
+              filename: t.filename,
+              sequence: t.sequence,
+            })),
+          },
+          null,
+          2
+        )
+      );
     } else {
-      console.log(chalk.bold.blue(`\n═══ Proposal: ${options.id} ═══\n`));
+      const headerId = this.isMulti ? displayId : options.id;
+      console.log(chalk.bold.blue(`\n═══ Proposal: ${headerId} ═══\n`));
       console.log(proposal);
 
       if (design) {
@@ -478,9 +592,10 @@ export class GetCommand {
   }
 
   async spec(options: SpecOptions): Promise<void> {
-    const content = await this.itemRetrievalService.getSpecById(options.id);
+    await this.ensureInitialized();
+    const result = await this.itemRetrievalService!.getSpecById(options.id);
 
-    if (!content) {
+    if (!result) {
       if (options.json) {
         console.log(JSON.stringify({ error: `Spec not found: ${options.id}` }));
       } else {
@@ -490,21 +605,37 @@ export class GetCommand {
       return;
     }
 
+    const { content, workspacePath, projectName, displayId } = result;
+
     if (options.json) {
-      console.log(JSON.stringify({
-        specId: options.id,
-        content,
-      }, null, 2));
+      console.log(
+        JSON.stringify(
+          {
+            specId: options.id,
+            workspacePath,
+            projectName,
+            displayId,
+            content,
+          },
+          null,
+          2
+        )
+      );
     } else {
-      console.log(chalk.bold.magenta(`\n═══ Spec: ${options.id} ═══\n`));
+      const headerId = this.isMulti ? displayId : options.id;
+      console.log(chalk.bold.magenta(`\n═══ Spec: ${headerId} ═══\n`));
       console.log(content);
     }
   }
 
   async tasks(options: TasksOptions = {}): Promise<void> {
+    await this.ensureInitialized();
+
     if (options.id) {
       // List tasks for a specific change
-      const tasks = await this.itemRetrievalService.getTasksForChange(options.id);
+      const tasks = await this.itemRetrievalService!.getTasksForChange(
+        options.id
+      );
 
       if (tasks.length === 0) {
         if (options.json) {
@@ -526,14 +657,16 @@ export class GetCommand {
             changeId: options.id,
           });
         }
-        console.log(JSON.stringify({ changeId: options.id, tasks: taskData }, null, 2));
+        console.log(
+          JSON.stringify({ changeId: options.id, tasks: taskData }, null, 2)
+        );
       } else {
         console.log(chalk.bold.cyan(`\n═══ Tasks for: ${options.id} ═══\n`));
-        this.printTaskTable(tasks, options.id);
+        await this.printTaskTable(tasks, options.id);
       }
     } else {
       // List all open tasks
-      const openTasks = await this.itemRetrievalService.getAllOpenTasks();
+      const openTasks = await this.itemRetrievalService!.getAllOpenTasks();
 
       if (openTasks.length === 0) {
         if (options.json) {
@@ -545,13 +678,22 @@ export class GetCommand {
       }
 
       if (options.json) {
-        console.log(JSON.stringify({
-          tasks: openTasks.map(t => ({
-            id: t.taskId,
-            status: t.status,
-            changeId: t.changeId,
-          })),
-        }, null, 2));
+        console.log(
+          JSON.stringify(
+            {
+              tasks: openTasks.map((t) => ({
+                id: t.taskId,
+                status: t.status,
+                changeId: t.changeId,
+                workspacePath: t.workspacePath,
+                projectName: t.projectName,
+                displayId: t.displayId,
+              })),
+            },
+            null,
+            2
+          )
+        );
       } else {
         console.log(chalk.bold.cyan('\n═══ Open Tasks ═══\n'));
         this.printOpenTaskTable(openTasks);
@@ -582,24 +724,25 @@ export class GetCommand {
     }
   }
 
-  private printOpenTaskTable(tasks: { taskId: string; changeId: string; task: TaskFileInfo; status: TaskStatus }[]): void {
+  private printOpenTaskTable(tasks: OpenTaskInfo[]): void {
     // Header
     console.log(
       chalk.dim('  ') +
-      chalk.bold.white('ID'.padEnd(50)) +
-      chalk.bold.white('Status'.padEnd(15)) +
-      chalk.bold.white('Change')
+        chalk.bold.white('ID'.padEnd(50)) +
+        chalk.bold.white('Status'.padEnd(15)) +
+        chalk.bold.white('Change')
     );
     console.log(chalk.dim('  ' + '─'.repeat(80)));
 
-    for (const { taskId, status, changeId } of tasks) {
+    for (const { taskId, status, changeId, displayId } of tasks) {
       const statusColor = status === 'in-progress' ? chalk.yellow : chalk.gray;
+      const displayTaskId = this.isMulti && displayId ? displayId : taskId;
 
       console.log(
         chalk.dim('  ') +
-        chalk.white(taskId.padEnd(50)) +
-        statusColor(status.padEnd(15)) +
-        chalk.blue(changeId)
+          chalk.white(displayTaskId.padEnd(50)) +
+          statusColor(status.padEnd(15)) +
+          chalk.blue(changeId)
       );
     }
   }

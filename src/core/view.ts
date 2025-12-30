@@ -1,14 +1,32 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
-import { getTaskProgressForChange, formatTaskStatus } from '../utils/task-progress.js';
+import { getTaskProgressForChange } from '../utils/task-progress.js';
 import { MarkdownParser } from './parsers/markdown-parser.js';
+import { getFilteredWorkspaces } from '../utils/workspace-filter.js';
+import { isMultiWorkspace, DiscoveredWorkspace } from '../utils/workspace-discovery.js';
+
+interface ChangeData {
+  name: string;
+  displayName: string;
+  progress: { total: number; completed: number };
+  projectName?: string;
+}
+
+interface SpecData {
+  name: string;
+  displayName: string;
+  requirementCount: number;
+  projectName?: string;
+}
 
 export class ViewCommand {
   async execute(targetPath: string = '.'): Promise<void> {
-    const workspaceDir = path.join(targetPath, 'workspace');
+    const resolvedPath = path.resolve(targetPath);
+    const workspaces = await getFilteredWorkspaces(resolvedPath);
+    const isMulti = isMultiWorkspace(workspaces);
 
-    if (!fs.existsSync(workspaceDir)) {
+    if (workspaces.length === 0) {
       console.error(chalk.red('No workspace directory found'));
       process.exit(1);
     }
@@ -16,9 +34,9 @@ export class ViewCommand {
     console.log(chalk.bold('\nPew Pew Plx Dashboard\n'));
     console.log('═'.repeat(60));
 
-    // Get changes and specs data
-    const changesData = await this.getChangesData(workspaceDir);
-    const specsData = await this.getSpecsData(workspaceDir);
+    // Get changes and specs data across all workspaces
+    const changesData = await this.getChangesData(workspaces, isMulti);
+    const specsData = await this.getSpecsData(workspaces, isMulti);
 
     // Display summary metrics
     this.displaySummary(changesData, specsData);
@@ -29,12 +47,12 @@ export class ViewCommand {
       console.log('─'.repeat(60));
       changesData.active.forEach(change => {
         const progressBar = this.createProgressBar(change.progress.completed, change.progress.total);
-        const percentage = change.progress.total > 0 
+        const percentage = change.progress.total > 0
           ? Math.round((change.progress.completed / change.progress.total) * 100)
           : 0;
-        
+
         console.log(
-          `  ${chalk.yellow('◉')} ${chalk.bold(change.name.padEnd(30))} ${progressBar} ${chalk.dim(`${percentage}%`)}`
+          `  ${chalk.yellow('◉')} ${chalk.bold(change.displayName.padEnd(30))} ${progressBar} ${chalk.dim(`${percentage}%`)}`
         );
       });
     }
@@ -44,7 +62,7 @@ export class ViewCommand {
       console.log(chalk.bold.green('\nCompleted Changes'));
       console.log('─'.repeat(60));
       changesData.completed.forEach(change => {
-        console.log(`  ${chalk.green('✓')} ${change.name}`);
+        console.log(`  ${chalk.green('✓')} ${change.displayName}`);
       });
     }
 
@@ -52,14 +70,14 @@ export class ViewCommand {
     if (specsData.length > 0) {
       console.log(chalk.bold.blue('\nSpecifications'));
       console.log('─'.repeat(60));
-      
+
       // Sort specs by requirement count (descending)
       specsData.sort((a, b) => b.requirementCount - a.requirementCount);
-      
+
       specsData.forEach(spec => {
         const reqLabel = spec.requirementCount === 1 ? 'requirement' : 'requirements';
         console.log(
-          `  ${chalk.blue('▪')} ${chalk.bold(spec.name.padEnd(30))} ${chalk.dim(`${spec.requirementCount} ${reqLabel}`)}`
+          `  ${chalk.blue('▪')} ${chalk.bold(spec.displayName.padEnd(30))} ${chalk.dim(`${spec.requirementCount} ${reqLabel}`)}`
         );
       });
     }
@@ -68,29 +86,43 @@ export class ViewCommand {
     console.log(chalk.dim(`\nUse ${chalk.white('plx list --changes')} or ${chalk.white('plx list --specs')} for detailed views`));
   }
 
-  private async getChangesData(workspaceDir: string): Promise<{
-    active: Array<{ name: string; progress: { total: number; completed: number } }>;
-    completed: Array<{ name: string }>;
+  private async getChangesData(
+    workspaces: DiscoveredWorkspace[],
+    isMulti: boolean
+  ): Promise<{
+    active: ChangeData[];
+    completed: Array<{ name: string; displayName: string }>;
   }> {
-    const changesDir = path.join(workspaceDir, 'changes');
-    
-    if (!fs.existsSync(changesDir)) {
-      return { active: [], completed: [] };
-    }
+    const active: ChangeData[] = [];
+    const completed: Array<{ name: string; displayName: string }> = [];
 
-    const active: Array<{ name: string; progress: { total: number; completed: number } }> = [];
-    const completed: Array<{ name: string }> = [];
+    // Scan each workspace for changes directories
+    for (const workspace of workspaces) {
+      const changesDir = path.join(workspace.path, 'changes');
 
-    const entries = fs.readdirSync(changesDir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      if (entry.isDirectory() && entry.name !== 'archive') {
-        const progress = await getTaskProgressForChange(changesDir, entry.name);
-        
-        if (progress.total === 0 || progress.completed === progress.total) {
-          completed.push({ name: entry.name });
-        } else {
-          active.push({ name: entry.name, progress });
+      if (!fs.existsSync(changesDir)) {
+        continue;
+      }
+
+      const entries = fs.readdirSync(changesDir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        if (entry.isDirectory() && entry.name !== 'archive') {
+          const progress = await getTaskProgressForChange(changesDir, entry.name);
+          const displayName = isMulti && workspace.projectName
+            ? `${workspace.projectName}/${entry.name}`
+            : entry.name;
+
+          if (progress.total === 0 || progress.completed === progress.total) {
+            completed.push({ name: entry.name, displayName });
+          } else {
+            active.push({
+              name: entry.name,
+              displayName,
+              progress,
+              projectName: workspace.projectName,
+            });
+          }
         }
       }
     }
@@ -102,37 +134,55 @@ export class ViewCommand {
 
       if (percentageA < percentageB) return -1;
       if (percentageA > percentageB) return 1;
-      return a.name.localeCompare(b.name);
+      return a.displayName.localeCompare(b.displayName);
     });
-    completed.sort((a, b) => a.name.localeCompare(b.name));
+    completed.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
     return { active, completed };
   }
 
-  private async getSpecsData(workspaceDir: string): Promise<Array<{ name: string; requirementCount: number }>> {
-    const specsDir = path.join(workspaceDir, 'specs');
-    
-    if (!fs.existsSync(specsDir)) {
-      return [];
-    }
+  private async getSpecsData(
+    workspaces: DiscoveredWorkspace[],
+    isMulti: boolean
+  ): Promise<SpecData[]> {
+    const specs: SpecData[] = [];
 
-    const specs: Array<{ name: string; requirementCount: number }> = [];
-    const entries = fs.readdirSync(specsDir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      if (entry.isDirectory()) {
-        const specFile = path.join(specsDir, entry.name, 'spec.md');
-        
-        if (fs.existsSync(specFile)) {
-          try {
-            const content = fs.readFileSync(specFile, 'utf-8');
-            const parser = new MarkdownParser(content);
-            const spec = parser.parseSpec(entry.name);
-            const requirementCount = spec.requirements.length;
-            specs.push({ name: entry.name, requirementCount });
-          } catch (error) {
-            // If spec cannot be parsed, include with 0 count
-            specs.push({ name: entry.name, requirementCount: 0 });
+    // Scan each workspace for specs directories
+    for (const workspace of workspaces) {
+      const specsDir = path.join(workspace.path, 'specs');
+
+      if (!fs.existsSync(specsDir)) {
+        continue;
+      }
+
+      const entries = fs.readdirSync(specsDir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          const specFile = path.join(specsDir, entry.name, 'spec.md');
+          const displayName = isMulti && workspace.projectName
+            ? `${workspace.projectName}/${entry.name}`
+            : entry.name;
+
+          if (fs.existsSync(specFile)) {
+            try {
+              const content = fs.readFileSync(specFile, 'utf-8');
+              const parser = new MarkdownParser(content);
+              const spec = parser.parseSpec(entry.name);
+              specs.push({
+                name: entry.name,
+                displayName,
+                requirementCount: spec.requirements.length,
+                projectName: workspace.projectName,
+              });
+            } catch {
+              specs.push({
+                name: entry.name,
+                displayName,
+                requirementCount: 0,
+                projectName: workspace.projectName,
+              });
+            }
           }
         }
       }
@@ -142,8 +192,8 @@ export class ViewCommand {
   }
 
   private displaySummary(
-    changesData: { active: any[]; completed: any[] },
-    specsData: any[]
+    changesData: { active: ChangeData[]; completed: Array<{ name: string; displayName: string }> },
+    specsData: SpecData[]
   ): void {
     const totalChanges = changesData.active.length + changesData.completed.length;
     const totalSpecs = specsData.length;

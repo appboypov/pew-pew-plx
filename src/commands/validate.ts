@@ -2,9 +2,19 @@ import ora from 'ora';
 import path from 'path';
 import { Validator } from '../core/validation/validator.js';
 import { isInteractive, resolveNoInteractive } from '../utils/interactive.js';
-import { getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
+import {
+  getActiveChangeIdsMulti,
+  getSpecIdsMulti,
+  ChangeIdWithWorkspace,
+  SpecIdWithWorkspace,
+} from '../utils/item-discovery.js';
 import { nearestMatches } from '../utils/match.js';
 import { migrateIfNeeded } from '../utils/task-migration.js';
+import { getFilteredWorkspaces } from '../utils/workspace-filter.js';
+import {
+  isMultiWorkspace,
+  DiscoveredWorkspace,
+} from '../utils/workspace-discovery.js';
 
 type ItemType = 'change' | 'spec';
 
@@ -26,6 +36,9 @@ interface BulkItemResult {
   valid: boolean;
   issues: { level: 'ERROR' | 'WARNING' | 'INFO'; path: string; message: string }[];
   durationMs: number;
+  workspacePath?: string;
+  projectName?: string;
+  displayId?: string;
 }
 
 export class ValidateCommand {
@@ -81,17 +94,28 @@ export class ValidateCommand {
     if (choice === 'specs') return this.runBulkValidation({ changes: false, specs: true }, opts);
 
     // one
-    const [changes, specs] = await Promise.all([getActiveChangeIds(), getSpecIds()]);
-    const items: { name: string; value: { type: ItemType; id: string } }[] = [];
-    items.push(...changes.map(id => ({ name: `change/${id}`, value: { type: 'change' as const, id } })));
-    items.push(...specs.map(id => ({ name: `spec/${id}`, value: { type: 'spec' as const, id } })));
+    const workspaces = await getFilteredWorkspaces();
+    const isMulti = isMultiWorkspace(workspaces);
+    const [changes, specs] = await Promise.all([
+      getActiveChangeIdsMulti(workspaces),
+      getSpecIdsMulti(workspaces),
+    ]);
+    const items: { name: string; value: { type: ItemType; id: string; workspacePath: string } }[] = [];
+    items.push(...changes.map(c => ({
+      name: `change/${isMulti ? c.displayId : c.id}`,
+      value: { type: 'change' as const, id: c.id, workspacePath: c.workspacePath },
+    })));
+    items.push(...specs.map(s => ({
+      name: `spec/${isMulti ? s.displayId : s.id}`,
+      value: { type: 'spec' as const, id: s.id, workspacePath: s.workspacePath },
+    })));
     if (items.length === 0) {
       console.error('No items found to validate.');
       process.exitCode = 1;
       return;
     }
-    const picked = await select<{ type: ItemType; id: string }>({ message: 'Pick an item', choices: items });
-    await this.validateByType(picked.type, picked.id, opts);
+    const picked = await select<{ type: ItemType; id: string; workspacePath: string }>({ message: 'Pick an item', choices: items });
+    await this.validateByType(picked.type, picked.id, opts, picked.workspacePath);
   }
 
   private printNonInteractiveHint(): void {
@@ -104,34 +128,89 @@ export class ValidateCommand {
   }
 
   private async validateDirectItem(itemName: string, opts: { typeOverride?: ItemType; strict: boolean; json: boolean }): Promise<void> {
-    const [changes, specs] = await Promise.all([getActiveChangeIds(), getSpecIds()]);
-    const isChange = changes.includes(itemName);
-    const isSpec = specs.includes(itemName);
+    const workspaces = await getFilteredWorkspaces();
+    const isMulti = isMultiWorkspace(workspaces);
+
+    // Parse potential workspace prefix (e.g., "project-a/add-feature")
+    const slashIndex = itemName.indexOf('/');
+    let projectPrefix: string | null = null;
+    let actualItemName = itemName;
+
+    if (slashIndex !== -1) {
+      const potentialPrefix = itemName.substring(0, slashIndex);
+      // Check if it's a valid workspace prefix
+      if (workspaces.some(w => w.projectName === potentialPrefix)) {
+        projectPrefix = potentialPrefix;
+        actualItemName = itemName.substring(slashIndex + 1);
+      }
+    }
+
+    // Get all changes and specs from all workspaces
+    const [changes, specs] = await Promise.all([
+      getActiveChangeIdsMulti(workspaces),
+      getSpecIdsMulti(workspaces),
+    ]);
+
+    // Find matching items
+    const matchingChange = changes.find(c =>
+      c.id === actualItemName &&
+      (projectPrefix === null || c.projectName === projectPrefix)
+    );
+    const matchingSpec = specs.find(s =>
+      s.id === actualItemName &&
+      (projectPrefix === null || s.projectName === projectPrefix)
+    );
+
+    const isChange = !!matchingChange;
+    const isSpec = !!matchingSpec;
 
     const type = opts.typeOverride ?? (isChange ? 'change' : isSpec ? 'spec' : undefined);
 
     if (!type) {
       console.error(`Unknown item '${itemName}'`);
-      const suggestions = nearestMatches(itemName, [...changes, ...specs]);
+      // Generate suggestions from all items
+      const allIds = [
+        ...changes.map(c => isMulti ? c.displayId : c.id),
+        ...specs.map(s => isMulti ? s.displayId : s.id),
+      ];
+      const suggestions = nearestMatches(itemName, allIds);
       if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
       process.exitCode = 1;
       return;
     }
 
     if (!opts.typeOverride && isChange && isSpec) {
-      console.error(`Ambiguous item '${itemName}' matches both a change and a spec.`);
+      const displayName = isMulti && projectPrefix ? `${projectPrefix}/${actualItemName}` : actualItemName;
+      console.error(`Ambiguous item '${displayName}' matches both a change and a spec.`);
       console.error('Pass --type change|spec, or use: plx change validate / plx spec validate');
       process.exitCode = 1;
       return;
     }
 
-    await this.validateByType(type, itemName, opts);
+    // Get the workspace path for the matched item
+    const matchedItem = type === 'change' ? matchingChange : matchingSpec;
+    const workspacePath = matchedItem?.workspacePath;
+    const displayId = matchedItem?.displayId;
+
+    await this.validateByType(type, actualItemName, opts, workspacePath, displayId);
   }
 
-  private async validateByType(type: ItemType, id: string, opts: { strict: boolean; json: boolean }): Promise<void> {
+  private async validateByType(
+    type: ItemType,
+    id: string,
+    opts: { strict: boolean; json: boolean },
+    workspacePath?: string,
+    displayId?: string
+  ): Promise<void> {
     const validator = new Validator(opts.strict);
+
+    // Use provided workspacePath or fall back to default
+    const basePath = workspacePath
+      ? workspacePath
+      : path.join(process.cwd(), 'workspace');
+
     if (type === 'change') {
-      const changeDir = path.join(process.cwd(), 'workspace', 'changes', id);
+      const changeDir = path.join(basePath, 'changes', id);
 
       // Trigger migration if needed (silent in JSON mode)
       const migrationResult = await migrateIfNeeded(changeDir);
@@ -142,29 +221,30 @@ export class ValidateCommand {
       const start = Date.now();
       const report = await validator.validateChangeDeltaSpecs(changeDir);
       const durationMs = Date.now() - start;
-      this.printReport('change', id, report, durationMs, opts.json);
+      this.printReport('change', id, report, durationMs, opts.json, displayId);
       // Non-zero exit if invalid (keeps enriched output test semantics)
       process.exitCode = report.valid ? 0 : 1;
       return;
     }
-    const file = path.join(process.cwd(), 'workspace', 'specs', id, 'spec.md');
+    const file = path.join(basePath, 'specs', id, 'spec.md');
     const start = Date.now();
     const report = await validator.validateSpec(file);
     const durationMs = Date.now() - start;
-    this.printReport('spec', id, report, durationMs, opts.json);
+    this.printReport('spec', id, report, durationMs, opts.json, displayId);
     process.exitCode = report.valid ? 0 : 1;
   }
 
-  private printReport(type: ItemType, id: string, report: { valid: boolean; issues: any[] }, durationMs: number, json: boolean): void {
+  private printReport(type: ItemType, id: string, report: { valid: boolean; issues: any[] }, durationMs: number, json: boolean, displayId?: string): void {
+    const outputId = displayId || id;
     if (json) {
-      const out = { items: [{ id, type, valid: report.valid, issues: report.issues, durationMs }], summary: { totals: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 }, byType: { [type]: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 } } }, version: '1.0' };
+      const out = { items: [{ id, type, valid: report.valid, issues: report.issues, durationMs, displayId }], summary: { totals: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 }, byType: { [type]: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 } } }, version: '1.0' };
       console.log(JSON.stringify(out, null, 2));
       return;
     }
     if (report.valid) {
-      console.log(`${type === 'change' ? 'Change' : 'Specification'} '${id}' is valid`);
+      console.log(`${type === 'change' ? 'Change' : 'Specification'} '${outputId}' is valid`);
     } else {
-      console.error(`${type === 'change' ? 'Change' : 'Specification'} '${id}' has issues`);
+      console.error(`${type === 'change' ? 'Change' : 'Specification'} '${outputId}' has issues`);
       for (const issue of report.issues) {
         const label = issue.level === 'ERROR' ? 'ERROR' : issue.level;
         const prefix = issue.level === 'ERROR' ? '✗' : issue.level === 'WARNING' ? '⚠' : 'ℹ';
@@ -191,20 +271,23 @@ export class ValidateCommand {
 
   private async runBulkValidation(scope: { changes: boolean; specs: boolean }, opts: { strict: boolean; json: boolean; concurrency?: string; noInteractive?: boolean }): Promise<void> {
     const spinner = !opts.json && !opts.noInteractive ? ora('Validating...').start() : undefined;
-    const [changeIds, specIds] = await Promise.all([
-      scope.changes ? getActiveChangeIds() : Promise.resolve<string[]>([]),
-      scope.specs ? getSpecIds() : Promise.resolve<string[]>([]),
+
+    const workspaces = await getFilteredWorkspaces();
+    const isMulti = isMultiWorkspace(workspaces);
+
+    const [changeItems, specItems] = await Promise.all([
+      scope.changes ? getActiveChangeIdsMulti(workspaces) : Promise.resolve<ChangeIdWithWorkspace[]>([]),
+      scope.specs ? getSpecIdsMulti(workspaces) : Promise.resolve<SpecIdWithWorkspace[]>([]),
     ]);
 
     const DEFAULT_CONCURRENCY = 6;
-    const maxSuggestions = 5; // used by nearestMatches
     const concurrency = normalizeConcurrency(opts.concurrency) ?? normalizeConcurrency(process.env.PLX_CONCURRENCY) ?? DEFAULT_CONCURRENCY;
     const validator = new Validator(opts.strict);
     const queue: Array<() => Promise<BulkItemResult>> = [];
 
-    for (const id of changeIds) {
+    for (const change of changeItems) {
       queue.push(async () => {
-        const changeDir = path.join(process.cwd(), 'workspace', 'changes', id);
+        const changeDir = path.join(change.workspacePath, 'changes', change.id);
 
         // Trigger migration if needed
         const migrationResult = await migrateIfNeeded(changeDir);
@@ -215,16 +298,34 @@ export class ValidateCommand {
         const start = Date.now();
         const report = await validator.validateChangeDeltaSpecs(changeDir);
         const durationMs = Date.now() - start;
-        return { id, type: 'change' as const, valid: report.valid, issues: report.issues, durationMs };
+        return {
+          id: change.id,
+          type: 'change' as const,
+          valid: report.valid,
+          issues: report.issues,
+          durationMs,
+          workspacePath: change.workspacePath,
+          projectName: change.projectName,
+          displayId: change.displayId,
+        };
       });
     }
-    for (const id of specIds) {
+    for (const spec of specItems) {
       queue.push(async () => {
         const start = Date.now();
-        const file = path.join(process.cwd(), 'workspace', 'specs', id, 'spec.md');
+        const file = path.join(spec.workspacePath, 'specs', spec.id, 'spec.md');
         const report = await validator.validateSpec(file);
         const durationMs = Date.now() - start;
-        return { id, type: 'spec' as const, valid: report.valid, issues: report.issues, durationMs };
+        return {
+          id: spec.id,
+          type: 'spec' as const,
+          valid: report.valid,
+          issues: report.issues,
+          durationMs,
+          workspacePath: spec.workspacePath,
+          projectName: spec.projectName,
+          displayId: spec.displayId,
+        };
       });
     }
 
@@ -270,7 +371,17 @@ export class ValidateCommand {
             })
             .catch((error: any) => {
               const message = error?.message || 'Unknown error';
-              const res: BulkItemResult = { id: getPlannedId(currentIndex, changeIds, specIds) ?? 'unknown', type: getPlannedType(currentIndex, changeIds, specIds) ?? 'change', valid: false, issues: [{ level: 'ERROR', path: 'file', message }], durationMs: 0 };
+              const plannedItem = getPlannedItem(currentIndex, changeItems, specItems);
+              const res: BulkItemResult = {
+                id: plannedItem?.id ?? 'unknown',
+                type: plannedItem?.type ?? 'change',
+                valid: false,
+                issues: [{ level: 'ERROR', path: 'file', message }],
+                durationMs: 0,
+                workspacePath: plannedItem?.workspacePath,
+                projectName: plannedItem?.projectName,
+                displayId: plannedItem?.displayId,
+              };
               results.push(res);
               failed++;
             })
@@ -286,7 +397,13 @@ export class ValidateCommand {
 
     spinner?.stop();
 
-    results.sort((a, b) => a.id.localeCompare(b.id));
+    // Sort by displayId for consistent multi-workspace output, fall back to id
+    results.sort((a, b) => {
+      const aKey = a.displayId || a.id;
+      const bKey = b.displayId || b.id;
+      return aKey.localeCompare(bKey);
+    });
+
     const summary = {
       totals: { items: results.length, passed, failed },
       byType: {
@@ -300,8 +417,9 @@ export class ValidateCommand {
       console.log(JSON.stringify(out, null, 2));
     } else {
       for (const res of results) {
-        if (res.valid) console.log(`✓ ${res.type}/${res.id}`);
-        else console.error(`✗ ${res.type}/${res.id}`);
+        const displayName = isMulti && res.displayId ? res.displayId : res.id;
+        if (res.valid) console.log(`✓ ${res.type}/${displayName}`);
+        else console.error(`✗ ${res.type}/${displayName}`);
       }
       console.log(`Totals: ${summary.totals.passed} passed, ${summary.totals.failed} failed (${summary.totals.items} items)`);
     }
@@ -325,17 +443,40 @@ function normalizeConcurrency(value?: string): number | undefined {
   return n;
 }
 
-function getPlannedId(index: number, changeIds: string[], specIds: string[]): string | undefined {
-  const totalChanges = changeIds.length;
-  if (index < totalChanges) return changeIds[index];
-  const specIndex = index - totalChanges;
-  return specIds[specIndex];
+interface PlannedItemInfo {
+  id: string;
+  type: ItemType;
+  workspacePath?: string;
+  projectName?: string;
+  displayId?: string;
 }
 
-function getPlannedType(index: number, changeIds: string[], specIds: string[]): ItemType | undefined {
-  const totalChanges = changeIds.length;
-  if (index < totalChanges) return 'change';
+function getPlannedItem(
+  index: number,
+  changeItems: ChangeIdWithWorkspace[],
+  specItems: SpecIdWithWorkspace[]
+): PlannedItemInfo | undefined {
+  const totalChanges = changeItems.length;
+  if (index < totalChanges) {
+    const item = changeItems[index];
+    return {
+      id: item.id,
+      type: 'change',
+      workspacePath: item.workspacePath,
+      projectName: item.projectName,
+      displayId: item.displayId,
+    };
+  }
   const specIndex = index - totalChanges;
-  if (specIndex >= 0 && specIndex < specIds.length) return 'spec';
+  if (specIndex >= 0 && specIndex < specItems.length) {
+    const item = specItems[specIndex];
+    return {
+      id: item.id,
+      type: 'spec',
+      workspacePath: item.workspacePath,
+      projectName: item.projectName,
+      displayId: item.displayId,
+    };
+  }
   return undefined;
 }
