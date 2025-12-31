@@ -5,6 +5,10 @@ category: Pew Pew Plx
 tags: [plx, change]
 ---
 <!-- PLX:START -->
+**Context**
+@ARCHITECTURE.md
+@workspace/AGENTS.md
+
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.
 - Keep changes tightly scoped to the requested outcome.

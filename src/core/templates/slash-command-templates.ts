@@ -19,7 +19,11 @@ const baseGuardrails = `**Guardrails**
 - Refer to \`workspace/AGENTS.md\` (located inside the \`workspace/\` directory—run \`ls workspace\` or \`plx update\` if you don't see it) if you need additional Pew Pew Plx conventions or clarifications.
 - When clarification is needed, use your available question tool (if one exists) instead of asking in chat. If no question tool is available, ask in chat.`;
 
-const proposalGuardrails = `${baseGuardrails}\n- Identify any vague or ambiguous details and gather the necessary clarifications before editing files.
+const planningContext = `**Context**
+@ARCHITECTURE.md
+@workspace/AGENTS.md`;
+
+const proposalGuardrails = `${planningContext}\n\n${baseGuardrails}\n- Identify any vague or ambiguous details and gather the necessary clarifications before editing files.
 - Do not write any code during the proposal stage. Only create design documents (proposal.md, tasks/ directory, design.md, and spec deltas). Implementation happens in the implement stage after approval.`;
 
 const proposalSteps = `**Steps**
@@ -207,7 +211,9 @@ const orchestrateReference = `**Reference**
 - Use \`plx review\` for review context.
 - Use \`plx parse feedback\` to convert review feedback to tasks.`;
 
-const planRequestGuardrails = `**Guardrails**
+const planRequestGuardrails = `${planningContext}
+
+**Guardrails**
 - Use iterative yes/no questions to clarify intent before proposal creation.
 - Create request.md early and update it incrementally after each question.
 - Do not write code during this stage—output is intent clarification only.

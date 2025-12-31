@@ -5,6 +5,10 @@ category: Pew Pew Plx
 description: Clarify user intent through iterative yes/no questions before proposal creation.
 ---
 <!-- PLX:START -->
+**Context**
+@ARCHITECTURE.md
+@workspace/AGENTS.md
+
 **Guardrails**
 - Use iterative yes/no questions to clarify intent before proposal creation.
 - Create request.md early and update it incrementally after each question.

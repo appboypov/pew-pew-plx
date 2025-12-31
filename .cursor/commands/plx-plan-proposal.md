@@ -5,6 +5,10 @@ category: Pew Pew Plx
 description: Scaffold a new Pew Pew Plx change and validate strictly.
 ---
 <!-- PLX:START -->
+**Context**
+@ARCHITECTURE.md
+@workspace/AGENTS.md
+
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.
 - Keep changes tightly scoped to the requested outcome.
