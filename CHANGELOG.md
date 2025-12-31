@@ -1,5 +1,19 @@
 # Pew Pew Plx Changelog
 
+## 0.10.1 - 2025-12-31
+
+### Added
+
+- Context file references added to `/plx:orchestrate` command
+  - `@ARCHITECTURE.md` and `@workspace/AGENTS.md` automatically included (matching plan-proposal and plan-request)
+
+### Fixed
+
+- Plan-proposal descriptions updated to include "Consumes request.md when present." across all configurators
+- Changed "sceptical" to "skeptical" (American English)
+
+---
+
 ## 0.10.0 - 2025-12-31
 
 ### Added

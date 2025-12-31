@@ -5,6 +5,10 @@ category: Pew Pew Plx
 description: Orchestrate sub-agents to complete work collaboratively.
 ---
 <!-- PLX:START -->
+**Context**
+@ARCHITECTURE.md
+@workspace/AGENTS.md
+
 **Guardrails**
 - Spawn exactly one sub-agent per task—never parallelize task execution.
 - Review each sub-agent's work before accepting it.

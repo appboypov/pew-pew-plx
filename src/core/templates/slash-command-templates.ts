@@ -168,7 +168,9 @@ const prepareReleaseSteps = `**Steps**
 4. Execute architecture update step (refresh from codebase).
 5. Present summary of all changes made.`;
 
-const orchestrateGuardrails = `**Guardrails**
+const orchestrateGuardrails = `${planningContext}
+
+**Guardrails**
 - Spawn exactly one sub-agent per task—never parallelize task execution.
 - Review each sub-agent's work before accepting it.
 - Maintain ongoing conversations with sub-agents; don't just spawn and forget.

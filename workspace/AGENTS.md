@@ -42,7 +42,7 @@ Skip proposal for:
 
 **Slash Commands**
 - `plx/plan-request` - Clarify ambiguous requirements through iterative yes/no questions before scaffolding
-- `plx/plan-proposal` - Scaffold `proposal.md`, `tasks/` directory, `design.md`, and spec deltas
+- `plx/plan-proposal` - Scaffold `proposal.md`, `tasks/` directory, `design.md`, and spec deltas. Consumes request.md when present.
 
 **Workflow**
 1. Review `ARCHITECTURE.md`, `plx list`, and `plx list --specs` to understand current context.
