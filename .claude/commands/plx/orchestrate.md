@@ -5,6 +5,10 @@ category: Pew Pew Plx
 tags: [plx, orchestrate, sub-agents]
 ---
 <!-- PLX:START -->
+**Context**
+@ARCHITECTURE.md
+@workspace/AGENTS.md
+
 **Guardrails**
 - Spawn exactly one sub-agent per task—never parallelize task execution.
 - Review each sub-agent's work before accepting it.

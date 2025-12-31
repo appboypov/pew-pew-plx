@@ -1,10 +1,62 @@
 import { SlashCommandConfigurator } from './base.js';
 import { SlashCommandId } from '../../templates/index.js';
 
-const NEW_FILE_PATHS: Record<SlashCommandId, string> = {
-  proposal: '.roo/commands/plx-proposal.md',
-  implement: '.roo/commands/plx-implement.md',
-  archive: '.roo/commands/plx-archive.md'
+const FILE_PATHS: Record<SlashCommandId, string> = {
+  'archive': '.roo/commands/plx-archive.md',
+  'get-task': '.roo/commands/plx-get-task.md',
+  'implement': '.roo/commands/plx-implement.md',
+  'orchestrate': '.roo/commands/plx-orchestrate.md',
+  'parse-feedback': '.roo/commands/plx-parse-feedback.md',
+  'plan-proposal': '.roo/commands/plx-plan-proposal.md',
+  'plan-request': '.roo/commands/plx-plan-request.md',
+  'prepare-compact': '.roo/commands/plx-prepare-compact.md',
+  'prepare-release': '.roo/commands/plx-prepare-release.md',
+  'refine-architecture': '.roo/commands/plx-refine-architecture.md',
+  'refine-release': '.roo/commands/plx-refine-release.md',
+  'refine-review': '.roo/commands/plx-refine-review.md',
+  'review': '.roo/commands/plx-review.md'
+};
+
+const FRONTMATTER: Record<SlashCommandId, string> = {
+  'archive': `# PLX: Archive
+
+Archive a deployed PLX change and update specs.`,
+  'get-task': `# PLX: Get Task
+
+Select and display the next prioritized task to work on.`,
+  'implement': `# PLX: Implement
+
+Implement an approved PLX change and keep tasks in sync.`,
+  'orchestrate': `# PLX: Orchestrate
+
+Orchestrate sub-agents to complete work collaboratively.`,
+  'parse-feedback': `# PLX: Parse Feedback
+
+Parse feedback markers and generate review tasks.`,
+  'plan-proposal': `# PLX: Plan Proposal
+
+Scaffold a new PLX change and validate strictly. Consumes request.md when present.`,
+  'plan-request': `# PLX: Plan Request
+
+Clarify user intent through iterative yes/no questions before proposal creation.`,
+  'prepare-compact': `# PLX: Prepare Compact
+
+Preserve session progress in PROGRESS.md for context continuity.`,
+  'prepare-release': `# PLX: Prepare Release
+
+Prepare release by updating changelog, readme, and architecture documentation.`,
+  'refine-architecture': `# PLX: Refine Architecture
+
+Create or update ARCHITECTURE.md.`,
+  'refine-release': `# PLX: Refine Release
+
+Create or update RELEASE.md.`,
+  'refine-review': `# PLX: Refine Review
+
+Create or update REVIEW.md.`,
+  'review': `# PLX: Review
+
+Review implementations against specs, changes, or tasks.`
 };
 
 export class RooCodeSlashCommandConfigurator extends SlashCommandConfigurator {
@@ -12,16 +64,10 @@ export class RooCodeSlashCommandConfigurator extends SlashCommandConfigurator {
   readonly isAvailable = true;
 
   protected getRelativePath(id: SlashCommandId): string {
-    return NEW_FILE_PATHS[id];
+    return FILE_PATHS[id];
   }
 
   protected getFrontmatter(id: SlashCommandId): string | undefined {
-    const descriptions: Record<SlashCommandId, string> = {
-      proposal: 'Scaffold a new PLX change and validate strictly.',
-      implement: 'Implement an approved PLX change and keep tasks in sync.',
-      archive: 'Archive a deployed PLX change and update specs.'
-    };
-    const description = descriptions[id];
-    return `# PLX: ${id.charAt(0).toUpperCase() + id.slice(1)}\n\n${description}`;
+    return FRONTMATTER[id];
   }
 }

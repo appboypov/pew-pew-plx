@@ -1,50 +1,42 @@
-/**
- * Qwen slash command configurator for PLX integration.
- * This class handles the generation of Qwen-specific slash command files
- * in the .qwen/commands directory structure.
- *
- * @implements {SlashCommandConfigurator}
- */
 import { TomlSlashCommandConfigurator } from './toml-base.js';
 import { SlashCommandId } from '../../templates/index.js';
 
-/**
- * Mapping of slash command IDs to their corresponding file paths in .qwen/commands directory.
- * @type {Record<SlashCommandId, string>}
- */
 const FILE_PATHS: Record<SlashCommandId, string> = {
-  proposal: '.qwen/commands/plx-proposal.toml',
-  implement: '.qwen/commands/plx-implement.toml',
-  archive: '.qwen/commands/plx-archive.toml'
+  'archive': '.qwen/commands/plx-archive.toml',
+  'get-task': '.qwen/commands/plx-get-task.toml',
+  'implement': '.qwen/commands/plx-implement.toml',
+  'orchestrate': '.qwen/commands/plx-orchestrate.toml',
+  'parse-feedback': '.qwen/commands/plx-parse-feedback.toml',
+  'plan-proposal': '.qwen/commands/plx-plan-proposal.toml',
+  'plan-request': '.qwen/commands/plx-plan-request.toml',
+  'prepare-compact': '.qwen/commands/plx-prepare-compact.toml',
+  'prepare-release': '.qwen/commands/plx-prepare-release.toml',
+  'refine-architecture': '.qwen/commands/plx-refine-architecture.toml',
+  'refine-release': '.qwen/commands/plx-refine-release.toml',
+  'refine-review': '.qwen/commands/plx-refine-review.toml',
+  'review': '.qwen/commands/plx-review.toml'
 };
 
 const DESCRIPTIONS: Record<SlashCommandId, string> = {
-  proposal: 'Scaffold a new PLX change and validate strictly.',
-  implement: 'Implement an approved PLX change and keep tasks in sync.',
-  archive: 'Archive a deployed PLX change and update specs.'
+  'archive': 'Archive a deployed PLX change and update specs.',
+  'get-task': 'Select and display the next prioritized task to work on.',
+  'implement': 'Implement an approved PLX change and keep tasks in sync.',
+  'orchestrate': 'Orchestrate sub-agents to complete work collaboratively.',
+  'parse-feedback': 'Parse feedback markers and generate review tasks.',
+  'plan-proposal': 'Scaffold a new PLX change and validate strictly. Consumes request.md when present.',
+  'plan-request': 'Clarify user intent through iterative yes/no questions before proposal creation.',
+  'prepare-compact': 'Preserve session progress in PROGRESS.md for context continuity.',
+  'prepare-release': 'Prepare release by updating changelog, readme, and architecture documentation.',
+  'refine-architecture': 'Create or update ARCHITECTURE.md.',
+  'refine-release': 'Create or update RELEASE.md.',
+  'refine-review': 'Create or update REVIEW.md.',
+  'review': 'Review implementations against specs, changes, or tasks.'
 };
 
-/**
- * QwenSlashCommandConfigurator class provides integration with Qwen Code
- * by creating the necessary slash command files in the .qwen/commands directory.
- *
- * The slash commands include:
- * - /plx-proposal: Create a PLX change proposal
- * - /plx-implement: Implement an approved PLX change
- * - /plx-archive: Archive a deployed PLX change
- */
 export class QwenSlashCommandConfigurator extends TomlSlashCommandConfigurator {
-  /** Unique identifier for the Qwen tool */
   readonly toolId = 'qwen';
-
-  /** Availability status for the Qwen tool */
   readonly isAvailable = true;
 
-  /**
-   * Returns the relative file path for a given slash command ID.
-   * @param {SlashCommandId} id - The slash command identifier
-   * @returns {string} The relative path to the command file
-   */
   protected getRelativePath(id: SlashCommandId): string {
     return FILE_PATHS[id];
   }

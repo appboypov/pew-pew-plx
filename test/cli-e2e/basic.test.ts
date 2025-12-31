@@ -94,7 +94,7 @@ describe('plx CLI e2e basics', () => {
 
       // Check that tool configurations were created
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
-      const cursorProposal = path.join(emptyProjectDir, '.cursor/commands/plx-proposal.md');
+      const cursorProposal = path.join(emptyProjectDir, '.cursor/commands/plx-plan-proposal.md');
       expect(await fileExists(claudePath)).toBe(true);
       expect(await fileExists(cursorProposal)).toBe(true);
     });
@@ -109,7 +109,7 @@ describe('plx CLI e2e basics', () => {
       expect(result.stdout).toContain('Tool summary:');
 
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
-      const cursorProposal = path.join(emptyProjectDir, '.cursor/commands/plx-proposal.md');
+      const cursorProposal = path.join(emptyProjectDir, '.cursor/commands/plx-plan-proposal.md');
       expect(await fileExists(claudePath)).toBe(true);
       expect(await fileExists(cursorProposal)).toBe(false); // Not selected
     });
@@ -124,7 +124,7 @@ describe('plx CLI e2e basics', () => {
       expect(result.stdout).toContain('Tool summary:');
 
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
-      const cursorProposal = path.join(emptyProjectDir, '.cursor/commands/plx-proposal.md');
+      const cursorProposal = path.join(emptyProjectDir, '.cursor/commands/plx-plan-proposal.md');
       const rootAgentsPath = path.join(emptyProjectDir, 'AGENTS.md');
 
       expect(await fileExists(rootAgentsPath)).toBe(true);

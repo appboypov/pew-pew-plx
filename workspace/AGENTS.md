@@ -18,7 +18,7 @@ Instructions for AI coding assistants using Pew Pew Plx for spec-driven developm
 Create proposal when you need to:
 - Add features or functionality
 - Make breaking changes (API, schema)
-- Change architecture or patterns  
+- Change architecture or patterns
 - Optimize performance (changes behavior)
 - Update security patterns
 
@@ -40,11 +40,16 @@ Skip proposal for:
 - Configuration changes
 - Tests for existing behavior
 
+**Slash Commands**
+- `plx/plan-request` - Clarify ambiguous requirements through iterative yes/no questions before scaffolding
+- `plx/plan-proposal` - Scaffold `proposal.md`, `tasks/` directory, `design.md`, and spec deltas. Consumes request.md when present.
+
 **Workflow**
 1. Review `ARCHITECTURE.md`, `plx list`, and `plx list --specs` to understand current context.
-2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks/` directory, optional `design.md`, and spec deltas under `workspace/changes/<id>/`.
-3. Draft spec deltas using `## ADDED|MODIFIED|REMOVED Requirements` with at least one `#### Scenario:` per requirement.
-4. Run `plx validate <id> --strict` and resolve any issues before sharing the proposal.
+2. If requirements are ambiguous, run `plx/plan-request` to clarify intent first.
+3. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks/` directory, optional `design.md`, and spec deltas under `workspace/changes/<id>/`.
+4. Draft spec deltas using `## ADDED|MODIFIED|REMOVED Requirements` with at least one `#### Scenario:` per requirement.
+5. Run `plx validate <id> --strict` and resolve any issues before sharing the proposal.
 
 ### Stage 2: Implementing Changes
 Track these steps as TODOs and complete them one by one.

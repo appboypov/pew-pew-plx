@@ -17,7 +17,6 @@ import { FileSystemUtils } from '../utils/file-system.js';
 import { TemplateManager } from './templates/index.js';
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
-import { PlxSlashCommandRegistry } from './configurators/slash/plx-registry.js';
 import {
   PlxConfig,
   AI_TOOLS,
@@ -815,12 +814,7 @@ export class InitCommand {
 
       const slashConfigurator = SlashCommandRegistry.get(toolId);
       if (slashConfigurator && slashConfigurator.isAvailable) {
-        await slashConfigurator.generateAll(projectPath, workspaceDir);
-      }
-
-      const plxConfigurator = PlxSlashCommandRegistry.get(toolId);
-      if (plxConfigurator && plxConfigurator.isAvailable) {
-        await plxConfigurator.generateAll(projectPath);
+        await slashConfigurator.generateAll(projectPath);
       }
     }
 

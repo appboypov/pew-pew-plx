@@ -1,19 +1,109 @@
-import path from "path";
-import os from "os";
-import { SlashCommandConfigurator } from "./base.js";
-import { SlashCommandId, TemplateManager } from "../../templates/index.js";
-import { FileSystemUtils } from "../../../utils/file-system.js";
-import { PLX_MARKERS } from "../../config.js";
+import path from 'path';
+import os from 'os';
+import { SlashCommandConfigurator } from './base.js';
+import { SlashCommandId, TemplateManager } from '../../templates/index.js';
+import { FileSystemUtils } from '../../../utils/file-system.js';
+import { PLX_MARKERS } from '../../config.js';
 
-// Use POSIX-style paths for consistent logging across platforms.
 const FILE_PATHS: Record<SlashCommandId, string> = {
-  proposal: ".codex/prompts/plx-proposal.md",
-  implement: ".codex/prompts/plx-implement.md",
-  archive: ".codex/prompts/plx-archive.md",
+  'archive': '.codex/prompts/plx-archive.md',
+  'get-task': '.codex/prompts/plx-get-task.md',
+  'implement': '.codex/prompts/plx-implement.md',
+  'orchestrate': '.codex/prompts/plx-orchestrate.md',
+  'parse-feedback': '.codex/prompts/plx-parse-feedback.md',
+  'plan-proposal': '.codex/prompts/plx-plan-proposal.md',
+  'plan-request': '.codex/prompts/plx-plan-request.md',
+  'prepare-compact': '.codex/prompts/plx-prepare-compact.md',
+  'prepare-release': '.codex/prompts/plx-prepare-release.md',
+  'refine-architecture': '.codex/prompts/plx-refine-architecture.md',
+  'refine-release': '.codex/prompts/plx-refine-release.md',
+  'refine-review': '.codex/prompts/plx-refine-review.md',
+  'review': '.codex/prompts/plx-review.md'
+};
+
+const FRONTMATTER: Record<SlashCommandId, string> = {
+  'archive': `---
+description: Archive a deployed PLX change and update specs.
+argument-hint: change-id
+---
+
+$ARGUMENTS`,
+  'get-task': `---
+description: Select and display the next prioritized task to work on.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'implement': `---
+description: Implement an approved PLX change and keep tasks in sync.
+argument-hint: change-id
+---
+
+$ARGUMENTS`,
+  'orchestrate': `---
+description: Orchestrate sub-agents to complete work collaboratively.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'parse-feedback': `---
+description: Parse feedback markers and generate review tasks.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'plan-proposal': `---
+description: Scaffold a new PLX change and validate strictly. Consumes request.md when present.
+argument-hint: request or feature description
+---
+
+$ARGUMENTS`,
+  'plan-request': `---
+description: Clarify user intent through iterative yes/no questions before proposal creation.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'prepare-compact': `---
+description: Preserve session progress in PROGRESS.md for context continuity.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'prepare-release': `---
+description: Prepare release by updating changelog, readme, and architecture documentation.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'refine-architecture': `---
+description: Create or update ARCHITECTURE.md.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'refine-release': `---
+description: Create or update RELEASE.md.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'refine-review': `---
+description: Create or update REVIEW.md.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'review': `---
+description: Review implementations against specs, changes, or tasks.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`
 };
 
 export class CodexSlashCommandConfigurator extends SlashCommandConfigurator {
-  readonly toolId = "codex";
+  readonly toolId = 'codex';
   readonly isAvailable = true;
 
   protected getRelativePath(id: SlashCommandId): string {
@@ -21,41 +111,17 @@ export class CodexSlashCommandConfigurator extends SlashCommandConfigurator {
   }
 
   protected getFrontmatter(id: SlashCommandId): string | undefined {
-    // Codex supports YAML frontmatter with description and argument-hint fields,
-    // plus $ARGUMENTS to capture all arguments as a single string.
-    const frontmatter: Record<SlashCommandId, string> = {
-      proposal: `---
-description: Scaffold a new PLX change and validate strictly.
-argument-hint: request or feature description
----
-
-$ARGUMENTS`,
-      implement: `---
-description: Implement an approved PLX change and keep tasks in sync.
-argument-hint: change-id
----
-
-$ARGUMENTS`,
-      archive: `---
-description: Archive a deployed PLX change and update specs.
-argument-hint: change-id
----
-
-$ARGUMENTS`,
-    };
-    return frontmatter[id];
+    return FRONTMATTER[id];
   }
 
   private getGlobalPromptsDir(): string {
     const home = (process.env.CODEX_HOME && process.env.CODEX_HOME.trim())
       ? process.env.CODEX_HOME.trim()
-      : FileSystemUtils.joinPath(os.homedir(), ".codex");
-    return FileSystemUtils.joinPath(home, "prompts");
+      : FileSystemUtils.joinPath(os.homedir(), '.codex');
+    return FileSystemUtils.joinPath(home, 'prompts');
   }
 
-  // Codex discovers prompts globally. Generate directly in the global directory
-  // and wrap shared body with markers.
-  async generateAll(projectPath: string, _workspaceDir: string): Promise<string[]> {
+  async generateAll(projectPath: string): Promise<string[]> {
     const createdOrUpdated: string[] = [];
     for (const target of this.getTargets()) {
       const body = TemplateManager.getSlashCommandBody(target.id).trim();
@@ -74,7 +140,7 @@ $ARGUMENTS`,
         const sections: string[] = [];
         if (frontmatter) sections.push(frontmatter.trim());
         sections.push(`${PLX_MARKERS.start}\n${body}\n${PLX_MARKERS.end}`);
-        await FileSystemUtils.writeFile(filePath, sections.join("\n") + "\n");
+        await FileSystemUtils.writeFile(filePath, sections.join('\n') + '\n');
       }
 
       createdOrUpdated.push(target.path);
@@ -82,7 +148,7 @@ $ARGUMENTS`,
     return createdOrUpdated;
   }
 
-  async updateExisting(projectPath: string, _workspaceDir: string): Promise<string[]> {
+  async updateExisting(projectPath: string): Promise<string[]> {
     const updated: string[] = [];
     for (const target of this.getTargets()) {
       const promptsDir = this.getGlobalPromptsDir();
@@ -99,7 +165,6 @@ $ARGUMENTS`,
     return updated;
   }
 
-  // Update both frontmatter and body in an existing file
   private async updateFullFile(filePath: string, id: SlashCommandId, body: string): Promise<void> {
     const content = await FileSystemUtils.readFile(filePath);
     const startIndex = content.indexOf(PLX_MARKERS.start);
@@ -108,16 +173,14 @@ $ARGUMENTS`,
       throw new Error(`Missing PLX start marker in ${filePath}`);
     }
 
-    // Replace everything before the start marker with the new frontmatter
     const frontmatter = this.getFrontmatter(id);
     const sections: string[] = [];
     if (frontmatter) sections.push(frontmatter.trim());
     sections.push(`${PLX_MARKERS.start}\n${body}\n${PLX_MARKERS.end}`);
 
-    await FileSystemUtils.writeFile(filePath, sections.join("\n") + "\n");
+    await FileSystemUtils.writeFile(filePath, sections.join('\n') + '\n');
   }
 
-  // Resolve to the global prompts location for configuration detection
   resolveAbsolutePath(_projectPath: string, id: SlashCommandId): string {
     const promptsDir = this.getGlobalPromptsDir();
     const fileName = path.basename(FILE_PATHS[id]);

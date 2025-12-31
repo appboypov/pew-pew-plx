@@ -1,26 +1,76 @@
 import { SlashCommandConfigurator } from './base.js';
 import { SlashCommandId } from '../../templates/index.js';
 
-const FILE_PATHS = {
-  proposal: '.cospec/plx/commands/plx-proposal.md',
-  implement: '.cospec/plx/commands/plx-implement.md',
-  archive: '.cospec/plx/commands/plx-archive.md',
-} as const satisfies Record<SlashCommandId, string>;
+const FILE_PATHS: Record<SlashCommandId, string> = {
+  'archive': '.cospec/plx/commands/plx-archive.md',
+  'get-task': '.cospec/plx/commands/plx-get-task.md',
+  'implement': '.cospec/plx/commands/plx-implement.md',
+  'orchestrate': '.cospec/plx/commands/plx-orchestrate.md',
+  'parse-feedback': '.cospec/plx/commands/plx-parse-feedback.md',
+  'plan-proposal': '.cospec/plx/commands/plx-plan-proposal.md',
+  'plan-request': '.cospec/plx/commands/plx-plan-request.md',
+  'prepare-compact': '.cospec/plx/commands/plx-prepare-compact.md',
+  'prepare-release': '.cospec/plx/commands/plx-prepare-release.md',
+  'refine-architecture': '.cospec/plx/commands/plx-refine-architecture.md',
+  'refine-release': '.cospec/plx/commands/plx-refine-release.md',
+  'refine-review': '.cospec/plx/commands/plx-refine-review.md',
+  'review': '.cospec/plx/commands/plx-review.md'
+};
 
-const FRONTMATTER = {
-  proposal: `---
-description: "Scaffold a new PLX change and validate strictly."
-argument-hint: feature description or request
+const FRONTMATTER: Record<SlashCommandId, string> = {
+  'archive': `---
+description: "Archive a deployed PLX change and update specs."
+argument-hint: change-id
 ---`,
-  implement: `---
+  'get-task': `---
+description: "Select and display the next prioritized task to work on."
+argument-hint: (optional context)
+---`,
+  'implement': `---
 description: "Implement an approved PLX change and keep tasks in sync."
 argument-hint: change-id
 ---`,
-  archive: `---
-description: "Archive a deployed PLX change and update specs."
-argument-hint: change-id
+  'orchestrate': `---
+description: "Orchestrate sub-agents to complete work collaboratively."
+argument-hint: (optional context)
+---`,
+  'parse-feedback': `---
+description: "Parse feedback markers and generate review tasks."
+argument-hint: (optional context)
+---`,
+  'plan-proposal': `---
+description: "Scaffold a new PLX change and validate strictly. Consumes request.md when present."
+argument-hint: feature description or request
+---`,
+  'plan-request': `---
+description: "Clarify user intent through iterative yes/no questions before proposal creation."
+argument-hint: (optional context)
+---`,
+  'prepare-compact': `---
+description: "Preserve session progress in PROGRESS.md for context continuity."
+argument-hint: (optional context)
+---`,
+  'prepare-release': `---
+description: "Prepare release by updating changelog, readme, and architecture documentation."
+argument-hint: (optional context)
+---`,
+  'refine-architecture': `---
+description: "Create or update ARCHITECTURE.md."
+argument-hint: (optional context)
+---`,
+  'refine-release': `---
+description: "Create or update RELEASE.md."
+argument-hint: (optional context)
+---`,
+  'refine-review': `---
+description: "Create or update REVIEW.md."
+argument-hint: (optional context)
+---`,
+  'review': `---
+description: "Review implementations against specs, changes, or tasks."
+argument-hint: (optional context)
 ---`
-} as const satisfies Record<SlashCommandId, string>;
+};
 
 export class CostrictSlashCommandConfigurator extends SlashCommandConfigurator {
   readonly toolId = 'costrict';

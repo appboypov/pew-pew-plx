@@ -11,8 +11,7 @@ export abstract class TomlSlashCommandConfigurator extends SlashCommandConfigura
 
   protected abstract getDescription(id: SlashCommandId): string;
 
-  // Override to generate TOML format with markers inside the prompt field
-  async generateAll(projectPath: string, _workspaceDir: string): Promise<string[]> {
+  async generateAll(projectPath: string): Promise<string[]> {
     const createdOrUpdated: string[] = [];
 
     for (const target of this.getTargets()) {

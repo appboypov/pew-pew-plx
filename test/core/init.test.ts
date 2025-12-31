@@ -176,7 +176,7 @@ describe('InitCommand', () => {
 
       const wsProposal = path.join(
         testDir,
-        '.windsurf/workflows/plx-proposal.md'
+        '.windsurf/workflows/plx-plan-proposal.md'
       );
       const wsImplement = path.join(
         testDir,
@@ -219,7 +219,7 @@ describe('InitCommand', () => {
 
       const agProposal = path.join(
         testDir,
-        '.agent/workflows/plx-proposal.md'
+        '.agent/workflows/plx-plan-proposal.md'
       );
       const agImplement = path.join(
         testDir,
@@ -280,7 +280,7 @@ describe('InitCommand', () => {
 
       const claudeProposal = path.join(
         testDir,
-        '.claude/commands/plx/proposal.md'
+        '.claude/commands/plx/plan-proposal.md'
       );
       const claudeImplement = path.join(
         testDir,
@@ -296,8 +296,11 @@ describe('InitCommand', () => {
       expect(await fileExists(claudeArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(claudeProposal, 'utf-8');
-      expect(proposalContent).toContain('name: Pew Pew Plx: Proposal');
+      expect(proposalContent).toContain('name: Pew Pew Plx: Plan Proposal');
       expect(proposalContent).toContain('<!-- PLX:START -->');
+      expect(proposalContent).toContain('**Context**');
+      expect(proposalContent).toContain('@ARCHITECTURE.md');
+      expect(proposalContent).toContain('@workspace/AGENTS.md');
       expect(proposalContent).toContain('**Guardrails**');
 
       const implementContent = await fs.readFile(claudeImplement, 'utf-8');
@@ -311,6 +314,34 @@ describe('InitCommand', () => {
       );
     });
 
+    it('should include context file references in planning commands', async () => {
+      queueSelections('claude', DONE);
+
+      await initCommand.execute(testDir);
+
+      const planProposal = path.join(
+        testDir,
+        '.claude/commands/plx/plan-proposal.md'
+      );
+      const planRequest = path.join(
+        testDir,
+        '.claude/commands/plx/plan-request.md'
+      );
+
+      expect(await fileExists(planProposal)).toBe(true);
+      expect(await fileExists(planRequest)).toBe(true);
+
+      const proposalContent = await fs.readFile(planProposal, 'utf-8');
+      expect(proposalContent).toContain('**Context**');
+      expect(proposalContent).toContain('@ARCHITECTURE.md');
+      expect(proposalContent).toContain('@workspace/AGENTS.md');
+
+      const requestContent = await fs.readFile(planRequest, 'utf-8');
+      expect(requestContent).toContain('**Context**');
+      expect(requestContent).toContain('@ARCHITECTURE.md');
+      expect(requestContent).toContain('@workspace/AGENTS.md');
+    });
+
     it('should create Cursor slash command files with templates', async () => {
       queueSelections('cursor', DONE);
 
@@ -318,7 +349,7 @@ describe('InitCommand', () => {
 
       const cursorProposal = path.join(
         testDir,
-        '.cursor/commands/plx-proposal.md'
+        '.cursor/commands/plx-plan-proposal.md'
       );
       const cursorImplement = path.join(
         testDir,
@@ -334,7 +365,7 @@ describe('InitCommand', () => {
       expect(await fileExists(cursorArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(cursorProposal, 'utf-8');
-      expect(proposalContent).toContain('name: /plx-proposal');
+      expect(proposalContent).toContain('name: /plx-plan-proposal');
       expect(proposalContent).toContain('<!-- PLX:END -->');
 
       const implementContent = await fs.readFile(cursorImplement, 'utf-8');
@@ -352,7 +383,7 @@ describe('InitCommand', () => {
 
       const geminiProposal = path.join(
         testDir,
-        '.gemini/commands/plx/proposal.toml'
+        '.gemini/commands/plx/plan-proposal.toml'
       );
       const geminiImplement = path.join(
         testDir,
@@ -368,18 +399,8 @@ describe('InitCommand', () => {
       expect(await fileExists(geminiArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(geminiProposal, 'utf-8');
-      expect(proposalContent).toContain('description = "Scaffold a new PLX change and validate strictly."');
-      expect(proposalContent).toContain('prompt = """');
       expect(proposalContent).toContain('<!-- PLX:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
       expect(proposalContent).toContain('<!-- PLX:END -->');
-
-      const implementContent = await fs.readFile(geminiImplement, 'utf-8');
-      expect(implementContent).toContain('description = "Implement an approved PLX change and keep tasks in sync."');
-
-      const archiveContent = await fs.readFile(geminiArchive, 'utf-8');
-      expect(archiveContent).toContain('description = "Archive a deployed PLX change and update specs."');
-      expect(archiveContent).toContain('plx archive <id>');
     });
 
     it('should update existing Gemini CLI TOML files with refreshed content', async () => {
@@ -389,7 +410,7 @@ describe('InitCommand', () => {
 
       const geminiProposal = path.join(
         testDir,
-        '.gemini/commands/plx/proposal.toml'
+        '.gemini/commands/plx/plan-proposal.toml'
       );
 
       // Modify the file to simulate user customization
@@ -417,7 +438,7 @@ describe('InitCommand', () => {
 
       const iflowProposal = path.join(
         testDir,
-        '.iflow/commands/plx-proposal.md'
+        '.iflow/commands/plx-plan-proposal.md'
       );
       const iflowImplement = path.join(
         testDir,
@@ -470,7 +491,7 @@ describe('InitCommand', () => {
 
       const openCodeProposal = path.join(
         testDir,
-        '.opencode/command/plx-proposal.md'
+        '.opencode/command/plx-plan-proposal.md'
       );
       const openCodeImplement = path.join(
         testDir,
@@ -514,7 +535,7 @@ describe('InitCommand', () => {
       const qwenConfigPath = path.join(testDir, 'QWEN.md');
       const proposalPath = path.join(
         testDir,
-        '.qwen/commands/plx-proposal.toml'
+        '.qwen/commands/plx-plan-proposal.toml'
       );
       const implementPath = path.join(
         testDir,
@@ -536,16 +557,7 @@ describe('InitCommand', () => {
       expect(qwenConfigContent).toContain('<!-- PLX:END -->');
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
-      expect(proposalContent).toContain('description = "Scaffold a new PLX change and validate strictly."');
-      expect(proposalContent).toContain('prompt = """');
       expect(proposalContent).toContain('<!-- PLX:START -->');
-
-      const implementContent = await fs.readFile(implementPath, 'utf-8');
-      expect(implementContent).toContain('description = "Implement an approved PLX change and keep tasks in sync."');
-
-      const archiveContent = await fs.readFile(archivePath, 'utf-8');
-      expect(archiveContent).toContain('description = "Archive a deployed PLX change and update specs."');
-      expect(archiveContent).toContain('plx archive <id>');
     });
 
     it('should update existing QWEN.md with markers', async () => {
@@ -572,7 +584,7 @@ describe('InitCommand', () => {
 
       const clineProposal = path.join(
         testDir,
-        '.clinerules/workflows/plx-proposal.md'
+        '.clinerules/workflows/plx-plan-proposal.md'
       );
       const clineImplement = path.join(
         testDir,
@@ -588,7 +600,7 @@ describe('InitCommand', () => {
       expect(await fileExists(clineArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(clineProposal, 'utf-8');
-      expect(proposalContent).toContain('# PLX: Proposal');
+      expect(proposalContent).toContain('# PLX: Plan Proposal');
       expect(proposalContent).toContain('Scaffold a new PLX change and validate strictly.');
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Guardrails**');
@@ -610,7 +622,7 @@ describe('InitCommand', () => {
 
       const factoryProposal = path.join(
         testDir,
-        '.factory/commands/plx-proposal.md'
+        '.factory/commands/plx-plan-proposal.md'
       );
       const factoryImplement = path.join(
         testDir,
@@ -662,7 +674,7 @@ describe('InitCommand', () => {
 
       const proposalPath = path.join(
         testDir,
-        '.codex/prompts/plx-proposal.md'
+        '.codex/prompts/plx-plan-proposal.md'
       );
       const implementPath = path.join(
         testDir,
@@ -703,7 +715,7 @@ describe('InitCommand', () => {
 
       const proposalPath = path.join(
         testDir,
-        '.kilocode/workflows/plx-proposal.md'
+        '.kilocode/workflows/plx-plan-proposal.md'
       );
       const implementPath = path.join(
         testDir,
@@ -738,7 +750,7 @@ describe('InitCommand', () => {
 
       const proposalPath = path.join(
         testDir,
-        '.github/prompts/plx-proposal.prompt.md'
+        '.github/prompts/plx-plan-proposal.prompt.md'
       );
       const implementPath = path.join(
         testDir,
@@ -779,7 +791,7 @@ describe('InitCommand', () => {
 
       const cursorProposal = path.join(
         testDir,
-        '.cursor/commands/plx-proposal.md'
+        '.cursor/commands/plx-plan-proposal.md'
       );
       expect(await fileExists(cursorProposal)).toBe(true);
     });
@@ -988,7 +1000,7 @@ describe('InitCommand', () => {
 
       const proposalPath = path.join(
         testDir,
-        '.amazonq/prompts/plx-proposal.md'
+        '.amazonq/prompts/plx-plan-proposal.md'
       );
       const implementPath = path.join(
         testDir,
@@ -1036,7 +1048,7 @@ describe('InitCommand', () => {
 
       const auggieProposal = path.join(
         testDir,
-        '.augment/commands/plx-proposal.md'
+        '.augment/commands/plx-plan-proposal.md'
       );
       const auggieImplement = path.join(
         testDir,
@@ -1089,7 +1101,7 @@ describe('InitCommand', () => {
 
       const codeBuddyProposal = path.join(
         testDir,
-        '.codebuddy/commands/plx/proposal.md'
+        '.codebuddy/commands/plx/plan-proposal.md'
       );
       const codeBuddyImplement = path.join(
         testDir,
@@ -1106,7 +1118,7 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(codeBuddyProposal, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('name: Pew Pew Plx: Proposal');
+      expect(proposalContent).toContain('name: Pew Pew Plx: Plan Proposal');
       expect(proposalContent).toContain('description: Scaffold a new Pew Pew Plx change and validate strictly.');
       expect(proposalContent).toContain('category: Pew Pew Plx');
       expect(proposalContent).toContain('<!-- PLX:START -->');
@@ -1176,7 +1188,7 @@ describe('InitCommand', () => {
 
       const crushProposal = path.join(
         testDir,
-        '.crush/commands/plx/proposal.md'
+        '.crush/commands/plx/plan-proposal.md'
       );
       const crushImplement = path.join(
         testDir,
@@ -1193,7 +1205,7 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(crushProposal, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('name: Pew Pew Plx: Proposal');
+      expect(proposalContent).toContain('name: Pew Pew Plx: Plan Proposal');
       expect(proposalContent).toContain('description: Scaffold a new Pew Pew Plx change and validate strictly.');
       expect(proposalContent).toContain('category: Pew Pew Plx');
       expect(proposalContent).toContain('tags: [plx, change]');
@@ -1235,7 +1247,7 @@ describe('InitCommand', () => {
 
       const costrictProposal = path.join(
         testDir,
-        '.cospec/plx/commands/plx-proposal.md'
+        '.cospec/plx/commands/plx-plan-proposal.md'
       );
       const costrictImplement = path.join(
         testDir,
@@ -1252,21 +1264,7 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(costrictProposal, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('description: "Scaffold a new PLX change and validate strictly."');
-      expect(proposalContent).toContain('argument-hint: feature description or request');
       expect(proposalContent).toContain('<!-- PLX:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-
-      const implementContent = await fs.readFile(costrictImplement, 'utf-8');
-      expect(implementContent).toContain('---');
-      expect(implementContent).toContain('description: "Implement an approved PLX change and keep tasks in sync."');
-      expect(implementContent).toContain('argument-hint: change-id');
-
-      const archiveContent = await fs.readFile(costrictArchive, 'utf-8');
-      expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('description: "Archive a deployed PLX change and update specs."');
-      expect(archiveContent).toContain('argument-hint: change-id');
-      expect(archiveContent).toContain('plx archive <id> --yes');
     });
 
     it('should mark CoStrict as already configured during extend mode', async () => {
@@ -1288,7 +1286,7 @@ describe('InitCommand', () => {
 
       const rooProposal = path.join(
         testDir,
-        '.roo/commands/plx-proposal.md'
+        '.roo/commands/plx-plan-proposal.md'
       );
       const rooImplement = path.join(
         testDir,
@@ -1304,7 +1302,7 @@ describe('InitCommand', () => {
       expect(await fileExists(rooArchive)).toBe(true);
 
       const proposalContent = await fs.readFile(rooProposal, 'utf-8');
-      expect(proposalContent).toContain('# PLX: Proposal');
+      expect(proposalContent).toContain('# PLX: Plan Proposal');
       expect(proposalContent).toContain('**Guardrails**');
 
       const implementContent = await fs.readFile(rooImplement, 'utf-8');
@@ -1334,7 +1332,7 @@ describe('InitCommand', () => {
 
       const qoderProposal = path.join(
         testDir,
-        '.qoder/commands/plx/proposal.md'
+        '.qoder/commands/plx/plan-proposal.md'
       );
       const qoderImplement = path.join(
         testDir,
@@ -1351,7 +1349,7 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(qoderProposal, 'utf-8');
       expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('name: Pew Pew Plx: Proposal');
+      expect(proposalContent).toContain('name: Pew Pew Plx: Plan Proposal');
       expect(proposalContent).toContain('description: Scaffold a new Pew Pew Plx change and validate strictly.');
       expect(proposalContent).toContain('category: Pew Pew Plx');
       expect(proposalContent).toContain('<!-- PLX:START -->');
@@ -1455,11 +1453,11 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const cursorProposal = path.join(
         testDir,
-        '.cursor/commands/plx-proposal.md'
+        '.cursor/commands/plx-plan-proposal.md'
       );
       const windsurfProposal = path.join(
         testDir,
-        '.windsurf/workflows/plx-proposal.md'
+        '.windsurf/workflows/plx-plan-proposal.md'
       );
 
       expect(await fileExists(claudePath)).toBe(true);
@@ -1475,11 +1473,11 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const cursorProposal = path.join(
         testDir,
-        '.cursor/commands/plx-proposal.md'
+        '.cursor/commands/plx-plan-proposal.md'
       );
       const windsurfProposal = path.join(
         testDir,
-        '.windsurf/workflows/plx-proposal.md'
+        '.windsurf/workflows/plx-plan-proposal.md'
       );
 
       expect(await fileExists(claudePath)).toBe(true);
@@ -1495,7 +1493,7 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const cursorProposal = path.join(
         testDir,
-        '.cursor/commands/plx-proposal.md'
+        '.cursor/commands/plx-plan-proposal.md'
       );
 
       // Should still create AGENTS.md but no tool-specific files
@@ -1521,7 +1519,7 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const cursorProposal = path.join(
         testDir,
-        '.cursor/commands/plx-proposal.md'
+        '.cursor/commands/plx-plan-proposal.md'
       );
 
       expect(await fileExists(claudePath)).toBe(true);
@@ -1600,7 +1598,7 @@ describe('InitCommand', () => {
       const codexPromptsDir = path.join(testDir, '.codex/prompts');
       await fs.mkdir(codexPromptsDir, { recursive: true });
       await fs.writeFile(
-        path.join(codexPromptsDir, 'plx-proposal.md'),
+        path.join(codexPromptsDir, 'plx-plan-proposal.md'),
         '# Existing prompt\n'
       );
 

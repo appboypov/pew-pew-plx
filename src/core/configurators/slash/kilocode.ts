@@ -1,14 +1,24 @@
-import { SlashCommandConfigurator } from "./base.js";
-import { SlashCommandId } from "../../templates/index.js";
+import { SlashCommandConfigurator } from './base.js';
+import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
-  proposal: ".kilocode/workflows/plx-proposal.md",
-  implement: ".kilocode/workflows/plx-implement.md",
-  archive: ".kilocode/workflows/plx-archive.md"
+  'archive': '.kilocode/workflows/plx-archive.md',
+  'get-task': '.kilocode/workflows/plx-get-task.md',
+  'implement': '.kilocode/workflows/plx-implement.md',
+  'orchestrate': '.kilocode/workflows/plx-orchestrate.md',
+  'parse-feedback': '.kilocode/workflows/plx-parse-feedback.md',
+  'plan-proposal': '.kilocode/workflows/plx-plan-proposal.md',
+  'plan-request': '.kilocode/workflows/plx-plan-request.md',
+  'prepare-compact': '.kilocode/workflows/plx-prepare-compact.md',
+  'prepare-release': '.kilocode/workflows/plx-prepare-release.md',
+  'refine-architecture': '.kilocode/workflows/plx-refine-architecture.md',
+  'refine-release': '.kilocode/workflows/plx-refine-release.md',
+  'refine-review': '.kilocode/workflows/plx-refine-review.md',
+  'review': '.kilocode/workflows/plx-review.md'
 };
 
 export class KiloCodeSlashCommandConfigurator extends SlashCommandConfigurator {
-  readonly toolId = "kilocode";
+  readonly toolId = 'kilocode';
   readonly isAvailable = true;
 
   protected getRelativePath(id: SlashCommandId): string {

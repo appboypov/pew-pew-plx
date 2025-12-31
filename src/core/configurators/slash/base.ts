@@ -8,7 +8,21 @@ export interface SlashCommandTarget {
   kind: 'slash';
 }
 
-const ALL_COMMANDS: SlashCommandId[] = ['proposal', 'implement', 'archive'];
+const ALL_COMMANDS: SlashCommandId[] = [
+  'archive',
+  'get-task',
+  'implement',
+  'orchestrate',
+  'parse-feedback',
+  'plan-proposal',
+  'plan-request',
+  'prepare-compact',
+  'prepare-release',
+  'refine-architecture',
+  'refine-release',
+  'refine-review',
+  'review'
+];
 
 export abstract class SlashCommandConfigurator {
   abstract readonly toolId: string;
@@ -22,7 +36,7 @@ export abstract class SlashCommandConfigurator {
     }));
   }
 
-  async generateAll(projectPath: string, _workspaceDir: string): Promise<string[]> {
+  async generateAll(projectPath: string): Promise<string[]> {
     const createdOrUpdated: string[] = [];
 
     for (const target of this.getTargets()) {
@@ -48,7 +62,7 @@ export abstract class SlashCommandConfigurator {
     return createdOrUpdated;
   }
 
-  async updateExisting(projectPath: string, _workspaceDir: string): Promise<string[]> {
+  async updateExisting(projectPath: string): Promise<string[]> {
     const updated: string[] = [];
 
     for (const target of this.getTargets()) {

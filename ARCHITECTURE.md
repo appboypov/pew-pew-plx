@@ -130,11 +130,8 @@ Tool configurators use a **Registry Pattern** with static initialization:
 // ToolRegistry - manages AI tool config file generators
 ToolRegistry.get('claude')?.configure(projectPath, workspaceDir);
 
-// SlashCommandRegistry - manages slash command generators
+// SlashCommandRegistry - manages slash command generators for all commands
 SlashCommandRegistry.get('claude')?.generateAll(projectPath, workspaceDir);
-
-// PlxSlashCommandRegistry - manages PLX-specific commands (fork feature)
-PlxSlashCommandRegistry.get('claude')?.generateAll(projectPath);
 ```
 
 Registries are populated via static initializer blocks, making all configurators available at module load.
@@ -230,9 +227,8 @@ Domain services encapsulate business logic for reuse across commands:
 Templates use a **Factory Pattern** via `TemplateManager`:
 
 ```typescript
-TemplateManager.getTemplates(context)     // Core templates
-TemplateManager.getSlashCommandBody(id)   // Slash command templates
-TemplateManager.getPlxSlashCommandBody(id) // PLX slash command templates
+TemplateManager.getTemplates(context)       // Core templates
+TemplateManager.getSlashCommandBody(id)     // Slash command templates
 TemplateManager.getArchitectureTemplate(context) // Architecture doc template
 ```
 
@@ -266,7 +262,6 @@ CreateDirectoryStructure → GenerateFiles
 For each selected tool:
     ToolRegistry.get(tool).configure()
     SlashCommandRegistry.get(tool).generateAll()
-    PlxSlashCommandRegistry.get(tool).generateAll()
     ↓
 Write AGENTS.md root stub
 ```
@@ -795,10 +790,13 @@ Pew Pew Plx provides:
 
 1. **PLX Command**: The CLI uses `plx` as the command name
 2. **Dynamic Command Name**: CLI detects invocation name and uses it in output messages, help text, and shell completions via `src/utils/command-name.ts`
-3. **PLX Slash Commands**: Additional commands in `.claude/commands/plx/`
+3. **Slash Commands**: Commands in `.claude/commands/plx/`
+   - `/plx/plan-request` - Clarify intent via iterative yes/no questions before proposal
+   - `/plx/plan-proposal` - Scaffold change proposal (auto-consumes request.md)
    - `/plx/get-task` - Get next prioritized task and execute workflow
    - `/plx/complete-task` - Mark task as done
    - `/plx/undo-task` - Revert task to to-do
+   - `/plx/implement` - Implement tasks with guided workflow (processes entire change)
    - `/plx/orchestrate` - Coordinate sub-agents for multi-task work
    - `/plx/refine-architecture` - Create or update ARCHITECTURE.md
    - `/plx/review` - Review implementations against specs/changes/tasks
@@ -807,15 +805,14 @@ Pew Pew Plx provides:
    - `/plx/prepare-release` - Guided release preparation workflow
    - `/plx/refine-release` - Create or update RELEASE.md template
    - `/plx/prepare-compact` - Preserve session progress in PROGRESS.md
-4. **PlxSlashCommandRegistry**: Separate registry for PLX-specific commands
-5. **Extended Templates**: Architecture template generation
-6. **Get Command**: Extended with subcommands for item retrieval (`get task`, `get change`, `get spec`, `get tasks`) and content filtering (`--constraints`, `--acceptance-criteria`)
-7. **Automatic Task Completion**: Detects when in-progress task has all Implementation Checklist items checked and auto-advances to next task
-8. **Auto-Transition**: `get task` auto-transitions to-do tasks to in-progress when retrieved
-9. **Complete/Undo Commands**: Explicit commands for task/change completion and undo (`complete task`, `complete change`, `undo task`, `undo change`)
-10. **Services Layer**: Domain services for item retrieval and content filtering
-11. **Review System**: Structured review workflow with feedback markers (`plx review`, `plx parse feedback`)
-12. **Paste Command**: Capture clipboard content as draft request (`plx paste request`) with cross-platform clipboard support (macOS, Windows, Linux)
+4. **Extended Templates**: Architecture template generation
+5. **Get Command**: Extended with subcommands for item retrieval (`get task`, `get change`, `get spec`, `get tasks`) and content filtering (`--constraints`, `--acceptance-criteria`)
+6. **Automatic Task Completion**: Detects when in-progress task has all Implementation Checklist items checked and auto-advances to next task
+7. **Auto-Transition**: `get task` auto-transitions to-do tasks to in-progress when retrieved
+8. **Complete/Undo Commands**: Explicit commands for task/change completion and undo (`complete task`, `complete change`, `undo task`, `undo change`)
+9. **Services Layer**: Domain services for item retrieval and content filtering
+10. **Review System**: Structured review workflow with feedback markers (`plx review`, `plx parse feedback`)
+11. **Paste Command**: Capture clipboard content as draft request (`plx paste request`) with cross-platform clipboard support (macOS, Windows, Linux)
 
 ## Extending the System
 
@@ -826,7 +823,6 @@ Pew Pew Plx provides:
 3. Create slash command configurator in `src/core/configurators/slash/<tool>.ts`
 4. Register in `src/core/configurators/slash/registry.ts`
 5. Add to `AI_TOOLS` array in `src/core/config.ts`
-6. (Optional) Create PLX configurator in `slash/plx-<tool>.ts`
 
 ### Adding a New Command
 
