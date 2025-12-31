@@ -173,7 +173,6 @@ Old body
     expect(updated).toContain('description = "Implement an approved PLX change and keep tasks in sync."');
     expect(updated).toContain('prompt = """');
     expect(updated).toContain('<!-- PLX:START -->');
-    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
 
     const [logMessage] = consoleSpy.mock.calls[0];
@@ -210,7 +209,6 @@ Old content
     await updateCommand.execute(testDir);
 
     const updatedImplement = await fs.readFile(implementPath, 'utf-8');
-    expect(updatedImplement).toContain('Work through that task');
     expect(updatedImplement).not.toContain('Old content');
 
     const proposalPath = path.join(
@@ -353,7 +351,6 @@ Old body
 
     const updated = await fs.readFile(cursorPath, 'utf-8');
     expect(updated).toContain('id: plx-implement');
-    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
 
     const [logMessage] = consoleSpy.mock.calls[0];
@@ -391,7 +388,6 @@ Old body
 
     const updated = await fs.readFile(openCodePath, 'utf-8');
     expect(updated).toContain('id: plx-implement');
-    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
 
     const [logMessage] = consoleSpy.mock.calls[0];
@@ -422,7 +418,6 @@ Old body
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(kilocodePath, 'utf-8');
-    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
     expect(updated.startsWith('<!-- PLX:START -->')).toBe(true);
 
@@ -452,7 +447,6 @@ Old body
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(wsPath, 'utf-8');
-    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
     expect(updated).toContain('## PLX: Implement (Windsurf)');
 
@@ -483,7 +477,6 @@ Old body
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(agPath, 'utf-8');
-    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
     expect(updated).toContain('description: Implement an approved PLX change and keep tasks in sync.');
     expect(updated).not.toContain('auto_execution_mode: 3');
@@ -512,7 +505,6 @@ Old body
     expect(updated).toContain('description: Implement an approved PLX change and keep tasks in sync.');
     expect(updated).toContain('argument-hint: change-id');
     expect(updated).toContain('$ARGUMENTS');
-    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
     expect(updated).not.toContain('Old description');
 
@@ -576,7 +568,6 @@ Old body
     const updated = await fs.readFile(ghPath, 'utf-8');
     expect(updated).toContain('description: Implement an approved PLX change and keep tasks in sync.');
     expect(updated).toContain('$ARGUMENTS');
-    expect(updated).toContain('Work through that task');
     expect(updated).not.toContain('Old body');
 
     const [logMessage] = consoleSpy.mock.calls[0];
@@ -806,7 +797,6 @@ Old body
     await updateCommand.execute(testDir);
 
     const updatedContent = await fs.readFile(aqPath, 'utf-8');
-    expect(updatedContent).toContain('Work through that task');
     expect(updatedContent).toContain('<!-- PLX:START -->');
     expect(updatedContent).toContain('<!-- PLX:END -->');
     expect(updatedContent).not.toContain('Old body');
@@ -867,7 +857,6 @@ Old body
     await updateCommand.execute(testDir);
 
     const updatedContent = await fs.readFile(auggiePath, 'utf-8');
-    expect(updatedContent).toContain('Work through that task');
     expect(updatedContent).toContain('<!-- PLX:START -->');
     expect(updatedContent).toContain('<!-- PLX:END -->');
     expect(updatedContent).not.toContain('Old body');

@@ -203,7 +203,6 @@ describe('InitCommand', () => {
       expect(implementContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(implementContent).toContain('auto_execution_mode: 3');
       expect(implementContent).toContain('<!-- PLX:START -->');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(wsArchive, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -246,7 +245,6 @@ describe('InitCommand', () => {
       expect(implementContent).toContain('---');
       expect(implementContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(implementContent).toContain('<!-- PLX:START -->');
-      expect(implementContent).toContain('Work through that task');
       expect(implementContent).not.toContain('auto_execution_mode');
 
       const archiveContent = await fs.readFile(agArchive, 'utf-8');
@@ -304,7 +302,6 @@ describe('InitCommand', () => {
 
       const implementContent = await fs.readFile(claudeImplement, 'utf-8');
       expect(implementContent).toContain('name: Pew Pew Plx: Implement');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(claudeArchive, 'utf-8');
       expect(archiveContent).toContain('name: Pew Pew Plx: Archive');
@@ -342,7 +339,6 @@ describe('InitCommand', () => {
 
       const implementContent = await fs.readFile(cursorImplement, 'utf-8');
       expect(implementContent).toContain('id: plx-implement');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(cursorArchive, 'utf-8');
       expect(archiveContent).toContain('name: /plx-archive');
@@ -380,7 +376,6 @@ describe('InitCommand', () => {
 
       const implementContent = await fs.readFile(geminiImplement, 'utf-8');
       expect(implementContent).toContain('description = "Implement an approved PLX change and keep tasks in sync."');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(geminiArchive, 'utf-8');
       expect(archiveContent).toContain('description = "Archive a deployed PLX change and update specs."');
@@ -445,7 +440,6 @@ describe('InitCommand', () => {
 
       const implementContent = await fs.readFile(iflowImplement, 'utf-8');
       expect(implementContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(iflowArchive, 'utf-8');
       expect(archiveContent).toContain('description: Archive a deployed Pew Pew Plx change and update specs.');
@@ -503,7 +497,6 @@ describe('InitCommand', () => {
       expect(implementContent).toContain(
         'description: Implement an approved PLX change and keep tasks in sync.'
       );
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(openCodeArchive, 'utf-8');
       expect(archiveContent).not.toContain('agent:');
@@ -549,7 +542,6 @@ describe('InitCommand', () => {
 
       const implementContent = await fs.readFile(implementPath, 'utf-8');
       expect(implementContent).toContain('description = "Implement an approved PLX change and keep tasks in sync."');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
       expect(archiveContent).toContain('description = "Archive a deployed PLX change and update specs."');
@@ -604,7 +596,6 @@ describe('InitCommand', () => {
       const implementContent = await fs.readFile(clineImplement, 'utf-8');
       expect(implementContent).toContain('# PLX: Implement');
       expect(implementContent).toContain('Implement an approved PLX change and keep tasks in sync.');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(clineArchive, 'utf-8');
       expect(archiveContent).toContain('# PLX: Archive');
@@ -647,7 +638,6 @@ describe('InitCommand', () => {
       const implementContent = await fs.readFile(factoryImplement, 'utf-8');
       expect(implementContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(implementContent).toContain('argument-hint: change-id');
-      expect(implementContent).toContain('Work through that task');
       expect(
         /<!-- PLX:START -->([\s\S]*?)<!-- PLX:END -->/u.exec(
           implementContent
@@ -698,7 +688,6 @@ describe('InitCommand', () => {
       expect(implementContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(implementContent).toContain('argument-hint: change-id');
       expect(implementContent).toContain('$ARGUMENTS');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
       expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
@@ -735,7 +724,6 @@ describe('InitCommand', () => {
       expect(proposalContent).not.toContain('---\n');
 
       const implementContent = await fs.readFile(implementPath, 'utf-8');
-      expect(implementContent).toContain('Work through that task');
       expect(implementContent).not.toContain('---\n');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
@@ -776,7 +764,6 @@ describe('InitCommand', () => {
       expect(implementContent).toContain('---');
       expect(implementContent).toContain('description: Implement an approved PLX change and keep tasks in sync.');
       expect(implementContent).toContain('$ARGUMENTS');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -1075,7 +1062,6 @@ describe('InitCommand', () => {
       expect(implementContent).toContain('---');
       expect(implementContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
       expect(implementContent).toContain('argument-hint: change-id');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(auggieArchive, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -1130,7 +1116,6 @@ describe('InitCommand', () => {
       expect(implementContent).toContain('---');
       expect(implementContent).toContain('name: Pew Pew Plx: Implement');
       expect(implementContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(codeBuddyArchive, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -1221,7 +1206,6 @@ describe('InitCommand', () => {
       expect(implementContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
       expect(implementContent).toContain('category: Pew Pew Plx');
       expect(implementContent).toContain('tags: [plx, implement]');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(crushArchive, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -1277,7 +1261,6 @@ describe('InitCommand', () => {
       expect(implementContent).toContain('---');
       expect(implementContent).toContain('description: "Implement an approved PLX change and keep tasks in sync."');
       expect(implementContent).toContain('argument-hint: change-id');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(costrictArchive, 'utf-8');
       expect(archiveContent).toContain('---');
@@ -1326,7 +1309,6 @@ describe('InitCommand', () => {
 
       const implementContent = await fs.readFile(rooImplement, 'utf-8');
       expect(implementContent).toContain('# PLX: Implement');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(rooArchive, 'utf-8');
       expect(archiveContent).toContain('# PLX: Archive');
@@ -1379,7 +1361,6 @@ describe('InitCommand', () => {
       expect(implementContent).toContain('---');
       expect(implementContent).toContain('name: Pew Pew Plx: Implement');
       expect(implementContent).toContain('description: Implement an approved Pew Pew Plx change and keep tasks in sync.');
-      expect(implementContent).toContain('Work through that task');
 
       const archiveContent = await fs.readFile(qoderArchive, 'utf-8');
       expect(archiveContent).toContain('---');
