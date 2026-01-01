@@ -3,6 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.amazonq/prompts/plx-archive.md',
+  'complete-task': '.amazonq/prompts/plx-complete-task.md',
   'get-task': '.amazonq/prompts/plx-get-task.md',
   'implement': '.amazonq/prompts/plx-implement.md',
   'orchestrate': '.amazonq/prompts/plx-orchestrate.md',
@@ -14,7 +15,9 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.amazonq/prompts/plx-refine-architecture.md',
   'refine-release': '.amazonq/prompts/plx-refine-release.md',
   'refine-review': '.amazonq/prompts/plx-refine-review.md',
-  'review': '.amazonq/prompts/plx-review.md'
+  'review': '.amazonq/prompts/plx-review.md',
+  'sync-workspace': '.amazonq/prompts/plx-sync-workspace.md',
+  'undo-task': '.amazonq/prompts/plx-undo-task.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
@@ -27,6 +30,11 @@ The user wants to archive the following deployed change. Use the PLX instruction
 <ChangeId>
   $ARGUMENTS
 </ChangeId>`,
+  'complete-task': `---
+description: Mark a task as done.
+---
+
+<arguments>$ARGUMENTS</arguments>`,
   'get-task': `---
 description: Select and display the next prioritized task to work on.
 ---
@@ -92,6 +100,16 @@ description: Create or update REVIEW.md.
 <arguments>$ARGUMENTS</arguments>`,
   'review': `---
 description: Review implementations against specs, changes, or tasks.
+---
+
+<arguments>$ARGUMENTS</arguments>`,
+  'sync-workspace': `---
+description: Scan workspace state and suggest maintenance actions.
+---
+
+<arguments>$ARGUMENTS</arguments>`,
+  'undo-task': `---
+description: Revert a task to to-do.
 ---
 
 <arguments>$ARGUMENTS</arguments>`

@@ -1,5 +1,6 @@
 export type SlashCommandId =
   | 'archive'
+  | 'complete-task'
   | 'get-task'
   | 'implement'
   | 'orchestrate'
@@ -11,7 +12,9 @@ export type SlashCommandId =
   | 'refine-architecture'
   | 'refine-release'
   | 'refine-review'
-  | 'review';
+  | 'review'
+  | 'sync-workspace'
+  | 'undo-task';
 
 const baseGuardrails = `**Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.
@@ -238,8 +241,68 @@ const planRequestReference = `**Reference**
 - Run \`plx/plan-proposal <change-id>\` after this command to scaffold the proposal.
 - The plan-proposal command auto-detects and consumes request.md when present.`;
 
+const syncWorkspaceGuardrails = `${planningContext}
+
+**Guardrails**
+- Spawn sub-agents for complex assessments when context is heavy (multiple changes, many tasks).
+- Present actionable suggestions using question tool (multi-select if available) or numbered list.
+- Wait for user selection before executing any actions.
+- Validate workspace state with \`plx validate --all --strict\` before and after actions.
+- Execute only the actions explicitly selected by the user.`;
+
+const syncWorkspaceSteps = `**Steps**
+1. Determine scope from \`$ARGUMENTS\`:
+   - If change-id provided: focus on that change only.
+   - If task-id provided: focus on that task's parent change.
+   - If no arguments: scan entire workspace.
+2. Scan workspace state:
+   - Run \`plx list\` to see all active changes.
+   - Run \`plx get tasks\` to see all open tasks.
+   - Run \`plx validate --all --strict\` to identify validation issues.
+3. Assess and categorize issues:
+   - Ready to archive: changes with all tasks completed.
+   - Stale changes: changes with no recent activity.
+   - Failing validation: items with validation errors or warnings.
+   - Missing artifacts: incomplete proposals, specs, or tasks.
+   - Orphaned items: specs without changes, tasks without parents.
+4. Present actionable suggestions:
+   - Use question tool with multi-select if available.
+   - Otherwise, present numbered list and ask user to select by number.
+   - Group suggestions by category (archive, create, update, validate, delete).
+5. Wait for user selection—do not proceed without explicit confirmation.
+6. Execute selected actions sequentially:
+   - Archive: \`plx archive <id> --yes\`
+   - Create tasks: scaffold task files in \`workspace/changes/<id>/tasks/\`
+   - Update proposals: edit \`proposal.md\` or \`design.md\`
+   - Validate: \`plx validate <id> --strict\`
+7. Report summary:
+   - List all actions taken with outcomes.
+   - Show current workspace state with \`plx list\`.
+   - Highlight any remaining issues.`;
+
+const syncWorkspaceReference = `**Reference**
+- Use \`plx list\` to see all active changes.
+- Use \`plx get tasks\` to see all open tasks across changes.
+- Use \`plx get tasks --id <change-id>\` to see tasks for a specific change.
+- Use \`plx validate --all --strict\` for comprehensive validation.
+- Use \`plx archive <id> --yes\` to archive without prompts.
+- Use \`plx show <id>\` to inspect change or spec details.`;
+
+const completeTaskSteps = `**Steps**
+1. Parse \`$ARGUMENTS\` to extract task-id.
+2. If no task-id provided, ask user for task-id or run \`plx get tasks\` to list options.
+3. Run \`plx complete task --id <task-id>\` to mark the task as done.
+4. Confirm completion to user.`;
+
+const undoTaskSteps = `**Steps**
+1. Parse \`$ARGUMENTS\` to extract task-id.
+2. If no task-id provided, ask user for task-id or run \`plx get tasks\` to list options.
+3. Run \`plx undo task --id <task-id>\` to revert the task to to-do.
+4. Confirm undo to user.`;
+
 export const slashCommandBodies: Record<SlashCommandId, string> = {
   'archive': [baseGuardrails, archiveSteps, archiveReferences].join('\n\n'),
+  'complete-task': completeTaskSteps,
   'get-task': [getTaskGuardrails, getTaskSteps].join('\n\n'),
   'implement': [baseGuardrails, implementSteps, implementReferences].join('\n\n'),
   'orchestrate': [orchestrateGuardrails, orchestrateSteps, orchestrateReference].join('\n\n'),
@@ -251,7 +314,9 @@ export const slashCommandBodies: Record<SlashCommandId, string> = {
   'refine-architecture': [refineArchitectureGuardrails, refineArchitectureSteps].join('\n\n'),
   'refine-release': [refineReleaseGuardrails, refineReleaseSteps].join('\n\n'),
   'refine-review': [refineReviewGuardrails, refineReviewSteps].join('\n\n'),
-  'review': [reviewGuardrails, reviewSteps].join('\n\n')
+  'review': [reviewGuardrails, reviewSteps].join('\n\n'),
+  'sync-workspace': [syncWorkspaceGuardrails, syncWorkspaceSteps, syncWorkspaceReference].join('\n\n'),
+  'undo-task': undoTaskSteps
 };
 
 export function getSlashCommandBody(id: SlashCommandId): string {

@@ -3,6 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.github/prompts/plx-archive.prompt.md',
+  'complete-task': '.github/prompts/plx-complete-task.prompt.md',
   'get-task': '.github/prompts/plx-get-task.prompt.md',
   'implement': '.github/prompts/plx-implement.prompt.md',
   'orchestrate': '.github/prompts/plx-orchestrate.prompt.md',
@@ -14,12 +15,19 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.github/prompts/plx-refine-architecture.prompt.md',
   'refine-release': '.github/prompts/plx-refine-release.prompt.md',
   'refine-review': '.github/prompts/plx-refine-review.prompt.md',
-  'review': '.github/prompts/plx-review.prompt.md'
+  'review': '.github/prompts/plx-review.prompt.md',
+  'sync-workspace': '.github/prompts/plx-sync-workspace.prompt.md',
+  'undo-task': '.github/prompts/plx-undo-task.prompt.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   'archive': `---
 description: Archive a deployed PLX change and update specs.
+---
+
+$ARGUMENTS`,
+  'complete-task': `---
+description: Mark a task as done.
 ---
 
 $ARGUMENTS`,
@@ -80,6 +88,16 @@ description: Create or update REVIEW.md.
 $ARGUMENTS`,
   'review': `---
 description: Review implementations against specs, changes, or tasks.
+---
+
+$ARGUMENTS`,
+  'sync-workspace': `---
+description: Scan workspace state and suggest maintenance actions.
+---
+
+$ARGUMENTS`,
+  'undo-task': `---
+description: Revert a task to to-do.
 ---
 
 $ARGUMENTS`

@@ -3,6 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.windsurf/workflows/plx-archive.md',
+  'complete-task': '.windsurf/workflows/plx-complete-task.md',
   'get-task': '.windsurf/workflows/plx-get-task.md',
   'implement': '.windsurf/workflows/plx-implement.md',
   'orchestrate': '.windsurf/workflows/plx-orchestrate.md',
@@ -14,11 +15,14 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.windsurf/workflows/plx-refine-architecture.md',
   'refine-release': '.windsurf/workflows/plx-refine-release.md',
   'refine-review': '.windsurf/workflows/plx-refine-review.md',
-  'review': '.windsurf/workflows/plx-review.md'
+  'review': '.windsurf/workflows/plx-review.md',
+  'sync-workspace': '.windsurf/workflows/plx-sync-workspace.md',
+  'undo-task': '.windsurf/workflows/plx-undo-task.md'
 };
 
 const DESCRIPTIONS: Record<SlashCommandId, string> = {
   'archive': 'Archive a deployed PLX change and update specs.',
+  'complete-task': 'Mark a task as done.',
   'get-task': 'Select and display the next prioritized task to work on.',
   'implement': 'Implement an approved PLX change and keep tasks in sync.',
   'orchestrate': 'Orchestrate sub-agents to complete work collaboratively.',
@@ -30,7 +34,9 @@ const DESCRIPTIONS: Record<SlashCommandId, string> = {
   'refine-architecture': 'Create or update ARCHITECTURE.md.',
   'refine-release': 'Create or update RELEASE.md.',
   'refine-review': 'Create or update REVIEW.md.',
-  'review': 'Review implementations against specs, changes, or tasks.'
+  'review': 'Review implementations against specs, changes, or tasks.',
+  'sync-workspace': 'Scan workspace state and suggest maintenance actions.',
+  'undo-task': 'Revert a task to to-do.'
 };
 
 export class WindsurfSlashCommandConfigurator extends SlashCommandConfigurator {

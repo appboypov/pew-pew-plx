@@ -3,6 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.factory/commands/plx-archive.md',
+  'complete-task': '.factory/commands/plx-complete-task.md',
   'get-task': '.factory/commands/plx-get-task.md',
   'implement': '.factory/commands/plx-implement.md',
   'orchestrate': '.factory/commands/plx-orchestrate.md',
@@ -14,13 +15,19 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.factory/commands/plx-refine-architecture.md',
   'refine-release': '.factory/commands/plx-refine-release.md',
   'refine-review': '.factory/commands/plx-refine-review.md',
-  'review': '.factory/commands/plx-review.md'
+  'review': '.factory/commands/plx-review.md',
+  'sync-workspace': '.factory/commands/plx-sync-workspace.md',
+  'undo-task': '.factory/commands/plx-undo-task.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   'archive': `---
 description: Archive a deployed PLX change and update specs.
 argument-hint: change-id
+---`,
+  'complete-task': `---
+description: Mark a task as done.
+argument-hint: task-id
 ---`,
   'get-task': `---
 description: Select and display the next prioritized task to work on.
@@ -69,6 +76,14 @@ argument-hint: (optional context)
   'review': `---
 description: Review implementations against specs, changes, or tasks.
 argument-hint: (optional context)
+---`,
+  'sync-workspace': `---
+description: Scan workspace state and suggest maintenance actions.
+argument-hint: (optional change-id or task-id)
+---`,
+  'undo-task': `---
+description: Revert a task to to-do.
+argument-hint: task-id
 ---`
 };
 

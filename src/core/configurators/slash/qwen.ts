@@ -3,6 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.qwen/commands/plx-archive.toml',
+  'complete-task': '.qwen/commands/plx-complete-task.toml',
   'get-task': '.qwen/commands/plx-get-task.toml',
   'implement': '.qwen/commands/plx-implement.toml',
   'orchestrate': '.qwen/commands/plx-orchestrate.toml',
@@ -14,11 +15,14 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.qwen/commands/plx-refine-architecture.toml',
   'refine-release': '.qwen/commands/plx-refine-release.toml',
   'refine-review': '.qwen/commands/plx-refine-review.toml',
-  'review': '.qwen/commands/plx-review.toml'
+  'review': '.qwen/commands/plx-review.toml',
+  'sync-workspace': '.qwen/commands/plx-sync-workspace.toml',
+  'undo-task': '.qwen/commands/plx-undo-task.toml'
 };
 
 const DESCRIPTIONS: Record<SlashCommandId, string> = {
   'archive': 'Archive a deployed PLX change and update specs.',
+  'complete-task': 'Mark a task as done.',
   'get-task': 'Select and display the next prioritized task to work on.',
   'implement': 'Implement an approved PLX change and keep tasks in sync.',
   'orchestrate': 'Orchestrate sub-agents to complete work collaboratively.',
@@ -30,7 +34,9 @@ const DESCRIPTIONS: Record<SlashCommandId, string> = {
   'refine-architecture': 'Create or update ARCHITECTURE.md.',
   'refine-release': 'Create or update RELEASE.md.',
   'refine-review': 'Create or update REVIEW.md.',
-  'review': 'Review implementations against specs, changes, or tasks.'
+  'review': 'Review implementations against specs, changes, or tasks.',
+  'sync-workspace': 'Scan workspace state and suggest maintenance actions.',
+  'undo-task': 'Revert a task to to-do.'
 };
 
 export class QwenSlashCommandConfigurator extends TomlSlashCommandConfigurator {
