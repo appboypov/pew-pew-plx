@@ -1,5 +1,26 @@
 # Pew Pew Plx Changelog
 
+## 0.11.0 - 2026-01-02
+
+### Added
+
+- Upward workspace discovery for subdirectory support
+  - PLX commands now work from any subdirectory within a project
+  - Automatically scans upward to find project root containing `workspace/AGENTS.md`
+  - `.git` boundary stops upward scan if no workspace found
+  - After finding project root, runs existing downward scan for multi-workspace support
+- `isValidPlxWorkspace()` function to validate PLX workspace directories
+- `findProjectRoot()` function to locate project root from any subdirectory
+- Test utility `createValidPlxWorkspace()` for consistent test fixture creation
+
+### Fixed
+
+- `plx update` now only generates slash commands for configured tools
+  - Previously generated commands for all 20+ registered tools regardless of configuration
+  - Now checks if tool has at least one existing slash command file before generating
+
+---
+
 ## 0.10.1 - 2025-12-31
 
 ### Added

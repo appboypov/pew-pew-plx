@@ -19,6 +19,7 @@ export interface MigrationResult {
   directoryMigrated: boolean;
   markerFilesUpdated: number;
   globalConfigMigrated: boolean;
+  globalToolFilesUpdated: number;
   errors: string[];
 }
 
@@ -151,6 +152,26 @@ export async function migrateAllMarkers(projectPath: string): Promise<number> {
 }
 
 /**
+ * Scans global tool directories for legacy OPENSPEC markers and migrates them.
+ * Returns the count of files modified.
+ */
+export async function migrateGlobalToolDirectories(): Promise<number> {
+  const homeDir = os.homedir();
+  const globalToolDirs = [
+    path.join(homeDir, '.codex', 'prompts'),
+  ];
+
+  let totalMigrated = 0;
+  for (const dir of globalToolDirs) {
+    if (await directoryExists(dir)) {
+      const migrated = await migrateAllMarkers(dir);
+      totalMigrated += migrated;
+    }
+  }
+  return totalMigrated;
+}
+
+/**
  * Moves ~/.openspec/ to ~/.plx/.
  * Skips if ~/.plx/ already exists.
  * Returns true if migrated.
@@ -188,6 +209,7 @@ export async function migrateOpenSpecProject(projectPath: string): Promise<Migra
     directoryMigrated: false,
     markerFilesUpdated: 0,
     globalConfigMigrated: false,
+    globalToolFilesUpdated: 0,
     errors: []
   };
 
@@ -201,9 +223,12 @@ export async function migrateOpenSpecProject(projectPath: string): Promise<Migra
 
   result.globalConfigMigrated = await migrateGlobalConfig();
 
+  result.globalToolFilesUpdated = await migrateGlobalToolDirectories();
+
   result.migrated = result.directoryMigrated ||
     result.markerFilesUpdated > 0 ||
-    result.globalConfigMigrated;
+    result.globalConfigMigrated ||
+    result.globalToolFilesUpdated > 0;
 
   return result;
 }

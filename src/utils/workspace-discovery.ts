@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { PLX_DIR_NAME, PLX_MARKERS } from '../core/config.js';
+import { PLX_DIR_NAME } from '../core/config.js';
 
 export interface DiscoveredWorkspace {
   path: string;
@@ -114,13 +114,13 @@ export function filterWorkspaces(
 
 /**
  * Checks if a directory is a valid PLX workspace.
- * A valid workspace has a workspace/AGENTS.md file containing the PLX start marker.
+ * A valid workspace has a workspace/AGENTS.md file.
  */
 export async function isValidPlxWorkspace(dir: string): Promise<boolean> {
   try {
     const agentsMdPath = path.join(dir, PLX_DIR_NAME, 'AGENTS.md');
-    const content = await fs.readFile(agentsMdPath, 'utf-8');
-    return content.includes(PLX_MARKERS.start);
+    const stats = await fs.stat(agentsMdPath);
+    return stats.isFile();
   } catch {
     return false;
   }

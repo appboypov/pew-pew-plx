@@ -109,6 +109,10 @@ This creates the `workspace/` directory structure and configures slash commands 
 | `plx config list` | Show all settings |
 | `plx update` | Refresh instruction files |
 
+### Subdirectory Support
+
+All PLX commands work from any subdirectory within a project. The CLI automatically finds the project root by scanning upward for `workspace/AGENTS.md`.
+
 ### Multi-Workspace (Monorepo)
 
 | Command | Description |

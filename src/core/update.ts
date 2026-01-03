@@ -25,6 +25,9 @@ export class UpdateCommand {
       if (migrationResult.globalConfigMigrated) {
         parts.push('Migrated global config ~/.openspec/ → ~/.plx/');
       }
+      if (migrationResult.globalToolFilesUpdated > 0) {
+        parts.push(`Updated markers in ${migrationResult.globalToolFilesUpdated} global tool file${migrationResult.globalToolFilesUpdated === 1 ? '' : 's'}`);
+      }
       console.log(chalk.green('Migrated legacy OpenSpec project:'), parts.join(', '));
     }
     if (migrationResult.errors.length > 0) {
