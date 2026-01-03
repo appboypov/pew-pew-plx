@@ -3,6 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.clinerules/workflows/plx-archive.md',
+  'complete-task': '.clinerules/workflows/plx-complete-task.md',
   'get-task': '.clinerules/workflows/plx-get-task.md',
   'implement': '.clinerules/workflows/plx-implement.md',
   'orchestrate': '.clinerules/workflows/plx-orchestrate.md',
@@ -14,13 +15,18 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.clinerules/workflows/plx-refine-architecture.md',
   'refine-release': '.clinerules/workflows/plx-refine-release.md',
   'refine-review': '.clinerules/workflows/plx-refine-review.md',
-  'review': '.clinerules/workflows/plx-review.md'
+  'review': '.clinerules/workflows/plx-review.md',
+  'sync-workspace': '.clinerules/workflows/plx-sync-workspace.md',
+  'undo-task': '.clinerules/workflows/plx-undo-task.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   'archive': `# PLX: Archive
 
 Archive a deployed PLX change and update specs.`,
+  'complete-task': `# PLX: Complete Task
+
+Mark a task as done.`,
   'get-task': `# PLX: Get Task
 
 Select and display the next prioritized task to work on.`,
@@ -56,7 +62,13 @@ Create or update RELEASE.md.`,
 Create or update REVIEW.md.`,
   'review': `# PLX: Review
 
-Review implementations against specs, changes, or tasks.`
+Review implementations against specs, changes, or tasks.`,
+  'sync-workspace': `# PLX: Sync Workspace
+
+Scan workspace state and suggest maintenance actions.`,
+  'undo-task': `# PLX: Undo Task
+
+Revert a task to to-do.`
 };
 
 export class ClineSlashCommandConfigurator extends SlashCommandConfigurator {

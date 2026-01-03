@@ -5,18 +5,9 @@ category: Pew Pew Plx
 tags: [plx, task, complete, workflow]
 ---
 <!-- PLX:START -->
-**Usage**
-```bash
-plx complete task --id <task-id>      # Complete specific task
-plx complete change --id <change-id>  # Complete all tasks in a change
-```
-
-**Behavior**
-- Sets task status to 'done'
-- Checks all unchecked Implementation Checklist items
-- Leaves Constraints and Acceptance Criteria unchanged
-- Already-done tasks show a warning and exit 0
-
-**Options**
-- `--json` - Output in JSON format with completedItems array
+**Steps**
+1. Parse `$ARGUMENTS` to extract task-id.
+2. If no task-id provided, ask user for task-id or run `plx get tasks` to list options.
+3. Run `plx complete task --id <task-id>` to mark the task as done.
+4. Confirm completion to user.
 <!-- PLX:END -->

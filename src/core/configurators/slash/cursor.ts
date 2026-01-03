@@ -3,6 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.cursor/commands/plx-archive.md',
+  'complete-task': '.cursor/commands/plx-complete-task.md',
   'get-task': '.cursor/commands/plx-get-task.md',
   'implement': '.cursor/commands/plx-implement.md',
   'orchestrate': '.cursor/commands/plx-orchestrate.md',
@@ -14,7 +15,9 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.cursor/commands/plx-refine-architecture.md',
   'refine-release': '.cursor/commands/plx-refine-release.md',
   'refine-review': '.cursor/commands/plx-refine-review.md',
-  'review': '.cursor/commands/plx-review.md'
+  'review': '.cursor/commands/plx-review.md',
+  'sync-workspace': '.cursor/commands/plx-sync-workspace.md',
+  'undo-task': '.cursor/commands/plx-undo-task.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
@@ -23,6 +26,12 @@ name: /plx-archive
 id: plx-archive
 category: Pew Pew Plx
 description: Archive a deployed Pew Pew Plx change and update specs.
+---`,
+  'complete-task': `---
+name: /plx-complete-task
+id: plx-complete-task
+category: Pew Pew Plx
+description: Mark a task as done.
 ---`,
   'get-task': `---
 name: /plx-get-task
@@ -95,6 +104,18 @@ name: /plx-review
 id: plx-review
 category: Pew Pew Plx
 description: Review implementations against specs, changes, or tasks.
+---`,
+  'sync-workspace': `---
+name: /plx-sync-workspace
+id: plx-sync-workspace
+category: Pew Pew Plx
+description: Scan workspace state and suggest maintenance actions.
+---`,
+  'undo-task': `---
+name: /plx-undo-task
+id: plx-undo-task
+category: Pew Pew Plx
+description: Revert a task to to-do.
 ---`
 };
 

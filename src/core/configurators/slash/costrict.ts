@@ -3,6 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.cospec/plx/commands/plx-archive.md',
+  'complete-task': '.cospec/plx/commands/plx-complete-task.md',
   'get-task': '.cospec/plx/commands/plx-get-task.md',
   'implement': '.cospec/plx/commands/plx-implement.md',
   'orchestrate': '.cospec/plx/commands/plx-orchestrate.md',
@@ -14,13 +15,19 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.cospec/plx/commands/plx-refine-architecture.md',
   'refine-release': '.cospec/plx/commands/plx-refine-release.md',
   'refine-review': '.cospec/plx/commands/plx-refine-review.md',
-  'review': '.cospec/plx/commands/plx-review.md'
+  'review': '.cospec/plx/commands/plx-review.md',
+  'sync-workspace': '.cospec/plx/commands/plx-sync-workspace.md',
+  'undo-task': '.cospec/plx/commands/plx-undo-task.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   'archive': `---
 description: "Archive a deployed PLX change and update specs."
 argument-hint: change-id
+---`,
+  'complete-task': `---
+description: "Mark a task as done."
+argument-hint: task-id
 ---`,
   'get-task': `---
 description: "Select and display the next prioritized task to work on."
@@ -69,6 +76,14 @@ argument-hint: (optional context)
   'review': `---
 description: "Review implementations against specs, changes, or tasks."
 argument-hint: (optional context)
+---`,
+  'sync-workspace': `---
+description: "Scan workspace state and suggest maintenance actions."
+argument-hint: (optional change-id or task-id)
+---`,
+  'undo-task': `---
+description: "Revert a task to to-do."
+argument-hint: task-id
 ---`
 };
 

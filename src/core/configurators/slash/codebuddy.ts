@@ -3,6 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.codebuddy/commands/plx/archive.md',
+  'complete-task': '.codebuddy/commands/plx/complete-task.md',
   'get-task': '.codebuddy/commands/plx/get-task.md',
   'implement': '.codebuddy/commands/plx/implement.md',
   'orchestrate': '.codebuddy/commands/plx/orchestrate.md',
@@ -14,7 +15,9 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.codebuddy/commands/plx/refine-architecture.md',
   'refine-release': '.codebuddy/commands/plx/refine-release.md',
   'refine-review': '.codebuddy/commands/plx/refine-review.md',
-  'review': '.codebuddy/commands/plx/review.md'
+  'review': '.codebuddy/commands/plx/review.md',
+  'sync-workspace': '.codebuddy/commands/plx/sync-workspace.md',
+  'undo-task': '.codebuddy/commands/plx/undo-task.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
@@ -23,6 +26,12 @@ name: Pew Pew Plx: Archive
 description: Archive a deployed Pew Pew Plx change and update specs.
 category: Pew Pew Plx
 tags: [plx, archive]
+---`,
+  'complete-task': `---
+name: Pew Pew Plx: Complete Task
+description: Mark a task as done.
+category: Pew Pew Plx
+tags: [plx, task, workflow]
 ---`,
   'get-task': `---
 name: Pew Pew Plx: Get Task
@@ -95,6 +104,18 @@ name: Pew Pew Plx: Review
 description: Review implementations against specs, changes, or tasks.
 category: Pew Pew Plx
 tags: [plx, review, workflow]
+---`,
+  'sync-workspace': `---
+name: Pew Pew Plx: Sync Workspace
+description: Scan workspace state and suggest maintenance actions.
+category: Pew Pew Plx
+tags: [plx, workspace, maintenance]
+---`,
+  'undo-task': `---
+name: Pew Pew Plx: Undo Task
+description: Revert a task to to-do.
+category: Pew Pew Plx
+tags: [plx, task, workflow]
 ---`
 };
 

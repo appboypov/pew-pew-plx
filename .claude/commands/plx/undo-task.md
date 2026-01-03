@@ -5,18 +5,9 @@ category: Pew Pew Plx
 tags: [plx, task, undo, workflow]
 ---
 <!-- PLX:START -->
-**Usage**
-```bash
-plx undo task --id <task-id>      # Revert specific task
-plx undo change --id <change-id>  # Revert all tasks in a change
-```
-
-**Behavior**
-- Sets task status to 'to-do'
-- Unchecks all checked Implementation Checklist items
-- Leaves Constraints and Acceptance Criteria unchanged
-- Already to-do tasks show a warning and exit 0
-
-**Options**
-- `--json` - Output in JSON format with uncheckedItems array
+**Steps**
+1. Parse `$ARGUMENTS` to extract task-id.
+2. If no task-id provided, ask user for task-id or run `plx get tasks` to list options.
+3. Run `plx undo task --id <task-id>` to revert the task to to-do.
+4. Confirm undo to user.
 <!-- PLX:END -->

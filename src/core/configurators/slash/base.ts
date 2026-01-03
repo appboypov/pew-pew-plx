@@ -10,6 +10,7 @@ export interface SlashCommandTarget {
 
 const ALL_COMMANDS: SlashCommandId[] = [
   'archive',
+  'complete-task',
   'get-task',
   'implement',
   'orchestrate',
@@ -21,7 +22,9 @@ const ALL_COMMANDS: SlashCommandId[] = [
   'refine-architecture',
   'refine-release',
   'refine-review',
-  'review'
+  'review',
+  'sync-workspace',
+  'undo-task'
 ];
 
 export abstract class SlashCommandConfigurator {

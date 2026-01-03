@@ -3,6 +3,7 @@ import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.roo/commands/plx-archive.md',
+  'complete-task': '.roo/commands/plx-complete-task.md',
   'get-task': '.roo/commands/plx-get-task.md',
   'implement': '.roo/commands/plx-implement.md',
   'orchestrate': '.roo/commands/plx-orchestrate.md',
@@ -14,13 +15,18 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.roo/commands/plx-refine-architecture.md',
   'refine-release': '.roo/commands/plx-refine-release.md',
   'refine-review': '.roo/commands/plx-refine-review.md',
-  'review': '.roo/commands/plx-review.md'
+  'review': '.roo/commands/plx-review.md',
+  'sync-workspace': '.roo/commands/plx-sync-workspace.md',
+  'undo-task': '.roo/commands/plx-undo-task.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   'archive': `# PLX: Archive
 
 Archive a deployed PLX change and update specs.`,
+  'complete-task': `# PLX: Complete Task
+
+Mark a task as done.`,
   'get-task': `# PLX: Get Task
 
 Select and display the next prioritized task to work on.`,
@@ -56,7 +62,13 @@ Create or update RELEASE.md.`,
 Create or update REVIEW.md.`,
   'review': `# PLX: Review
 
-Review implementations against specs, changes, or tasks.`
+Review implementations against specs, changes, or tasks.`,
+  'sync-workspace': `# PLX: Sync Workspace
+
+Scan workspace state and suggest maintenance actions.`,
+  'undo-task': `# PLX: Undo Task
+
+Revert a task to to-do.`
 };
 
 export class RooCodeSlashCommandConfigurator extends SlashCommandConfigurator {

@@ -7,6 +7,7 @@ import { PLX_MARKERS } from '../../config.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.codex/prompts/plx-archive.md',
+  'complete-task': '.codex/prompts/plx-complete-task.md',
   'get-task': '.codex/prompts/plx-get-task.md',
   'implement': '.codex/prompts/plx-implement.md',
   'orchestrate': '.codex/prompts/plx-orchestrate.md',
@@ -18,13 +19,21 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.codex/prompts/plx-refine-architecture.md',
   'refine-release': '.codex/prompts/plx-refine-release.md',
   'refine-review': '.codex/prompts/plx-refine-review.md',
-  'review': '.codex/prompts/plx-review.md'
+  'review': '.codex/prompts/plx-review.md',
+  'sync-workspace': '.codex/prompts/plx-sync-workspace.md',
+  'undo-task': '.codex/prompts/plx-undo-task.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   'archive': `---
 description: Archive a deployed PLX change and update specs.
 argument-hint: change-id
+---
+
+$ARGUMENTS`,
+  'complete-task': `---
+description: Mark a task as done.
+argument-hint: task-id
 ---
 
 $ARGUMENTS`,
@@ -97,6 +106,18 @@ $ARGUMENTS`,
   'review': `---
 description: Review implementations against specs, changes, or tasks.
 argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'sync-workspace': `---
+description: Scan workspace state and suggest maintenance actions.
+argument-hint: (optional change-id or task-id)
+---
+
+$ARGUMENTS`,
+  'undo-task': `---
+description: Revert a task to to-do.
+argument-hint: task-id
 ---
 
 $ARGUMENTS`
