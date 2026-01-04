@@ -1,5 +1,35 @@
 # Pew Pew Plx Changelog
 
+## 0.11.0 - 2026-01-04
+
+### Added
+
+- **TESTING.md template**: New config-style testing configuration file (~21 lines)
+  - Created during `plx init` and `plx update` (same pattern as REVIEW.md)
+  - Configures test types, coverage thresholds, test runner, and file patterns
+- **`/plx:refine-testing` slash command**: Guide users through testing configuration
+  - Test types: unit, integration, e2e, snapshot, performance
+  - Coverage thresholds: 70%, 80%, 90%
+  - Test runners: vitest, jest, mocha, pytest, flutter_test
+- **`/plx:test` slash command**: Run tests based on scope using TESTING.md configuration
+  - Accepts `--change-id`, `--task-id`, `--spec-id` arguments (same pattern as review)
+  - Reads TESTING.md for runner, coverage threshold, and patterns
+
+### Changed
+
+- **RELEASE.md slimmed**: Reduced from 481 to 33 lines
+  - Now a config-style file with defaults only
+  - Verbose documentation moved to `/plx:refine-release` command
+- **`/plx:refine-release` enhanced**: Now contains comprehensive option documentation
+  - Format options: keep-a-changelog, simple-list, github-release
+  - Style options: minimal, standard, comprehensive, cli-tool, library
+  - Audience, emoji, and badge configuration guidance
+- **`/plx:refine-review` enhanced**: Expanded from 16 to 68 lines
+  - Review type options: implementation, architecture, security, performance, accessibility
+  - Feedback format and checklist customization documentation
+
+---
+
 ## 0.10.1 - 2025-12-31
 
 ### Added

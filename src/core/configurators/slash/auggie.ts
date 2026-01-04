@@ -15,8 +15,10 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.augment/commands/plx-refine-architecture.md',
   'refine-release': '.augment/commands/plx-refine-release.md',
   'refine-review': '.augment/commands/plx-refine-review.md',
+  'refine-testing': '.augment/commands/plx-refine-testing.md',
   'review': '.augment/commands/plx-review.md',
   'sync-workspace': '.augment/commands/plx-sync-workspace.md',
+  'test': '.augment/commands/plx-test.md',
   'undo-task': '.augment/commands/plx-undo-task.md'
 };
 
@@ -73,6 +75,10 @@ argument-hint: (optional context)
 description: Create or update REVIEW.md.
 argument-hint: (optional context)
 ---`,
+  'refine-testing': `---
+description: Create or update TESTING.md.
+argument-hint: (optional context)
+---`,
   'review': `---
 description: Review implementations against specs, changes, or tasks.
 argument-hint: (optional context)
@@ -80,6 +86,10 @@ argument-hint: (optional context)
   'sync-workspace': `---
 description: Scan workspace state and suggest maintenance actions.
 argument-hint: (optional change-id or task-id)
+---`,
+  'test': `---
+description: Run tests based on scope (change, task, or spec) using TESTING.md configuration.
+argument-hint: --change-id, --task-id, or --spec-id
 ---`,
   'undo-task': `---
 description: Revert a task to to-do.

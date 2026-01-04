@@ -15,8 +15,10 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.kilocode/workflows/plx-refine-architecture.md',
   'refine-release': '.kilocode/workflows/plx-refine-release.md',
   'refine-review': '.kilocode/workflows/plx-refine-review.md',
+  'refine-testing': '.kilocode/workflows/plx-refine-testing.md',
   'review': '.kilocode/workflows/plx-review.md',
   'sync-workspace': '.kilocode/workflows/plx-sync-workspace.md',
+  'test': '.kilocode/workflows/plx-test.md',
   'undo-task': '.kilocode/workflows/plx-undo-task.md'
 };
 

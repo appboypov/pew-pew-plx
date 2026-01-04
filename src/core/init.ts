@@ -794,6 +794,13 @@ export class InitCommand {
       const releaseContent = TemplateManager.getReleaseTemplate();
       await FileSystemUtils.writeFile(releasePath, releaseContent);
     }
+
+    // Write TESTING.md at project root
+    const testingPath = path.join(projectPath, 'TESTING.md');
+    if (!skipExisting || !(await FileSystemUtils.fileExists(testingPath))) {
+      const testingContent = TemplateManager.getTestingTemplate();
+      await FileSystemUtils.writeFile(testingPath, testingContent);
+    }
   }
 
   private async configureAITools(

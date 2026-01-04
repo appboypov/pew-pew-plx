@@ -19,8 +19,10 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.codex/prompts/plx-refine-architecture.md',
   'refine-release': '.codex/prompts/plx-refine-release.md',
   'refine-review': '.codex/prompts/plx-refine-review.md',
+  'refine-testing': '.codex/prompts/plx-refine-testing.md',
   'review': '.codex/prompts/plx-review.md',
   'sync-workspace': '.codex/prompts/plx-sync-workspace.md',
+  'test': '.codex/prompts/plx-test.md',
   'undo-task': '.codex/prompts/plx-undo-task.md'
 };
 
@@ -103,6 +105,12 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS`,
+  'refine-testing': `---
+description: Create or update TESTING.md.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
   'review': `---
 description: Review implementations against specs, changes, or tasks.
 argument-hint: (optional context)
@@ -112,6 +120,12 @@ $ARGUMENTS`,
   'sync-workspace': `---
 description: Scan workspace state and suggest maintenance actions.
 argument-hint: (optional change-id or task-id)
+---
+
+$ARGUMENTS`,
+  'test': `---
+description: Run tests based on scope (change, task, or spec) using TESTING.md configuration.
+argument-hint: --change-id, --task-id, or --spec-id
 ---
 
 $ARGUMENTS`,

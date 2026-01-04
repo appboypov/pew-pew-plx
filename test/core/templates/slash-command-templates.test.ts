@@ -20,5 +20,29 @@ describe('slash-command-templates', () => {
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
     });
+
+    it('returns non-empty content for refine-testing', () => {
+      const result = getSlashCommandBody('refine-testing');
+      expect(typeof result).toBe('string');
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('returns non-empty content for test', () => {
+      const result = getSlashCommandBody('test');
+      expect(typeof result).toBe('string');
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('returns non-empty content for refine-release', () => {
+      const result = getSlashCommandBody('refine-release');
+      expect(typeof result).toBe('string');
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('returns non-empty content for refine-review', () => {
+      const result = getSlashCommandBody('refine-review');
+      expect(typeof result).toBe('string');
+      expect(result.length).toBeGreaterThan(0);
+    });
   });
 });

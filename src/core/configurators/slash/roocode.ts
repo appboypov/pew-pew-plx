@@ -15,8 +15,10 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.roo/commands/plx-refine-architecture.md',
   'refine-release': '.roo/commands/plx-refine-release.md',
   'refine-review': '.roo/commands/plx-refine-review.md',
+  'refine-testing': '.roo/commands/plx-refine-testing.md',
   'review': '.roo/commands/plx-review.md',
   'sync-workspace': '.roo/commands/plx-sync-workspace.md',
+  'test': '.roo/commands/plx-test.md',
   'undo-task': '.roo/commands/plx-undo-task.md'
 };
 
@@ -60,12 +62,18 @@ Create or update RELEASE.md.`,
   'refine-review': `# PLX: Refine Review
 
 Create or update REVIEW.md.`,
+  'refine-testing': `# PLX: Refine Testing
+
+Create or update TESTING.md.`,
   'review': `# PLX: Review
 
 Review implementations against specs, changes, or tasks.`,
   'sync-workspace': `# PLX: Sync Workspace
 
 Scan workspace state and suggest maintenance actions.`,
+  'test': `# PLX: Test
+
+Run tests based on scope (change, task, or spec) using TESTING.md configuration.`,
   'undo-task': `# PLX: Undo Task
 
 Revert a task to to-do.`

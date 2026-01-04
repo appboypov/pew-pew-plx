@@ -1,0 +1,71 @@
+---
+description: "Create or update TESTING.md."
+argument-hint: (optional context)
+---
+<!-- PLX:START -->
+**Guardrails**
+- Reference @TESTING.md template structure.
+- Preserve existing testing configuration.
+- Use question tool to guide user through configuration options.
+- Write final selections to TESTING.md.
+
+## Configuration Options Reference
+
+### Test Types
+| Type | Description | Best For |
+|------|-------------|----------|
+| `unit` | Isolated function/method tests with mocked dependencies | Business logic, utilities, pure functions |
+| `integration` | Tests verifying component interactions | API endpoints, database operations, service layers |
+| `e2e` | End-to-end user journey tests | Critical user flows, checkout processes, auth flows |
+| `snapshot` | UI component snapshot comparisons | React/Vue components, styled components |
+| `performance` | Load testing and benchmarks | High-traffic endpoints, critical paths |
+
+### Coverage Thresholds
+| Threshold | Description | Best For |
+|-----------|-------------|----------|
+| `70%` | Minimum viable coverage | Legacy codebases, rapid prototyping |
+| `80%` | Standard coverage target | Most production applications |
+| `90%` | High coverage requirement | Critical systems, libraries, SDKs |
+
+### Test Runners
+| Runner | Description | Best For |
+|--------|-------------|----------|
+| `vitest` | Fast, Vite-native test runner | Vite projects, TypeScript, ESM |
+| `jest` | Full-featured test framework | React, general JavaScript/TypeScript |
+| `mocha` | Flexible test framework | Node.js backends, custom setups |
+| `pytest` | Python test framework | Python projects |
+| `flutter_test` | Flutter test framework | Flutter/Dart projects |
+
+**Steps**
+1. Check if @TESTING.md exists:
+   - If not: create from template with default configuration.
+   - If exists: read current configuration.
+
+2. Guide user through Test Types selection:
+   - Present test type options: unit, integration, e2e, snapshot, performance.
+   - Explain each type's purpose and use case.
+   - Allow multiple selections.
+   - Record selections.
+
+3. Guide user through Coverage Threshold selection:
+   - Present coverage options: 70%, 80%, 90%.
+   - Explain tradeoffs for each level.
+   - Record selection.
+
+4. Guide user through Test Runner selection:
+   - Present runner options based on detected project type.
+   - Explain each runner's strengths.
+   - Record selection.
+
+5. Guide user through File Pattern configuration:
+   - Present common patterns based on selected runner.
+   - Allow customization.
+   - Record patterns.
+
+6. Write all selections to TESTING.md:
+   - Update Test Types section with selected types.
+   - Update Coverage section with threshold.
+   - Update Test Patterns section with runner and file patterns.
+
+7. Confirm configuration saved and explain how test configuration will be used.
+<!-- PLX:END -->

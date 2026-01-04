@@ -15,8 +15,10 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.agent/workflows/plx-refine-architecture.md',
   'refine-release': '.agent/workflows/plx-refine-release.md',
   'refine-review': '.agent/workflows/plx-refine-review.md',
+  'refine-testing': '.agent/workflows/plx-refine-testing.md',
   'review': '.agent/workflows/plx-review.md',
   'sync-workspace': '.agent/workflows/plx-sync-workspace.md',
+  'test': '.agent/workflows/plx-test.md',
   'undo-task': '.agent/workflows/plx-undo-task.md'
 };
 
@@ -34,8 +36,10 @@ const DESCRIPTIONS: Record<SlashCommandId, string> = {
   'refine-architecture': 'Create or update ARCHITECTURE.md.',
   'refine-release': 'Create or update RELEASE.md.',
   'refine-review': 'Create or update REVIEW.md.',
+  'refine-testing': 'Create or update TESTING.md.',
   'review': 'Review implementations against specs, changes, or tasks.',
   'sync-workspace': 'Scan workspace state and suggest maintenance actions.',
+  'test': 'Run tests based on scope (change, task, or spec) using TESTING.md configuration.',
   'undo-task': 'Revert a task to to-do.'
 };
 

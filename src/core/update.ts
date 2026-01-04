@@ -60,7 +60,14 @@ export class UpdateCommand {
       await FileSystemUtils.writeFile(releasePath, releaseContent);
     }
 
-    // 5. Update existing AI tool configuration files only
+    // 5. Create TESTING.md if not exists
+    const testingPath = path.join(resolvedProjectPath, 'TESTING.md');
+    if (!(await FileSystemUtils.fileExists(testingPath))) {
+      const testingContent = TemplateManager.getTestingTemplate();
+      await FileSystemUtils.writeFile(testingPath, testingContent);
+    }
+
+    // 6. Update existing AI tool configuration files only
     const configurators = ToolRegistry.getAll();
     const slashConfigurators = SlashCommandRegistry.getAll();
     const updatedFiles: string[] = [];

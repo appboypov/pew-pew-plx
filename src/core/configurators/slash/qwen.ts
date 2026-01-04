@@ -15,8 +15,10 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.qwen/commands/plx-refine-architecture.toml',
   'refine-release': '.qwen/commands/plx-refine-release.toml',
   'refine-review': '.qwen/commands/plx-refine-review.toml',
+  'refine-testing': '.qwen/commands/plx-refine-testing.toml',
   'review': '.qwen/commands/plx-review.toml',
   'sync-workspace': '.qwen/commands/plx-sync-workspace.toml',
+  'test': '.qwen/commands/plx-test.toml',
   'undo-task': '.qwen/commands/plx-undo-task.toml'
 };
 
@@ -34,8 +36,10 @@ const DESCRIPTIONS: Record<SlashCommandId, string> = {
   'refine-architecture': 'Create or update ARCHITECTURE.md.',
   'refine-release': 'Create or update RELEASE.md.',
   'refine-review': 'Create or update REVIEW.md.',
+  'refine-testing': 'Create or update TESTING.md.',
   'review': 'Review implementations against specs, changes, or tasks.',
   'sync-workspace': 'Scan workspace state and suggest maintenance actions.',
+  'test': 'Run tests based on scope (change, task, or spec) using TESTING.md configuration.',
   'undo-task': 'Revert a task to to-do.'
 };
 
