@@ -8,7 +8,7 @@ import {
   parseTaskFilename,
   sortTaskFilesBySequence,
 } from '../utils/task-file-parser.js';
-import { parseStatus, TaskStatus } from '../utils/task-status.js';
+import { parseStatus, parseSkillLevel, TaskStatus, SkillLevel } from '../utils/task-status.js';
 import {
   getTaskStructureForChange,
   TaskFileInfo,
@@ -57,6 +57,7 @@ export interface OpenTaskInfo {
   changeId: string;
   task: TaskFileInfo;
   status: TaskStatus;
+  skillLevel?: SkillLevel;
   workspacePath?: string;
   projectName?: string;
   displayId?: string;
@@ -551,6 +552,7 @@ export class ItemRetrievalService {
               const status = parseStatus(content);
 
               if (status === 'to-do' || status === 'in-progress') {
+                const skillLevel = parseSkillLevel(content);
                 const task: TaskFileInfo = {
                   filename,
                   filepath,
@@ -566,6 +568,7 @@ export class ItemRetrievalService {
                   changeId: change.id,
                   task,
                   status,
+                  skillLevel,
                   workspacePath: workspace.path,
                   projectName: workspace.projectName,
                   displayId: this.getDisplayId(
@@ -604,6 +607,7 @@ export class ItemRetrievalService {
               const status = parseStatus(content);
 
               if (status === 'to-do' || status === 'in-progress') {
+                const skillLevel = parseSkillLevel(content);
                 const task: TaskFileInfo = {
                   filename,
                   filepath,
@@ -619,6 +623,7 @@ export class ItemRetrievalService {
                   changeId: review.id,
                   task,
                   status,
+                  skillLevel,
                   workspacePath: workspace.path,
                   projectName: workspace.projectName,
                   displayId: this.getDisplayId(

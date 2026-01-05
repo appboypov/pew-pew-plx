@@ -486,4 +486,150 @@ The system MUST support mixed case delta headers.
       expect(report.summary.info).toBe(0);
     });
   });
+
+  describe('validateChangeTaskSkillLevels', () => {
+    it('should not emit warnings in non-strict mode', async () => {
+      const changeDir = path.join(testDir, 'test-change-skill');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      // Task without skill-level
+      const taskContent = `---
+status: to-do
+---
+
+# Task without skill level`;
+
+      await fs.writeFile(path.join(tasksDir, '001-test-task.md'), taskContent);
+
+      const validator = new Validator(false); // non-strict mode
+      const report = await validator.validateChangeTaskSkillLevels(changeDir);
+
+      expect(report.valid).toBe(true);
+      expect(report.summary.warnings).toBe(0);
+    });
+
+    it('should warn about missing skill-level in strict mode', async () => {
+      const changeDir = path.join(testDir, 'test-change-skill-strict');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      // Task without skill-level
+      const taskContent = `---
+status: to-do
+---
+
+# Task without skill level`;
+
+      await fs.writeFile(path.join(tasksDir, '001-test-task.md'), taskContent);
+
+      const validator = new Validator(true); // strict mode
+      const report = await validator.validateChangeTaskSkillLevels(changeDir);
+
+      expect(report.valid).toBe(false);
+      expect(report.summary.warnings).toBe(1);
+      expect(report.issues[0].message).toContain('missing skill-level');
+    });
+
+    it('should warn about invalid skill-level value in strict mode', async () => {
+      const changeDir = path.join(testDir, 'test-change-skill-invalid');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      // Task with invalid skill-level value
+      const taskContent = `---
+status: to-do
+skill-level: expert
+---
+
+# Task with invalid skill level`;
+
+      await fs.writeFile(path.join(tasksDir, '001-test-task.md'), taskContent);
+
+      const validator = new Validator(true); // strict mode
+      const report = await validator.validateChangeTaskSkillLevels(changeDir);
+
+      expect(report.valid).toBe(false);
+      expect(report.summary.warnings).toBe(1);
+      expect(report.issues[0].message).toContain('invalid skill-level');
+    });
+
+    it('should pass with valid skill-level in strict mode', async () => {
+      const changeDir = path.join(testDir, 'test-change-skill-valid');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      const taskContent = `---
+status: to-do
+skill-level: medior
+---
+
+# Task with valid skill level`;
+
+      await fs.writeFile(path.join(tasksDir, '001-test-task.md'), taskContent);
+
+      const validator = new Validator(true); // strict mode
+      const report = await validator.validateChangeTaskSkillLevels(changeDir);
+
+      expect(report.valid).toBe(true);
+      expect(report.summary.warnings).toBe(0);
+    });
+
+    it('should only check frontmatter for skill-level field', async () => {
+      const changeDir = path.join(testDir, 'test-change-skill-frontmatter');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      // Task with skill-level only in body, not frontmatter
+      const taskContent = `---
+status: to-do
+---
+
+# Task Title
+
+This task mentions skill-level: senior in the body but not frontmatter.`;
+
+      await fs.writeFile(path.join(tasksDir, '001-test-task.md'), taskContent);
+
+      const validator = new Validator(true); // strict mode
+      const report = await validator.validateChangeTaskSkillLevels(changeDir);
+
+      // Should warn about missing skill-level because it's only in body
+      expect(report.valid).toBe(false);
+      expect(report.summary.warnings).toBe(1);
+      expect(report.issues[0].message).toContain('missing skill-level');
+    });
+
+    it('should handle missing tasks directory gracefully', async () => {
+      const changeDir = path.join(testDir, 'test-change-no-tasks');
+      await fs.mkdir(changeDir, { recursive: true });
+      // No tasks directory created
+
+      const validator = new Validator(true); // strict mode
+      const report = await validator.validateChangeTaskSkillLevels(changeDir);
+
+      expect(report.valid).toBe(true);
+      expect(report.summary.warnings).toBe(0);
+    });
+
+    it('should handle tasks without frontmatter', async () => {
+      const changeDir = path.join(testDir, 'test-change-no-frontmatter');
+      const tasksDir = path.join(changeDir, 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
+
+      // Task without frontmatter
+      const taskContent = `# Task without frontmatter
+
+Just a simple task file.`;
+
+      await fs.writeFile(path.join(tasksDir, '001-test-task.md'), taskContent);
+
+      const validator = new Validator(true); // strict mode
+      const report = await validator.validateChangeTaskSkillLevels(changeDir);
+
+      expect(report.valid).toBe(false);
+      expect(report.summary.warnings).toBe(1);
+      expect(report.issues[0].message).toContain('missing skill-level');
+    });
+  });
 });

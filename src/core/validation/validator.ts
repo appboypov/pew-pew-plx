@@ -299,8 +299,11 @@ export class Validator {
         const skillLevel = parseSkillLevel(content);
 
         // Check if skill-level field exists in frontmatter
-        const hasFrontmatter = /^---\n[\s\S]*?\n---/.test(content);
-        const hasSkillLevelField = /^skill-level:/m.test(content);
+        const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+        const hasFrontmatter = !!frontmatterMatch;
+        const hasSkillLevelField = hasFrontmatter
+          ? /^skill-level:/m.test(frontmatterMatch[1])
+          : false;
 
         if (!hasFrontmatter || !hasSkillLevelField) {
           issues.push({

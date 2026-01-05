@@ -701,26 +701,21 @@ export class GetCommand {
       }
 
       if (options.json) {
-        const taskData = [];
-        for (const t of openTasks) {
-          const content = await fs.readFile(t.task.filepath, 'utf-8');
-          const skillLevel = parseSkillLevel(content);
-          taskData.push({
-            id: t.taskId,
-            status: t.status,
-            changeId: t.changeId,
-            workspacePath: t.workspacePath,
-            projectName: t.projectName,
-            displayId: t.displayId,
-            ...(skillLevel && { skillLevel }),
-          });
-        }
+        const taskData = openTasks.map((t) => ({
+          id: t.taskId,
+          status: t.status,
+          changeId: t.changeId,
+          workspacePath: t.workspacePath,
+          projectName: t.projectName,
+          displayId: t.displayId,
+          ...(t.skillLevel && { skillLevel: t.skillLevel }),
+        }));
         console.log(
           JSON.stringify({ tasks: taskData }, null, 2)
         );
       } else {
         console.log(chalk.bold.cyan('\n═══ Open Tasks ═══\n'));
-        await this.printOpenTaskTable(openTasks);
+        this.printOpenTaskTable(openTasks);
       }
     }
   }
@@ -752,7 +747,7 @@ export class GetCommand {
     }
   }
 
-  private async printOpenTaskTable(tasks: OpenTaskInfo[]): Promise<void> {
+  private printOpenTaskTable(tasks: OpenTaskInfo[]): void {
     // Header
     console.log(
       chalk.dim('  ') +
@@ -763,9 +758,7 @@ export class GetCommand {
     );
     console.log(chalk.dim('  ' + '─'.repeat(95)));
 
-    for (const { taskId, status, changeId, displayId, task } of tasks) {
-      const content = await fs.readFile(task.filepath, 'utf-8');
-      const skillLevel = parseSkillLevel(content);
+    for (const { taskId, status, changeId, displayId, skillLevel } of tasks) {
       const statusColor = status === 'in-progress' ? chalk.yellow : chalk.gray;
       const displayTaskId = this.isMulti && displayId ? displayId : taskId;
       const skillDisplay = skillLevel ? this.formatSkillLevel(skillLevel) : chalk.dim('-');
