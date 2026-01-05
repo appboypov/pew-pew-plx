@@ -35,7 +35,9 @@ export const VALIDATION_MESSAGES = {
   REQUIREMENT_TOO_LONG: `Requirement text is very long (>${MAX_REQUIREMENT_TEXT_LENGTH} characters). Consider breaking it down.`,
   DELTA_DESCRIPTION_TOO_BRIEF: 'Delta description is too brief',
   DELTA_MISSING_REQUIREMENTS: 'Delta should include requirements',
-  
+  TASK_MISSING_SKILL_LEVEL: 'Task is missing skill-level field (values: junior, medior, senior)',
+  TASK_INVALID_SKILL_LEVEL: 'Task has invalid skill-level value (must be junior, medior, or senior)',
+
   // Guidance snippets (appended to primary messages for remediation)
   GUIDE_NO_DELTAS:
     'No deltas found. Ensure your change has a specs/ directory with capability folders (e.g. specs/http-server/spec.md) containing .md files that use delta headers (## ADDED/MODIFIED/REMOVED/RENAMED Requirements) and that each requirement includes at least one "#### Scenario:" block. Tip: run "plx show <change-id> --json --deltas-only" to inspect parsed deltas.',

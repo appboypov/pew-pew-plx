@@ -11,6 +11,7 @@ import {
   VALIDATION_MESSAGES 
 } from './constants.js';
 import { parseDeltaSpec, normalizeRequirementName } from '../parsers/requirement-blocks.js';
+import { parseSkillLevel } from '../../utils/task-status.js';
 
 export class Validator {
   private strictMode: boolean;
@@ -266,6 +267,58 @@ export class Validator {
 
     if (totalDeltas === 0) {
       issues.push({ level: 'ERROR', path: 'file', message: this.enrichTopLevelError('change', VALIDATION_MESSAGES.CHANGE_NO_DELTAS) });
+    }
+
+    // Also validate task skill levels
+    const skillLevelReport = await this.validateChangeTaskSkillLevels(changeDir);
+    issues.push(...skillLevelReport.issues);
+
+    return this.createReport(issues);
+  }
+
+  /**
+   * Validate tasks in a change directory for skill-level field (strict mode only).
+   * Emits WARNING for tasks missing skill-level or having invalid values.
+   */
+  async validateChangeTaskSkillLevels(changeDir: string): Promise<ValidationReport> {
+    const issues: ValidationIssue[] = [];
+
+    if (!this.strictMode) {
+      return this.createReport(issues);
+    }
+
+    const tasksDir = path.join(changeDir, 'tasks');
+
+    try {
+      const entries = await fs.readdir(tasksDir);
+      for (const entry of entries) {
+        if (!entry.endsWith('.md')) continue;
+
+        const taskPath = path.join(tasksDir, entry);
+        const content = await fs.readFile(taskPath, 'utf-8');
+        const skillLevel = parseSkillLevel(content);
+
+        // Check if skill-level field exists in frontmatter
+        const hasFrontmatter = /^---\n[\s\S]*?\n---/.test(content);
+        const hasSkillLevelField = /^skill-level:/m.test(content);
+
+        if (!hasFrontmatter || !hasSkillLevelField) {
+          issues.push({
+            level: 'WARNING',
+            path: `tasks/${entry}`,
+            message: VALIDATION_MESSAGES.TASK_MISSING_SKILL_LEVEL,
+          });
+        } else if (!skillLevel) {
+          // Field exists but value is invalid
+          issues.push({
+            level: 'WARNING',
+            path: `tasks/${entry}`,
+            message: VALIDATION_MESSAGES.TASK_INVALID_SKILL_LEVEL,
+          });
+        }
+      }
+    } catch {
+      // No tasks directory - that's fine, no warnings to emit
     }
 
     return this.createReport(issues);
