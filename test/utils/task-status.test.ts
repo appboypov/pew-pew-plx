@@ -13,6 +13,8 @@ import {
   uncompleteImplementationChecklist,
   undoTaskFully,
   CheckboxUncompleteResult,
+  parseSkillLevel,
+  getTaskSkillLevel,
 } from '../../src/utils/task-status.js';
 
 describe('task-status', () => {
@@ -555,6 +557,134 @@ status: done
       const content = await fs.readFile(filePath, 'utf-8');
       expect(content).toContain('[ ] Lowercase');
       expect(content).toContain('[ ] Uppercase');
+    });
+  });
+
+  describe('parseSkillLevel', () => {
+    it('should return junior for skill-level: junior', () => {
+      const content = `---
+status: to-do
+skill-level: junior
+---
+
+# Task: Example`;
+      expect(parseSkillLevel(content)).toBe('junior');
+    });
+
+    it('should return medior for skill-level: medior', () => {
+      const content = `---
+status: to-do
+skill-level: medior
+---
+
+# Task: Example`;
+      expect(parseSkillLevel(content)).toBe('medior');
+    });
+
+    it('should return senior for skill-level: senior', () => {
+      const content = `---
+status: to-do
+skill-level: senior
+---
+
+# Task: Example`;
+      expect(parseSkillLevel(content)).toBe('senior');
+    });
+
+    it('should return undefined for missing frontmatter', () => {
+      const content = `# Task: Example
+
+Some content without frontmatter`;
+      expect(parseSkillLevel(content)).toBeUndefined();
+    });
+
+    it('should return undefined for frontmatter without skill-level', () => {
+      const content = `---
+status: to-do
+---
+
+# Task: Example`;
+      expect(parseSkillLevel(content)).toBeUndefined();
+    });
+
+    it('should return undefined for invalid skill-level value', () => {
+      const content = `---
+status: to-do
+skill-level: expert
+---
+
+# Task: Example`;
+      expect(parseSkillLevel(content)).toBeUndefined();
+    });
+
+    it('should handle skill-level as first field in frontmatter', () => {
+      const content = `---
+skill-level: senior
+status: to-do
+---
+
+# Task`;
+      expect(parseSkillLevel(content)).toBe('senior');
+    });
+
+    it('should handle skill-level with extra whitespace', () => {
+      const content = `---
+skill-level:   medior
+---
+
+# Task`;
+      expect(parseSkillLevel(content)).toBe('medior');
+    });
+  });
+
+  describe('getTaskSkillLevel', () => {
+    let tempDir: string;
+
+    beforeEach(async () => {
+      tempDir = path.join(os.tmpdir(), `plx-skill-level-test-${Date.now()}`);
+      await fs.mkdir(tempDir, { recursive: true });
+    });
+
+    afterEach(async () => {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    });
+
+    it('should read skill level from file', async () => {
+      const filePath = path.join(tempDir, '001-task.md');
+      await fs.writeFile(filePath, `---
+status: to-do
+skill-level: senior
+---
+
+# Task: Test`);
+
+      const skillLevel = await getTaskSkillLevel(filePath);
+      expect(skillLevel).toBe('senior');
+    });
+
+    it('should return undefined for file without skill-level', async () => {
+      const filePath = path.join(tempDir, '001-task.md');
+      await fs.writeFile(filePath, `---
+status: to-do
+---
+
+# Task: Test`);
+
+      const skillLevel = await getTaskSkillLevel(filePath);
+      expect(skillLevel).toBeUndefined();
+    });
+
+    it('should return undefined for file with invalid skill-level', async () => {
+      const filePath = path.join(tempDir, '001-task.md');
+      await fs.writeFile(filePath, `---
+status: to-do
+skill-level: invalid
+---
+
+# Task: Test`);
+
+      const skillLevel = await getTaskSkillLevel(filePath);
+      expect(skillLevel).toBeUndefined();
     });
   });
 });

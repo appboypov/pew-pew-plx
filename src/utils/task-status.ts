@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 
 export type TaskStatus = 'to-do' | 'in-progress' | 'done';
+export type SkillLevel = 'junior' | 'medior' | 'senior';
 
 export const DEFAULT_TASK_STATUS: TaskStatus = 'to-do';
 
@@ -16,6 +17,7 @@ export interface CheckboxUncompleteResult {
 
 const FRONTMATTER_REGEX = /^---\n([\s\S]*?)\n---/;
 const STATUS_LINE_REGEX = /^status:\s*(to-do|in-progress|done)\s*$/m;
+const SKILL_LEVEL_LINE_REGEX = /^skill-level:\s*(junior|medior|senior)\s*$/m;
 
 /**
  * Normalizes line endings to Unix-style (\n).
@@ -42,6 +44,26 @@ export function parseStatus(content: string): TaskStatus {
   }
 
   return statusMatch[1] as TaskStatus;
+}
+
+/**
+ * Parses the skill level from YAML frontmatter in a task file's content.
+ * Returns undefined if frontmatter, skill-level field is missing, or value is invalid.
+ */
+export function parseSkillLevel(content: string): SkillLevel | undefined {
+  const normalized = normalizeContent(content);
+  const frontmatterMatch = normalized.match(FRONTMATTER_REGEX);
+  if (!frontmatterMatch) {
+    return undefined;
+  }
+
+  const frontmatter = frontmatterMatch[1];
+  const skillLevelMatch = frontmatter.match(SKILL_LEVEL_LINE_REGEX);
+  if (!skillLevelMatch) {
+    return undefined;
+  }
+
+  return skillLevelMatch[1] as SkillLevel;
 }
 
 /**
@@ -80,6 +102,17 @@ export function updateStatus(content: string, newStatus: TaskStatus): string {
 export async function getTaskStatus(filePath: string): Promise<TaskStatus> {
   const content = await fs.readFile(filePath, 'utf-8');
   return parseStatus(content);
+}
+
+/**
+ * Reads a task file and returns its skill level.
+ * Returns undefined if the skill-level field is missing or invalid.
+ */
+export async function getTaskSkillLevel(
+  filePath: string
+): Promise<SkillLevel | undefined> {
+  const content = await fs.readFile(filePath, 'utf-8');
+  return parseSkillLevel(content);
 }
 
 /**

@@ -8,8 +8,10 @@ import {
 } from '../utils/change-prioritization.js';
 import {
   parseStatus,
+  parseSkillLevel,
   setTaskStatus,
   TaskStatus,
+  SkillLevel,
   completeTaskFully,
 } from '../utils/task-status.js';
 import { TaskFileInfo, countTasksFromContent } from '../utils/task-progress.js';
@@ -61,6 +63,7 @@ interface JsonOutput {
     filepath: string;
     sequence: number;
     status: TaskStatus;
+    skillLevel?: SkillLevel;
   } | null;
   taskContent: string | null;
   changeDocuments?: {
@@ -293,6 +296,7 @@ export class GetCommand {
     // Read task content and check status
     let taskContent = await fs.readFile(nextTask.filepath, 'utf-8');
     let taskStatus = parseStatus(taskContent);
+    const skillLevel = parseSkillLevel(taskContent);
     let transitionedToInProgress = false;
 
     // Auto-transition to-do tasks to in-progress when retrieved
@@ -327,6 +331,7 @@ export class GetCommand {
           filepath: nextTask.filepath,
           sequence: nextTask.sequence,
           status: taskStatus,
+          ...(skillLevel && { skillLevel }),
         },
         taskContent,
       };
@@ -384,10 +389,22 @@ export class GetCommand {
 
       // Print task header with display ID in multi-workspace mode
       const headerTaskId = this.isMulti ? taskDisplayId : getTaskId(nextTask);
+      const skillBadge = skillLevel ? ` [${this.formatSkillLevel(skillLevel)}]` : '';
       console.log(
-        chalk.bold.cyan(`\n═══ Task ${nextTask.sequence}: ${headerTaskId} ═══\n`)
+        chalk.bold.cyan(`\n═══ Task ${nextTask.sequence}: ${headerTaskId}${skillBadge} ═══\n`)
       );
       console.log(taskContent);
+    }
+  }
+
+  private formatSkillLevel(level: SkillLevel): string {
+    switch (level) {
+      case 'junior':
+        return chalk.cyan('junior');
+      case 'medior':
+        return chalk.yellow('medior');
+      case 'senior':
+        return chalk.magenta('senior');
     }
   }
 
@@ -421,6 +438,8 @@ export class GetCommand {
       ? await fs.readFile(task.filepath, 'utf-8')
       : content;
 
+    const skillLevel = parseSkillLevel(updatedContent);
+
     // Apply content filtering if requested
     const filteredContent = this.applyContentFiltering(updatedContent, options);
 
@@ -436,6 +455,7 @@ export class GetCommand {
           filepath: task.filepath,
           sequence: task.sequence,
           status: taskStatus,
+          ...(skillLevel && { skillLevel }),
         },
         taskContent: filteredContent,
       };
@@ -448,8 +468,9 @@ export class GetCommand {
       if (transitionedToInProgress) {
         console.log(chalk.blue(`\n→ Transitioned to in-progress: ${taskDisplayId}`));
       }
+      const skillBadge = skillLevel ? ` [${this.formatSkillLevel(skillLevel)}]` : '';
       console.log(
-        chalk.bold.cyan(`\n═══ Task ${task.sequence}: ${taskDisplayId} ═══\n`)
+        chalk.bold.cyan(`\n═══ Task ${task.sequence}: ${taskDisplayId}${skillBadge} ═══\n`)
       );
       console.log(filteredContent);
     }
@@ -651,10 +672,12 @@ export class GetCommand {
         for (const task of tasks) {
           const content = await fs.readFile(task.filepath, 'utf-8');
           const status = parseStatus(content);
+          const skillLevel = parseSkillLevel(content);
           taskData.push({
             id: getTaskId(task),
             status,
             changeId: options.id,
+            ...(skillLevel && { skillLevel }),
           });
         }
         console.log(
@@ -678,21 +701,17 @@ export class GetCommand {
       }
 
       if (options.json) {
+        const taskData = openTasks.map((t) => ({
+          id: t.taskId,
+          status: t.status,
+          changeId: t.changeId,
+          workspacePath: t.workspacePath,
+          projectName: t.projectName,
+          displayId: t.displayId,
+          ...(t.skillLevel && { skillLevel: t.skillLevel }),
+        }));
         console.log(
-          JSON.stringify(
-            {
-              tasks: openTasks.map((t) => ({
-                id: t.taskId,
-                status: t.status,
-                changeId: t.changeId,
-                workspacePath: t.workspacePath,
-                projectName: t.projectName,
-                displayId: t.displayId,
-              })),
-            },
-            null,
-            2
-          )
+          JSON.stringify({ tasks: taskData }, null, 2)
         );
       } else {
         console.log(chalk.bold.cyan('\n═══ Open Tasks ═══\n'));
@@ -706,20 +725,24 @@ export class GetCommand {
     console.log(
       chalk.dim('  ') +
       chalk.bold.white('ID'.padEnd(30)) +
-      chalk.bold.white('Status')
+      chalk.bold.white('Status'.padEnd(15)) +
+      chalk.bold.white('Skill')
     );
-    console.log(chalk.dim('  ' + '─'.repeat(45)));
+    console.log(chalk.dim('  ' + '─'.repeat(55)));
 
     for (const task of tasks) {
       const content = await fs.readFile(task.filepath, 'utf-8');
       const status = parseStatus(content);
+      const skillLevel = parseSkillLevel(content);
       const taskId = task.filename.replace('.md', '');
       const statusColor = status === 'in-progress' ? chalk.yellow : status === 'done' ? chalk.green : chalk.gray;
+      const skillDisplay = skillLevel ? this.formatSkillLevel(skillLevel) : chalk.dim('-');
 
       console.log(
         chalk.dim('  ') +
         chalk.white(taskId.padEnd(30)) +
-        statusColor(status)
+        statusColor(status.padEnd(15)) +
+        skillDisplay
       );
     }
   }
@@ -730,18 +753,22 @@ export class GetCommand {
       chalk.dim('  ') +
         chalk.bold.white('ID'.padEnd(50)) +
         chalk.bold.white('Status'.padEnd(15)) +
+        chalk.bold.white('Skill'.padEnd(10)) +
         chalk.bold.white('Change')
     );
-    console.log(chalk.dim('  ' + '─'.repeat(80)));
+    console.log(chalk.dim('  ' + '─'.repeat(95)));
 
-    for (const { taskId, status, changeId, displayId } of tasks) {
+    for (const { taskId, status, changeId, displayId, skillLevel } of tasks) {
       const statusColor = status === 'in-progress' ? chalk.yellow : chalk.gray;
       const displayTaskId = this.isMulti && displayId ? displayId : taskId;
+      const skillDisplay = skillLevel ? this.formatSkillLevel(skillLevel) : chalk.dim('-');
+      const skillPadding = ' '.repeat(Math.max(0, 10 - (skillLevel?.length ?? 1)));
 
       console.log(
         chalk.dim('  ') +
           chalk.white(displayTaskId.padEnd(50)) +
           statusColor(status.padEnd(15)) +
+          skillDisplay + skillPadding +
           chalk.blue(changeId)
       );
     }

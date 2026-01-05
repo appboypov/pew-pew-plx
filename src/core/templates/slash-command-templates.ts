@@ -40,7 +40,7 @@ const proposalSteps = `**Steps**
 3. Map the change into concrete capabilities or requirements, breaking multi-scope efforts into distinct spec deltas with clear relationships and sequencing.
 4. Capture architectural reasoning in \`design.md\` when the solution spans multiple systems, introduces new patterns, or demands trade-off discussion before committing to specs.
 5. Draft spec deltas in \`changes/<id>/specs/<capability>/spec.md\` (one folder per capability) using \`## ADDED|MODIFIED|REMOVED Requirements\` with at least one \`#### Scenario:\` per requirement and cross-reference related capabilities when relevant.
-6. Create \`tasks/\` directory with numbered task files (minimum 3: implementation, review, test). Each file uses format \`NNN-<name>.md\` with End Goal, Currently, Should, Constraints, Acceptance Criteria, Implementation Checklist, and Notes sections.
+6. Create \`tasks/\` directory with numbered task files (minimum 3: implementation, review, test). Each file uses format \`NNN-<name>.md\` with frontmatter (status: to-do, skill-level: junior|medior|senior) and sections: End Goal, Currently, Should, Constraints, Acceptance Criteria, Implementation Checklist, Notes. Assign skill-level based on complexity: junior for straightforward changes, medior for feature implementation, senior for architectural work.
 7. Validate with \`plx validate <id> --strict\` and resolve every issue before sharing the proposal.`;
 
 
@@ -431,7 +431,12 @@ const orchestrateGuardrails = `${planningContext}
   - No "we don't do X" statements about removed features.
   - No clarifications about previous states or deprecated behavior.
 - Verify scope adherence: confirm no unnecessary additions.
-- Verify project convention alignment before accepting work.`;
+- Verify project convention alignment before accepting work.
+- Select sub-agent model based on task skill-level:
+  - junior → haiku (simple tasks)
+  - medior → sonnet (moderate complexity)
+  - senior → opus (architectural/complex tasks)
+  - For non-Claude models, determine equivalent or use default.`;
 
 const orchestrateSteps = `**Steps**
 1. Understand the work scope:
@@ -440,7 +445,7 @@ const orchestrateSteps = `**Steps**
    - For other work: enumerate the discrete units of work.
 2. For each unit of work:
    a. Get detailed context (\`plx get task --id <id>\` or equivalent).
-   b. Spawn a sub-agent with clear, scoped instructions.
+   b. Spawn a sub-agent with clear, scoped instructions; select model based on task skill-level (junior→haiku, medior→sonnet, senior→opus).
    c. Wait for sub-agent to complete work.
 3. Review sub-agent output:
    - Scope adherence: no unrequested features or changes.

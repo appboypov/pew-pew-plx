@@ -481,17 +481,34 @@ Task filenames follow the pattern `NNN-<kebab-case-name>.md` where NNN is a zero
 
 ### Task Status
 
-Each task file has YAML frontmatter with a status field:
+Each task file has YAML frontmatter with status and optional skill-level fields:
 
 ```yaml
 ---
 status: to-do    # or 'in-progress' or 'done'
+skill-level: medior  # or 'junior' or 'senior' (optional)
 ---
 ```
 
 Status transitions:
 - `to-do` → `in-progress` (when starting work)
 - `in-progress` → `done` (when completing)
+
+### Task Skill Level
+
+The optional `skill-level` field guides AI agents in selecting appropriate models when spawning sub-agents:
+
+| Skill Level | Model Type | Use Case |
+|-------------|------------|----------|
+| `junior` | Lightweight (haiku) | Simple, routine tasks |
+| `medior` | Balanced (sonnet) | Standard complexity tasks |
+| `senior` | Advanced (opus) | Complex, architectural decisions |
+
+Skill levels are:
+- Displayed as color-coded badges in `plx get task` output
+- Shown in the Skill column of `plx get tasks` tables
+- Included in JSON output as `skillLevel` field
+- Validated in strict mode (warning when missing or invalid)
 
 ### Task Progress Tracking
 

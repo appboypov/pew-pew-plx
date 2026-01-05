@@ -1,5 +1,24 @@
 # Pew Pew Plx Changelog
 
+## 0.12.0 - 2026-01-05
+
+### Added
+
+- **Task skill-level field**: Optional `skill-level` in task YAML frontmatter for AI model selection
+  - Values: `junior` (lightweight/haiku), `medior` (balanced/sonnet), `senior` (advanced/opus)
+  - Displayed as color-coded badge in task headers and table columns
+  - Included in `--json` output as `skillLevel` field
+  - Strict mode validation warns when skill-level is missing or invalid
+- **AGENTS.md template updated**: Task template now documents skill-level field and model mapping
+- **Slash command guidance**: `/plx:orchestrate` and `/plx:plan-proposal` include model selection hints
+
+### Fixed
+
+- Skill-level validation now checks frontmatter only, not file body content
+- Task skill levels cached during discovery to eliminate duplicate file I/O
+
+---
+
 ## 0.11.0 - 2026-01-04
 
 ### Added

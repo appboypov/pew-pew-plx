@@ -134,11 +134,12 @@ tasks/
 └── 003-add-tests.md
 ```
 
-Each task uses YAML frontmatter for status tracking:
+Each task uses YAML frontmatter for status and skill-level tracking:
 
 ```yaml
 ---
 status: to-do  # or: in-progress, done
+skill-level: medior  # or: junior, senior (optional, guides AI model selection)
 ---
 ```
 
