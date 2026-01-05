@@ -821,6 +821,8 @@ Pew Pew Plx provides:
    - `/plx/refine-review` - Create or update REVIEW.md template
    - `/plx/prepare-release` - Guided release preparation workflow
    - `/plx/refine-release` - Create or update RELEASE.md template
+   - `/plx/refine-testing` - Create or update TESTING.md template
+   - `/plx/test` - Run tests based on scope (change, task, or spec)
    - `/plx/prepare-compact` - Preserve session progress in PROGRESS.md
 4. **Extended Templates**: Architecture template generation
 5. **Get Command**: Extended with subcommands for item retrieval (`get task`, `get change`, `get spec`, `get tasks`) and content filtering (`--constraints`, `--acceptance-criteria`)

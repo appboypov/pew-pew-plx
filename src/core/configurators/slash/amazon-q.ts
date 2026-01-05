@@ -15,8 +15,10 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.amazonq/prompts/plx-refine-architecture.md',
   'refine-release': '.amazonq/prompts/plx-refine-release.md',
   'refine-review': '.amazonq/prompts/plx-refine-review.md',
+  'refine-testing': '.amazonq/prompts/plx-refine-testing.md',
   'review': '.amazonq/prompts/plx-review.md',
   'sync-workspace': '.amazonq/prompts/plx-sync-workspace.md',
+  'test': '.amazonq/prompts/plx-test.md',
   'undo-task': '.amazonq/prompts/plx-undo-task.md'
 };
 
@@ -98,6 +100,11 @@ description: Create or update REVIEW.md.
 ---
 
 <arguments>$ARGUMENTS</arguments>`,
+  'refine-testing': `---
+description: Create or update TESTING.md.
+---
+
+<arguments>$ARGUMENTS</arguments>`,
   'review': `---
 description: Review implementations against specs, changes, or tasks.
 ---
@@ -105,6 +112,11 @@ description: Review implementations against specs, changes, or tasks.
 <arguments>$ARGUMENTS</arguments>`,
   'sync-workspace': `---
 description: Scan workspace state and suggest maintenance actions.
+---
+
+<arguments>$ARGUMENTS</arguments>`,
+  'test': `---
+description: Run tests based on scope (change, task, or spec) using TESTING.md configuration.
 ---
 
 <arguments>$ARGUMENTS</arguments>`,

@@ -1,10 +1,10 @@
 # Pew Pew Plx Changelog
 
-## 0.11.0 - 2026-01-02
+## 0.11.0 - 2026-01-04
 
 ### Added
 
-- Upward workspace discovery for subdirectory support
+- **Upward workspace discovery** for subdirectory support
   - PLX commands now work from any subdirectory within a project
   - Automatically scans upward to find project root containing `workspace/AGENTS.md`
   - `.git` boundary stops upward scan if no workspace found
@@ -12,6 +12,29 @@
 - `isValidPlxWorkspace()` function to validate PLX workspace directories
 - `findProjectRoot()` function to locate project root from any subdirectory
 - Test utility `createValidPlxWorkspace()` for consistent test fixture creation
+- **TESTING.md template**: New config-style testing configuration file (~21 lines)
+  - Created during `plx init` and `plx update` (same pattern as REVIEW.md)
+  - Configures test types, coverage thresholds, test runner, and file patterns
+- **`/plx:refine-testing` slash command**: Guide users through testing configuration
+  - Test types: unit, integration, e2e, snapshot, performance
+  - Coverage thresholds: 70%, 80%, 90%
+  - Test runners: vitest, jest, mocha, pytest, flutter_test
+- **`/plx:test` slash command**: Run tests based on scope using TESTING.md configuration
+  - Accepts `--change-id`, `--task-id`, `--spec-id` arguments (same pattern as review)
+  - Reads TESTING.md for runner, coverage threshold, and patterns
+
+### Changed
+
+- **RELEASE.md slimmed**: Reduced from 481 to 33 lines
+  - Now a config-style file with defaults only
+  - Verbose documentation moved to `/plx:refine-release` command
+- **`/plx:refine-release` enhanced**: Now contains comprehensive option documentation
+  - Format options: keep-a-changelog, simple-list, github-release
+  - Style options: minimal, standard, comprehensive, cli-tool, library
+  - Audience, emoji, and badge configuration guidance
+- **`/plx:refine-review` enhanced**: Expanded from 16 to 68 lines
+  - Review type options: implementation, architecture, security, performance, accessibility
+  - Feedback format and checklist customization documentation
 
 ### Fixed
 

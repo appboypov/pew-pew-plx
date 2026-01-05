@@ -15,8 +15,10 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.crush/commands/plx/refine-architecture.md',
   'refine-release': '.crush/commands/plx/refine-release.md',
   'refine-review': '.crush/commands/plx/refine-review.md',
+  'refine-testing': '.crush/commands/plx/refine-testing.md',
   'review': '.crush/commands/plx/review.md',
   'sync-workspace': '.crush/commands/plx/sync-workspace.md',
+  'test': '.crush/commands/plx/test.md',
   'undo-task': '.crush/commands/plx/undo-task.md'
 };
 
@@ -99,6 +101,12 @@ description: Create or update REVIEW.md.
 category: Pew Pew Plx
 tags: [plx, review, documentation]
 ---`,
+  'refine-testing': `---
+name: Pew Pew Plx: Refine Testing
+description: Create or update TESTING.md.
+category: Pew Pew Plx
+tags: [plx, testing, documentation]
+---`,
   'review': `---
 name: Pew Pew Plx: Review
 description: Review implementations against specs, changes, or tasks.
@@ -110,6 +118,12 @@ name: Pew Pew Plx: Sync Workspace
 description: Scan workspace state and suggest maintenance actions.
 category: Pew Pew Plx
 tags: [plx, workspace, maintenance]
+---`,
+  'test': `---
+name: Pew Pew Plx: Test
+description: Run tests based on scope (change, task, or spec) using TESTING.md configuration.
+category: Pew Pew Plx
+tags: [plx, testing, workflow]
 ---`,
   'undo-task': `---
 name: Pew Pew Plx: Undo Task

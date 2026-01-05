@@ -15,8 +15,10 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.iflow/commands/plx-refine-architecture.md',
   'refine-release': '.iflow/commands/plx-refine-release.md',
   'refine-review': '.iflow/commands/plx-refine-review.md',
+  'refine-testing': '.iflow/commands/plx-refine-testing.md',
   'review': '.iflow/commands/plx-review.md',
   'sync-workspace': '.iflow/commands/plx-sync-workspace.md',
+  'test': '.iflow/commands/plx-test.md',
   'undo-task': '.iflow/commands/plx-undo-task.md'
 };
 
@@ -99,6 +101,12 @@ id: plx-refine-review
 category: Pew Pew Plx
 description: Create or update REVIEW.md.
 ---`,
+  'refine-testing': `---
+name: /plx-refine-testing
+id: plx-refine-testing
+category: Pew Pew Plx
+description: Create or update TESTING.md.
+---`,
   'review': `---
 name: /plx-review
 id: plx-review
@@ -110,6 +118,12 @@ name: /plx-sync-workspace
 id: plx-sync-workspace
 category: Pew Pew Plx
 description: Scan workspace state and suggest maintenance actions.
+---`,
+  'test': `---
+name: /plx-test
+id: plx-test
+category: Pew Pew Plx
+description: Run tests based on scope (change, task, or spec) using TESTING.md configuration.
 ---`,
   'undo-task': `---
 name: /plx-undo-task

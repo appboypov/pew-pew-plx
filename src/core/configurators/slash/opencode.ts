@@ -17,8 +17,10 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   'refine-architecture': '.opencode/command/plx-refine-architecture.md',
   'refine-release': '.opencode/command/plx-refine-release.md',
   'refine-review': '.opencode/command/plx-refine-review.md',
+  'refine-testing': '.opencode/command/plx-refine-testing.md',
   'review': '.opencode/command/plx-review.md',
   'sync-workspace': '.opencode/command/plx-sync-workspace.md',
+  'test': '.opencode/command/plx-test.md',
   'undo-task': '.opencode/command/plx-undo-task.md'
 };
 
@@ -106,6 +108,12 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS`,
+  'refine-testing': `---
+description: Create or update TESTING.md.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
   'review': `---
 description: Review implementations against specs, changes, or tasks.
 argument-hint: (optional context)
@@ -115,6 +123,12 @@ $ARGUMENTS`,
   'sync-workspace': `---
 description: Scan workspace state and suggest maintenance actions.
 argument-hint: (optional change-id or task-id)
+---
+
+$ARGUMENTS`,
+  'test': `---
+description: Run tests based on scope (change, task, or spec) using TESTING.md configuration.
+argument-hint: --change-id, --task-id, or --spec-id
 ---
 
 $ARGUMENTS`,

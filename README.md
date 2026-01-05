@@ -180,6 +180,8 @@ When you run `plx init`, these commands are installed for supported AI tools:
 - `/plx/refine-architecture` - Create or update `ARCHITECTURE.md`
 - `/plx/refine-review` - Create or update `REVIEW.md` template
 - `/plx/refine-release` - Create or update `RELEASE.md` template
+- `/plx/refine-testing` - Create or update `TESTING.md` template
+- `/plx/test` - Run tests based on scope (change, task, or spec)
 - `/plx/review` - Review implementations
 - `/plx/parse-feedback` - Parse feedback markers
 - `/plx/prepare-release` - Guided release preparation workflow

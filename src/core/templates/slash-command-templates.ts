@@ -12,8 +12,10 @@ export type SlashCommandId =
   | 'refine-architecture'
   | 'refine-release'
   | 'refine-review'
+  | 'refine-testing'
   | 'review'
   | 'sync-workspace'
+  | 'test'
   | 'undo-task';
 
 const baseGuardrails = `**Guardrails**
@@ -130,12 +132,130 @@ const refineArchitectureSteps = `**Steps**
 
 const refineReviewGuardrails = `**Guardrails**
 - Reference @REVIEW.md template structure.
-- Preserve existing guidelines.`;
+- Preserve existing review guidelines.
+- Use question tool to guide user through configuration options.
+- Write final selections to REVIEW.md.
+
+## Configuration Options Reference
+
+### Review Types
+| Type | Description | Focus Areas |
+|------|-------------|-------------|
+| \`implementation\` | Code correctness and quality | Logic errors, edge cases, error handling, code style |
+| \`architecture\` | System design and patterns | Component boundaries, dependencies, scalability, maintainability |
+| \`security\` | Vulnerability assessment | Input validation, authentication, authorization, data exposure |
+| \`performance\` | Efficiency and optimization | Algorithmic complexity, memory usage, I/O operations, caching |
+| \`accessibility\` | Inclusive design compliance | WCAG guidelines, screen reader support, keyboard navigation |
+
+### Feedback Format
+| Format | Description | Best For |
+|--------|-------------|----------|
+| \`marker\` | Inline markers with format \`#FEEDBACK #TODO \\| {type}:{id} \\| {feedback}\` | Automated parsing, task generation, CI integration |
+| \`annotation\` | Spec-style annotations referencing requirements | Traceability to specs, compliance verification |
+| \`inline-comment\` | Direct code comments at issue location | Quick fixes, minor suggestions, style feedback |
+
+### Checklist Customization
+| Checklist | Items | Best For |
+|-----------|-------|----------|
+| \`minimal\` | 5-7 core items covering critical issues only | Fast reviews, trusted contributors, small changes |
+| \`standard\` | 10-15 items covering common review concerns | Most PRs, balanced thoroughness |
+| \`comprehensive\` | 20+ items covering all review aspects | Critical systems, security-sensitive code, new contributors |
+| \`custom\` | User-defined items tailored to project needs | Domain-specific requirements, compliance mandates |`;
 
 const refineReviewSteps = `**Steps**
-1. Check if @REVIEW.md exists.
-2. If not: create from template.
-3. If exists: read and update.`;
+1. Check if @REVIEW.md exists:
+   - If not: create from template with default configuration.
+   - If exists: read current configuration.
+
+2. Guide user through Review Types selection:
+   - Present review type options: implementation, architecture, security, performance, accessibility.
+   - Explain each type's focus areas and when to apply.
+   - Allow multiple selections (most projects use 2-3 types).
+   - Record selections.
+
+3. Guide user through Feedback Format selection:
+   - Present feedback format options: marker, annotation, inline-comment.
+   - Explain each format's structure and tooling compatibility.
+   - Record selection.
+
+4. Guide user through Checklist customization:
+   - Present checklist options: minimal, standard, comprehensive, custom.
+   - If custom: guide user to define checklist items.
+   - Explain tradeoffs between speed and thoroughness.
+   - Record selection.
+
+5. Write all selections to REVIEW.md:
+   - Update Review Types section with selected types.
+   - Update Feedback Format section with format choice.
+   - Update Checklist section with selected level or custom items.
+
+6. Confirm configuration saved and explain how \`plx/review\` will use these settings.`;
+
+const refineTestingGuardrails = `**Guardrails**
+- Reference @TESTING.md template structure.
+- Preserve existing testing configuration.
+- Use question tool to guide user through configuration options.
+- Write final selections to TESTING.md.
+
+## Configuration Options Reference
+
+### Test Types
+| Type | Description | Best For |
+|------|-------------|----------|
+| \`unit\` | Isolated function/method tests with mocked dependencies | Business logic, utilities, pure functions |
+| \`integration\` | Tests verifying component interactions | API endpoints, database operations, service layers |
+| \`e2e\` | End-to-end user journey tests | Critical user flows, checkout processes, auth flows |
+| \`snapshot\` | UI component snapshot comparisons | React/Vue components, styled components |
+| \`performance\` | Load testing and benchmarks | High-traffic endpoints, critical paths |
+
+### Coverage Thresholds
+| Threshold | Description | Best For |
+|-----------|-------------|----------|
+| \`70%\` | Minimum viable coverage | Legacy codebases, rapid prototyping |
+| \`80%\` | Standard coverage target | Most production applications |
+| \`90%\` | High coverage requirement | Critical systems, libraries, SDKs |
+
+### Test Runners
+| Runner | Description | Best For |
+|--------|-------------|----------|
+| \`vitest\` | Fast, Vite-native test runner | Vite projects, TypeScript, ESM |
+| \`jest\` | Full-featured test framework | React, general JavaScript/TypeScript |
+| \`mocha\` | Flexible test framework | Node.js backends, custom setups |
+| \`pytest\` | Python test framework | Python projects |
+| \`flutter_test\` | Flutter test framework | Flutter/Dart projects |`;
+
+const refineTestingSteps = `**Steps**
+1. Check if @TESTING.md exists:
+   - If not: create from template with default configuration.
+   - If exists: read current configuration.
+
+2. Guide user through Test Types selection:
+   - Present test type options: unit, integration, e2e, snapshot, performance.
+   - Explain each type's purpose and use case.
+   - Allow multiple selections.
+   - Record selections.
+
+3. Guide user through Coverage Threshold selection:
+   - Present coverage options: 70%, 80%, 90%.
+   - Explain tradeoffs for each level.
+   - Record selection.
+
+4. Guide user through Test Runner selection:
+   - Present runner options based on detected project type.
+   - Explain each runner's strengths.
+   - Record selection.
+
+5. Guide user through File Pattern configuration:
+   - Present common patterns based on selected runner.
+   - Allow customization.
+   - Record patterns.
+
+6. Write all selections to TESTING.md:
+   - Update Test Types section with selected types.
+   - Update Coverage section with threshold.
+   - Update Test Patterns section with runner and file patterns.
+
+7. Confirm configuration saved and explain how test configuration will be used.`;
 
 const parseFeedbackGuardrails = `**Guardrails**
 - Scan only tracked files.
@@ -150,26 +270,154 @@ const parseFeedbackSteps = `**Steps**
 
 const refineReleaseGuardrails = `**Guardrails**
 - Reference @RELEASE.md template structure.
-- Preserve existing release configuration.`;
+- Preserve existing release configuration.
+- Use question tool to guide user through configuration options.
+- Write final selections to RELEASE.md Config section.
+
+## Configuration Options Reference
+
+### Format Options
+| Format | Description | Best For |
+|--------|-------------|----------|
+| \`keep-a-changelog\` | Standard format following keepachangelog.com with Added/Changed/Deprecated/Removed/Fixed/Security sections | Open source projects, libraries, packages with structured release notes |
+| \`simple-list\` | Minimal bullet-point list with prefixed categories (Added:, Changed:, Fixed:) | Internal projects, rapid releases, minimal documentation needs |
+| \`github-release\` | GitHub Releases compatible format with "What's Changed" sections and PR/contributor links | GitHub-hosted projects using GitHub Releases feature |
+
+### Style Options
+| Style | Sections Included | Best For |
+|-------|-------------------|----------|
+| \`minimal\` | Title, description, install, usage | Simple utilities, scripts, internal tools |
+| \`standard\` | Above + features, contributing, license | Most open source projects |
+| \`comprehensive\` | Full documentation with ToC, API, config, FAQ | Libraries with complex APIs |
+| \`cli-tool\` | Commands, flags, examples, options tables | Command-line applications |
+| \`library\` | API reference, class docs, method signatures | SDK/API packages |
+
+### Audience Options
+| Audience | Focus | Tone |
+|----------|-------|------|
+| \`technical\` | Implementation details, API changes, migration guides | Developer-centric, precise |
+| \`semi-technical\` | Features and fixes with light technical context | Balanced for mixed readers |
+| \`general-interest\` | User-facing improvements, benefits | Non-technical, benefit-focused |
+
+### Emoji Levels
+| Level | Usage | Example |
+|-------|-------|---------|
+| \`none\` | No emojis anywhere | "Added new feature" |
+| \`minimal\` | Section headers only | "## ✨ Added" |
+| \`standard\` | Headers and major items | "- ✨ New dashboard view" |
+
+### Badge Patterns (shields.io)
+\`\`\`
+Build:     ![Build](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/WORKFLOW.yml?branch=main)
+Coverage:  ![Coverage](https://img.shields.io/codecov/c/github/OWNER/REPO)
+npm:       ![npm](https://img.shields.io/npm/v/PACKAGE)
+Downloads: ![Downloads](https://img.shields.io/npm/dm/PACKAGE)
+License:   ![License](https://img.shields.io/npm/l/PACKAGE)
+Stars:     ![Stars](https://img.shields.io/github/stars/OWNER/REPO)
+Issues:    ![Issues](https://img.shields.io/github/issues/OWNER/REPO)
+PRs:       ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
+TypeScript:![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
+Node:      ![Node](https://img.shields.io/node/v/PACKAGE)
+\`\`\``;
 
 const refineReleaseSteps = `**Steps**
-1. Check if @RELEASE.md exists.
-2. If not: create from template.
-3. If exists: read and update.`;
+1. Check if @RELEASE.md exists:
+   - If not: create from template with empty Config section.
+   - If exists: read current configuration.
+
+2. Guide user through Format selection:
+   - Present format options: keep-a-changelog, simple-list, github-release.
+   - Explain each format's structure and use case.
+   - Record selection.
+
+3. Guide user through Style selection:
+   - Present style options: minimal, standard, comprehensive, cli-tool, library.
+   - Explain sections included in each style.
+   - Record selection.
+
+4. Guide user through Audience selection:
+   - Present audience options: technical, semi-technical, general-interest.
+   - Explain tone and focus of each.
+   - Record selection.
+
+5. Guide user through Emoji level selection:
+   - Present emoji options: none, minimal, standard.
+   - Show examples for each level.
+   - Record selection.
+
+6. Badge configuration (optional):
+   - Ask if user wants badges in readme.
+   - If yes, present badge options and record selections.
+   - Collect OWNER, REPO, PACKAGE values if needed.
+
+7. Write all selections to RELEASE.md Config section:
+   \`\`\`yaml
+   # Config
+   format: <selected-format>
+   style: <selected-style>
+   audience: <selected-audience>
+   emoji: <selected-emoji>
+   badges:
+     - <badge1>
+     - <badge2>
+   owner: <github-owner>
+   repo: <github-repo>
+   package: <npm-package>
+   \`\`\`
+
+8. Confirm configuration saved and explain how \`plx/prepare-release\` will use it.`;
 
 const prepareReleaseGuardrails = `**Guardrails**
-- Read @RELEASE.md for full release preparation instructions.
+- Read @RELEASE.md Config section for release configuration.
+- Apply defaults when config values are not specified.
 - Reference @README.md, @CHANGELOG.md, and @ARCHITECTURE.md for updates.
 - Execute steps sequentially: changelog → readme → architecture.
 - User confirms or skips each step before proceeding.
-- Preserve existing content when updating files.`;
+- Preserve existing content when updating files.
+
+## Default Configuration
+When RELEASE.md Config section is missing or incomplete, apply these defaults:
+| Setting | Default Value |
+|---------|---------------|
+| format | keep-a-changelog |
+| style | standard |
+| audience | technical |
+| emoji | none |
+| badges | (none) |`;
 
 const prepareReleaseSteps = `**Steps**
-1. Read @RELEASE.md to understand release preparation workflow.
-2. Execute changelog update step (source, version, format selection).
-3. Execute readme update step (style, sections, badges selection).
-4. Execute architecture update step (refresh from codebase).
-5. Present summary of all changes made.`;
+1. Parse configuration from @RELEASE.md:
+   - Read Config section (YAML block after "# Config" header).
+   - Extract: format, style, audience, emoji, badges, owner, repo, package.
+   - Apply defaults for any missing values:
+     - format: keep-a-changelog
+     - style: standard
+     - audience: technical
+     - emoji: none
+
+2. Execute changelog update:
+   - Ask user for change source: git commits, branch diff, or manual entry.
+   - If git commits: ask for range (recent N, since date, since tag, tag range).
+   - Analyze commits for version bump type (major/minor/patch).
+   - Generate changelog entry using configured format and emoji level.
+   - Prepend to CHANGELOG.md (create if not exists).
+
+3. Execute readme update:
+   - Apply configured style to determine sections.
+   - Apply configured audience for tone.
+   - If badges configured: generate badge markdown using owner/repo/package values.
+   - Update or create README.md preserving user content.
+
+4. Execute architecture update:
+   - Read existing ARCHITECTURE.md.
+   - Explore codebase for current patterns and structure.
+   - Update documentation while preserving user-written content.
+   - Add sections for undocumented patterns.
+
+5. Present summary:
+   - List all files updated.
+   - Show version bump applied.
+   - Highlight any sections that need manual review.`;
 
 const orchestrateGuardrails = `${planningContext}
 
@@ -300,6 +548,40 @@ const undoTaskSteps = `**Steps**
 3. Run \`plx undo task --id <task-id>\` to revert the task to to-do.
 4. Confirm undo to user.`;
 
+const testGuardrails = `**Guardrails**
+- Read @TESTING.md for test runner, coverage threshold, and test patterns.
+- Parse arguments for scope: --change-id, --task-id, --spec-id.
+- Run tests based on scope or all tests if no scope provided.
+- Report results and coverage against configured threshold.`;
+
+const testSteps = `**Steps**
+1. Parse \`$ARGUMENTS\` to extract scope flags:
+   - \`--change-id <id>\`: run tests related to changed files in that change.
+   - \`--task-id <id>\`: run tests related to task scope.
+   - \`--spec-id <id>\`: run tests related to spec.
+   - No arguments: run all tests.
+2. Read @TESTING.md for configuration:
+   - Test runner (vitest, jest, pytest, flutter_test, etc.).
+   - Coverage threshold (70%, 80%, 90%).
+   - Test patterns and file locations.
+3. Determine test scope based on arguments:
+   - If \`--change-id\`: use \`plx show <id> --json\` to get changed files, derive test files.
+   - If \`--task-id\`: use \`plx get task --id <id>\` to get task scope, derive test files.
+   - If \`--spec-id\`: use \`plx show <id> --type spec\` to get spec scope, derive test files.
+   - If no scope: run full test suite.
+4. Execute tests using configured runner:
+   - Run scoped tests if arguments provided.
+   - Run full suite if no scope.
+   - Capture output and coverage report.
+5. Report results:
+   - List passed/failed tests.
+   - Show coverage percentage.
+   - Compare coverage to threshold from TESTING.md.
+   - Highlight any failures or coverage gaps.
+6. If tests fail or coverage is below threshold:
+   - Summarize failures with file locations.
+   - Suggest fixes or next steps.`;
+
 export const slashCommandBodies: Record<SlashCommandId, string> = {
   'archive': [baseGuardrails, archiveSteps, archiveReferences].join('\n\n'),
   'complete-task': completeTaskSteps,
@@ -314,8 +596,10 @@ export const slashCommandBodies: Record<SlashCommandId, string> = {
   'refine-architecture': [refineArchitectureGuardrails, refineArchitectureSteps].join('\n\n'),
   'refine-release': [refineReleaseGuardrails, refineReleaseSteps].join('\n\n'),
   'refine-review': [refineReviewGuardrails, refineReviewSteps].join('\n\n'),
+  'refine-testing': [refineTestingGuardrails, refineTestingSteps].join('\n\n'),
   'review': [reviewGuardrails, reviewSteps].join('\n\n'),
   'sync-workspace': [syncWorkspaceGuardrails, syncWorkspaceSteps, syncWorkspaceReference].join('\n\n'),
+  'test': [testGuardrails, testSteps].join('\n\n'),
   'undo-task': undoTaskSteps
 };
 

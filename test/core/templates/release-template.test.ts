@@ -19,46 +19,26 @@ describe('release-template', () => {
       expect(result).toContain('## Purpose');
     });
 
-    it('contains Changelog Update Activity', () => {
+    it('contains config-style default sections', () => {
       const result = releaseTemplate();
-      expect(result).toContain('## Activity: Changelog Update');
-      expect(result).toContain('Source Selection');
-      expect(result).toContain('Version Configuration');
-      expect(result).toContain('Format Selection');
+      expect(result).toContain('## Changelog Format');
+      expect(result).toContain('## README Style');
+      expect(result).toContain('## Audience');
+      expect(result).toContain('## Emoji Level');
     });
 
-    it('contains changelog format templates', () => {
+    it('contains default values', () => {
       const result = releaseTemplate();
       expect(result).toContain('keep-a-changelog');
-      expect(result).toContain('simple-list');
-      expect(result).toContain('github-release');
+      expect(result).toContain('standard');
+      expect(result).toContain('technical');
+      expect(result).toContain('none');
     });
 
-    it('contains Readme Update Activity', () => {
+    it('contains Project Overrides section with yaml config', () => {
       const result = releaseTemplate();
-      expect(result).toContain('## Activity: Readme Update');
-      expect(result).toContain('Style Selection');
-      expect(result).toContain('Section Configuration');
-      expect(result).toContain('Badge Configuration');
-    });
-
-    it('contains readme style templates', () => {
-      const result = releaseTemplate();
-      expect(result).toContain('Minimal Style');
-      expect(result).toContain('Standard Style');
-      expect(result).toContain('Comprehensive Style');
-    });
-
-    it('contains badge URL patterns', () => {
-      const result = releaseTemplate();
-      expect(result).toContain('shields.io');
-      expect(result).toContain('img.shields.io');
-    });
-
-    it('contains Architecture Update Activity', () => {
-      const result = releaseTemplate();
-      expect(result).toContain('## Activity: Architecture Update');
-      expect(result).toContain('Preservation Rules');
+      expect(result).toContain('## Project Overrides');
+      expect(result).toContain('```yaml');
     });
 
     it('contains Release Checklist', () => {
@@ -66,5 +46,6 @@ describe('release-template', () => {
       expect(result).toContain('## Release Checklist');
       expect(result).toContain('- [ ]');
     });
+
   });
 });
