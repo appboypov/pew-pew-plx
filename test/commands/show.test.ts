@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { createValidPlxWorkspace } from '../test-utils.js';
 
 describe('top-level show command', () => {
   const projectRoot = process.cwd();
@@ -12,6 +13,7 @@ describe('top-level show command', () => {
 
 
   beforeEach(async () => {
+    await createValidPlxWorkspace(testDir);
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(specsDir, { recursive: true });
 

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { ListCommand } from '../../src/core/list.js';
+import { createValidPlxWorkspace } from '../test-utils.js';
 
 describe('ListCommand', () => {
   let tempDir: string;
@@ -32,14 +33,18 @@ describe('ListCommand', () => {
 
   describe('execute', () => {
     it('should handle missing workspace/changes directory', async () => {
+      // Create valid PLX workspace but without changes directory
+      await createValidPlxWorkspace(tempDir);
+
       const listCommand = new ListCommand();
-      
-      await expect(listCommand.execute(tempDir, 'changes')).rejects.toThrow(
-        "No PLX changes directory found. Run 'plx init' first."
-      );
+      await listCommand.execute(tempDir, 'changes');
+
+      // When workspace exists but no changes directory, show empty message
+      expect(logOutput).toEqual(['No active changes found.']);
     });
 
     it('should handle empty changes directory', async () => {
+      await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(changesDir, { recursive: true });
 
@@ -50,6 +55,7 @@ describe('ListCommand', () => {
     });
 
     it('should exclude archive directory', async () => {
+      await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'archive'), { recursive: true });
       await fs.mkdir(path.join(changesDir, 'my-change'), { recursive: true });
@@ -75,6 +81,7 @@ describe('ListCommand', () => {
     });
 
     it('should count tasks correctly', async () => {
+      await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'test-change'), { recursive: true });
 
@@ -103,6 +110,7 @@ Regular text that should be ignored
     });
 
     it('should show complete status for fully completed changes', async () => {
+      await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'completed-change'), { recursive: true });
 
@@ -124,6 +132,7 @@ Regular text that should be ignored
     });
 
     it('should handle changes without tasks.md', async () => {
+      await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'no-tasks'), { recursive: true });
 
@@ -140,6 +149,7 @@ Regular text that should be ignored
     });
 
     it('should sort changes alphabetically', async () => {
+      await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'zebra'), { recursive: true });
       await fs.mkdir(path.join(changesDir, 'alpha'), { recursive: true });
@@ -172,6 +182,7 @@ Regular text that should be ignored
     });
 
     it('should handle multiple changes with various states', async () => {
+      await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
 
       // Complete change
@@ -213,6 +224,7 @@ Regular text that should be ignored
     });
 
     it('should display tracked issue IDs from proposal frontmatter', async () => {
+      await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
       await fs.mkdir(path.join(changesDir, 'with-issue'), { recursive: true });
 
@@ -239,6 +251,7 @@ Test`;
     });
 
     it('should align columns correctly when changes have different issue ID lengths', async () => {
+      await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
 
       // Change with short issue ID
@@ -285,6 +298,7 @@ tracked-issues:
     });
 
     it('should handle changes without tracked issues in alignment calculation', async () => {
+      await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
 
       // Mix of changes with and without issues

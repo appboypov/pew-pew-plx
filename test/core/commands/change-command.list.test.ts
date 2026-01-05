@@ -3,6 +3,7 @@ import { ChangeCommand } from '../../../src/commands/change.js';
 import path from 'path';
 import { promises as fs } from 'fs';
 import os from 'os';
+import { createValidPlxWorkspace } from '../../test-utils.js';
 
 describe('ChangeCommand.list', () => {
   let cmd: ChangeCommand;
@@ -13,6 +14,7 @@ describe('ChangeCommand.list', () => {
     cmd = new ChangeCommand();
     originalCwd = process.cwd();
     tempRoot = path.join(os.tmpdir(), `plx-change-command-list-${Date.now()}`);
+    await createValidPlxWorkspace(tempRoot);
     const changeDir = path.join(tempRoot, 'workspace', 'changes', 'demo');
     await fs.mkdir(changeDir, { recursive: true });
     const proposal = `# Change: Demo\n\n## Why\nTest list.\n\n## What Changes\n- **auth:** Add requirement`;
@@ -84,6 +86,7 @@ describe('ChangeCommand.list issue display format', () => {
     cmd = new ChangeCommand();
     originalCwd = process.cwd();
     tempRoot = path.join(os.tmpdir(), `plx-change-command-issue-${Date.now()}`);
+    await createValidPlxWorkspace(tempRoot);
     const changeDir = path.join(tempRoot, 'workspace', 'changes', 'with-issue');
     await fs.mkdir(changeDir, { recursive: true });
 

@@ -25,6 +25,9 @@ export class UpdateCommand {
       if (migrationResult.globalConfigMigrated) {
         parts.push('Migrated global config ~/.openspec/ → ~/.plx/');
       }
+      if (migrationResult.globalToolFilesUpdated > 0) {
+        parts.push(`Updated markers in ${migrationResult.globalToolFilesUpdated} global tool file${migrationResult.globalToolFilesUpdated === 1 ? '' : 's'}`);
+      }
       console.log(chalk.green('Migrated legacy OpenSpec project:'), parts.join(', '));
     }
     if (migrationResult.errors.length > 0) {
@@ -114,6 +117,12 @@ export class UpdateCommand {
 
     for (const slashConfigurator of slashConfigurators) {
       if (!slashConfigurator.isAvailable) {
+        continue;
+      }
+
+      // Only process tools that have at least one existing slash command file
+      const isConfigured = await slashConfigurator.hasAnyExisting(resolvedProjectPath);
+      if (!isConfigured) {
         continue;
       }
 

@@ -4,6 +4,14 @@
 
 ### Added
 
+- **Upward workspace discovery** for subdirectory support
+  - PLX commands now work from any subdirectory within a project
+  - Automatically scans upward to find project root containing `workspace/AGENTS.md`
+  - `.git` boundary stops upward scan if no workspace found
+  - After finding project root, runs existing downward scan for multi-workspace support
+- `isValidPlxWorkspace()` function to validate PLX workspace directories
+- `findProjectRoot()` function to locate project root from any subdirectory
+- Test utility `createValidPlxWorkspace()` for consistent test fixture creation
 - **TESTING.md template**: New config-style testing configuration file (~21 lines)
   - Created during `plx init` and `plx update` (same pattern as REVIEW.md)
   - Configures test types, coverage thresholds, test runner, and file patterns
@@ -27,6 +35,12 @@
 - **`/plx:refine-review` enhanced**: Expanded from 16 to 68 lines
   - Review type options: implementation, architecture, security, performance, accessibility
   - Feedback format and checklist customization documentation
+
+### Fixed
+
+- `plx update` now only generates slash commands for configured tools
+  - Previously generated commands for all 20+ registered tools regardless of configuration
+  - Now checks if tool has at least one existing slash command file before generating
 
 ---
 

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { platform } from 'os';
+import { createValidPlxWorkspace } from '../test-utils.js';
 
 const isMacOS = platform() === 'darwin';
 
@@ -13,7 +14,7 @@ describe.skipIf(!isMacOS)('paste request command', () => {
   const plxBin = path.join(projectRoot, 'bin', 'plx.js');
 
   beforeEach(async () => {
-    await fs.mkdir(testDir, { recursive: true });
+    await createValidPlxWorkspace(testDir);
   });
 
   afterEach(async () => {

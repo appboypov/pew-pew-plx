@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { ReviewCommand } from '../../src/commands/review.js';
+import { createValidPlxWorkspace } from '../test-utils.js';
 
 // Hoist mock functions for ESM compatibility
 const { mockSelect, mockInput, mockIsInteractive } = vi.hoisted(() => ({
@@ -32,7 +33,8 @@ describe('ReviewCommand', () => {
     await fs.mkdir(tempDir, { recursive: true });
     process.chdir(tempDir);
 
-    // Create OpenSpec structure
+    // Create valid PLX workspace structure
+    await createValidPlxWorkspace(tempDir);
     await fs.mkdir(path.join(tempDir, 'workspace', 'changes'), { recursive: true });
     await fs.mkdir(path.join(tempDir, 'workspace', 'specs'), { recursive: true });
 

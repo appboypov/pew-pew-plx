@@ -1,4 +1,4 @@
-import { discoverWorkspaces, filterWorkspaces, DiscoveredWorkspace } from './workspace-discovery.js';
+import { discoverWorkspaces, filterWorkspaces, findProjectRoot, DiscoveredWorkspace } from './workspace-discovery.js';
 
 /**
  * Gets the workspace filter from environment variable set by CLI.
@@ -11,9 +11,15 @@ export function getWorkspaceFilter(): string | undefined {
 /**
  * Discovers workspaces and applies the global filter if set.
  * Returns filtered workspaces or all workspaces if no filter.
+ * Automatically finds the project root by scanning upward if needed.
  */
 export async function getFilteredWorkspaces(root: string = process.cwd()): Promise<DiscoveredWorkspace[]> {
-  const workspaces = await discoverWorkspaces(root);
+  const projectRoot = await findProjectRoot(root);
+  if (projectRoot === null) {
+    throw new Error('No PLX workspace found');
+  }
+
+  const workspaces = await discoverWorkspaces(projectRoot);
   const filter = getWorkspaceFilter();
 
   if (!filter) {

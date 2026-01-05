@@ -82,6 +82,16 @@ export abstract class SlashCommandConfigurator {
     return updated;
   }
 
+  async hasAnyExisting(projectPath: string): Promise<boolean> {
+    for (const target of this.getTargets()) {
+      const filePath = FileSystemUtils.joinPath(projectPath, target.path);
+      if (await FileSystemUtils.fileExists(filePath)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   protected abstract getRelativePath(id: SlashCommandId): string;
   protected abstract getFrontmatter(id: SlashCommandId): string | undefined;
 

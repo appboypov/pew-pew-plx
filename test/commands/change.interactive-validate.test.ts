@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { createValidPlxWorkspace } from '../test-utils.js';
 
 // Note: We cannot truly simulate TTY prompts in this test runner easily.
 // Instead, we verify non-interactive fallback behavior and basic invocation.
@@ -14,6 +15,7 @@ describe('change validate (interactive behavior)', () => {
 
 
   beforeEach(async () => {
+    await createValidPlxWorkspace(testDir);
     await fs.mkdir(changesDir, { recursive: true });
     const content = `# Change: Demo\n\n## Why\nBecause reasons that are sufficiently long.\n\n## What Changes\n- **spec-x:** Add something`;
     await fs.mkdir(path.join(changesDir, 'demo'), { recursive: true });

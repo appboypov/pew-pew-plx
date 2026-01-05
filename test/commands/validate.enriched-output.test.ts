@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { createValidPlxWorkspace } from '../test-utils.js';
 
 describe('validate command enriched human output', () => {
   const projectRoot = process.cwd();
@@ -11,6 +12,7 @@ describe('validate command enriched human output', () => {
 
 
   beforeEach(async () => {
+    await createValidPlxWorkspace(testDir);
     await fs.mkdir(changesDir, { recursive: true });
   });
 

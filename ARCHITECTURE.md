@@ -440,7 +440,8 @@ test/
 ├── core/             # Core module unit tests
 ├── utils/            # Utility function tests
 ├── helpers/          # Test utilities
-└── fixtures/         # Test data
+├── fixtures/         # Test data
+└── test-utils.ts     # Shared test utilities (createValidPlxWorkspace, etc.)
 ```
 
 Run tests:
@@ -620,10 +621,23 @@ Pew Pew Plx supports monorepo and multi-project setups through automatic workspa
 
 ### Workspace Discovery
 
-When running any command, PLX automatically scans for workspaces:
-- Recursively searches from current directory for directories containing a `workspace/` subdirectory
+When running any command, PLX uses a two-phase discovery process:
+
+**Phase 1: Upward Scan (Find Project Root)**
+- Scans upward from current directory to find project root
+- Project root identified by `workspace/AGENTS.md` containing `<!-- PLX:START -->` marker
+- Stops at `.git` boundary if no workspace found
+- Returns `null` if filesystem root reached without finding workspace
+
+**Phase 2: Downward Scan (Multi-Workspace)**
+- From project root, recursively searches for `workspace/` subdirectories
 - Maximum scan depth: 5 levels
 - Skip directories: `node_modules`, `.git`, `dist`, `build`, `.next`, `__pycache__`, `venv`, `coverage`, `.cache`
+
+Key functions in `src/utils/workspace-discovery.ts`:
+- `isValidPlxWorkspace(dir)` - Check if directory contains valid PLX workspace
+- `findProjectRoot(startDir)` - Scan upward to find project root
+- `discoverWorkspaces(root)` - Scan downward for multi-workspace support
 
 ### Data Structures
 
@@ -657,11 +671,14 @@ Commands accept both prefixed and unprefixed IDs. When unprefixed and multiple m
 ### Workspace Discovery Flow
 
 ```
-User runs: plx list
+User runs: plx list (from any subdirectory)
     ↓
-discoverWorkspaces(cwd)
+findProjectRoot(cwd) → scan upward for workspace/AGENTS.md
     ↓
-Recursive scan for workspace/ directories
+If found: projectRoot = matched directory
+If not found (hit .git or root): throw "No PLX workspace found"
+    ↓
+discoverWorkspaces(projectRoot) → scan downward
     ↓
 Apply --workspace filter (if set)
     ↓

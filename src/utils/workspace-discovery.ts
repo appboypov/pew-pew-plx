@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { PLX_DIR_NAME } from '../core/config.js';
 
 export interface DiscoveredWorkspace {
   path: string;
@@ -109,4 +110,54 @@ export function filterWorkspaces(
   return workspaces.filter(
     (workspace) => workspace.projectName.toLowerCase() === normalizedFilter
   );
+}
+
+/**
+ * Checks if a directory is a valid PLX workspace.
+ * A valid workspace has a workspace/AGENTS.md file.
+ */
+export async function isValidPlxWorkspace(dir: string): Promise<boolean> {
+  try {
+    const agentsMdPath = path.join(dir, PLX_DIR_NAME, 'AGENTS.md');
+    const stats = await fs.stat(agentsMdPath);
+    return stats.isFile();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Finds the project root by scanning upward from startDir.
+ * Returns the nearest ancestor containing a valid PLX workspace.
+ *
+ * Stop conditions:
+ * 1. Valid PLX workspace found → return that directory
+ * 2. .git directory found without workspace → return null (ceiling reached)
+ * 3. Filesystem root reached → return null
+ */
+export async function findProjectRoot(startDir: string): Promise<string | null> {
+  let currentDir = path.resolve(startDir);
+  const root = path.parse(currentDir).root;
+
+  while (true) {
+    if (await isValidPlxWorkspace(currentDir)) {
+      return currentDir;
+    }
+
+    try {
+      const gitPath = path.join(currentDir, '.git');
+      const gitStats = await fs.stat(gitPath);
+      if (gitStats.isDirectory()) {
+        return null;
+      }
+    } catch {
+      // .git doesn't exist, continue scanning upward
+    }
+
+    if (currentDir === root) {
+      return null;
+    }
+
+    currentDir = path.dirname(currentDir);
+  }
 }

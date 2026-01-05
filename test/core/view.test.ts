@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { ViewCommand } from '../../src/core/view.js';
+import { createValidPlxWorkspace } from '../test-utils.js';
 
 const stripAnsi = (input: string): string => input.replace(/\u001b\[[0-9;]*m/g, '');
 
@@ -29,6 +30,7 @@ describe('ViewCommand', () => {
   });
 
   it('sorts active changes by completion percentage ascending with deterministic tie-breakers', async () => {
+    await createValidPlxWorkspace(tempDir);
     const changesDir = path.join(tempDir, 'workspace', 'changes');
     await fs.mkdir(changesDir, { recursive: true });
 

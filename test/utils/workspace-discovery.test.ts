@@ -7,6 +7,8 @@ import {
   isMultiWorkspace,
   getWorkspacePrefix,
   filterWorkspaces,
+  isValidPlxWorkspace,
+  findProjectRoot,
   DiscoveredWorkspace,
   MAX_DEPTH,
   SKIP_DIRECTORIES,
@@ -406,6 +408,147 @@ describe('workspace-discovery', () => {
       const result = filterWorkspaces(workspaces, 'alph');
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('isValidPlxWorkspace', () => {
+    it('returns true when workspace/AGENTS.md exists', async () => {
+      const agentsDir = path.join(tempDir, 'workspace');
+      await fs.mkdir(agentsDir, { recursive: true });
+      await fs.writeFile(path.join(agentsDir, 'AGENTS.md'), '# Test');
+
+      const result = await isValidPlxWorkspace(tempDir);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when workspace directory does not exist', async () => {
+      const result = await isValidPlxWorkspace(tempDir);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when AGENTS.md does not exist', async () => {
+      const agentsDir = path.join(tempDir, 'workspace');
+      await fs.mkdir(agentsDir, { recursive: true });
+
+      const result = await isValidPlxWorkspace(tempDir);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when workspace/AGENTS.md is a directory', async () => {
+      const agentsPath = path.join(tempDir, 'workspace', 'AGENTS.md');
+      await fs.mkdir(agentsPath, { recursive: true });
+
+      const result = await isValidPlxWorkspace(tempDir);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for non-existent directory', async () => {
+      const nonExistentPath = path.join(tempDir, 'does-not-exist');
+
+      const result = await isValidPlxWorkspace(nonExistentPath);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('findProjectRoot', () => {
+    it('returns current directory when it is a valid PLX workspace', async () => {
+      const agentsDir = path.join(tempDir, 'workspace');
+      await fs.mkdir(agentsDir, { recursive: true });
+      await fs.writeFile(path.join(agentsDir, 'AGENTS.md'), '# Test');
+
+      const result = await findProjectRoot(tempDir);
+
+      expect(result).toBe(tempDir);
+    });
+
+    it('returns parent directory when it has valid PLX workspace', async () => {
+      const agentsDir = path.join(tempDir, 'workspace');
+      await fs.mkdir(agentsDir, { recursive: true });
+      await fs.writeFile(path.join(agentsDir, 'AGENTS.md'), '# Test');
+      const subDir = path.join(tempDir, 'src', 'components');
+      await fs.mkdir(subDir, { recursive: true });
+
+      const result = await findProjectRoot(subDir);
+
+      expect(result).toBe(tempDir);
+    });
+
+    it('returns ancestor directory when it has valid PLX workspace', async () => {
+      const agentsDir = path.join(tempDir, 'workspace');
+      await fs.mkdir(agentsDir, { recursive: true });
+      await fs.writeFile(path.join(agentsDir, 'AGENTS.md'), '# Test');
+      const deepDir = path.join(tempDir, 'src', 'components', 'ui', 'buttons');
+      await fs.mkdir(deepDir, { recursive: true });
+
+      const result = await findProjectRoot(deepDir);
+
+      expect(result).toBe(tempDir);
+    });
+
+    it('returns null when .git is found without workspace', async () => {
+      const gitDir = path.join(tempDir, '.git');
+      await fs.mkdir(gitDir, { recursive: true });
+      const subDir = path.join(tempDir, 'src');
+      await fs.mkdir(subDir, { recursive: true });
+
+      const result = await findProjectRoot(subDir);
+
+      expect(result).toBe(null);
+    });
+
+    it('finds workspace before .git ceiling', async () => {
+      const agentsDir = path.join(tempDir, 'workspace');
+      await fs.mkdir(agentsDir, { recursive: true });
+      await fs.writeFile(path.join(agentsDir, 'AGENTS.md'), '# Test');
+      const gitDir = path.join(tempDir, '.git');
+      await fs.mkdir(gitDir, { recursive: true });
+      const subDir = path.join(tempDir, 'src');
+      await fs.mkdir(subDir, { recursive: true });
+
+      const result = await findProjectRoot(subDir);
+
+      expect(result).toBe(tempDir);
+    });
+
+    it('returns null when no workspace found up to filesystem root', async () => {
+      const subDir = path.join(tempDir, 'src');
+      await fs.mkdir(subDir, { recursive: true });
+
+      const result = await findProjectRoot(subDir);
+
+      expect(result).toBe(null);
+    });
+
+    it('ignores .git file (not directory)', async () => {
+      await fs.writeFile(path.join(tempDir, '.git'), 'gitdir: ../somewhere');
+      const subDir = path.join(tempDir, 'src');
+      await fs.mkdir(subDir, { recursive: true });
+
+      const result = await findProjectRoot(subDir);
+
+      expect(result).toBe(null);
+    });
+
+    it('returns nearest workspace when multiple exist in path', async () => {
+      const innerWorkspace = path.join(tempDir, 'inner', 'workspace');
+      await fs.mkdir(innerWorkspace, { recursive: true });
+      await fs.writeFile(path.join(innerWorkspace, 'AGENTS.md'), '# Inner');
+
+      const outerWorkspace = path.join(tempDir, 'workspace');
+      await fs.mkdir(outerWorkspace, { recursive: true });
+      await fs.writeFile(path.join(outerWorkspace, 'AGENTS.md'), '# Outer');
+
+      const deepDir = path.join(tempDir, 'inner', 'src');
+      await fs.mkdir(deepDir, { recursive: true });
+
+      const result = await findProjectRoot(deepDir);
+
+      expect(result).toBe(path.join(tempDir, 'inner'));
     });
   });
 
