@@ -278,6 +278,7 @@ Example `tasks/001-implement-feature.md`:
 ```markdown
 ---
 status: to-do
+skill-level: junior|medior|senior
 ---
 
 # Task: Implement feature
@@ -309,6 +310,31 @@ Additional context if needed.
 ```
 
 **Note:** Checkboxes under `## Constraints` and `## Acceptance Criteria` are ignored when calculating task progress. Only `## Implementation Checklist` checkboxes count.
+
+### Task Skill Level
+
+The optional `skill-level` field guides AI model selection when spawning sub-agents.
+
+**Valid Values:**
+| Level | Description |
+|-------|-------------|
+| junior | Straightforward changes, simple refactoring, documentation updates |
+| medior | Feature implementation, moderate complexity, integration work |
+| senior | Architectural changes, complex algorithms, cross-cutting concerns |
+
+**Model Mapping (Claude):**
+| Skill Level | Claude Model |
+|-------------|--------------|
+| junior | haiku |
+| medior | sonnet |
+| senior | opus |
+
+For non-Claude models, the agent determines an equivalent model or ignores the field.
+
+**Usage:**
+- Add `skill-level` to task frontmatter during proposal creation
+- `plx validate --strict` warns when skill-level is missing
+- Skill level appears in `plx get task` output
 
 5. **Create design.md when needed:**
 Create `design.md` if any of the following apply; otherwise omit it:
@@ -435,7 +461,7 @@ plx list
 CHANGE=add-two-factor-auth
 mkdir -p workspace/changes/$CHANGE/{specs/auth,tasks}
 printf "## Why\n...\n\n## What Changes\n- ...\n\n## Impact\n- ...\n" > workspace/changes/$CHANGE/proposal.md
-printf "---\nstatus: to-do\n---\n\n# Task: Implement feature\n\n## End Goal\n...\n\n## Implementation Checklist\n- [ ] 1.1 ...\n" > workspace/changes/$CHANGE/tasks/001-implement.md
+printf "---\nstatus: to-do\nskill-level: junior|medior|senior\n---\n\n# Task: Implement feature\n\n## End Goal\n...\n\n## Implementation Checklist\n- [ ] 1.1 ...\n" > workspace/changes/$CHANGE/tasks/001-implement.md
 
 # 3) Add deltas (example)
 cat > workspace/changes/$CHANGE/specs/auth/spec.md << 'EOF'

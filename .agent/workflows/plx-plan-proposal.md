@@ -23,7 +23,7 @@ description: Scaffold a new PLX change and validate strictly. Consumes request.m
 3. Map the change into concrete capabilities or requirements, breaking multi-scope efforts into distinct spec deltas with clear relationships and sequencing.
 4. Capture architectural reasoning in `design.md` when the solution spans multiple systems, introduces new patterns, or demands trade-off discussion before committing to specs.
 5. Draft spec deltas in `changes/<id>/specs/<capability>/spec.md` (one folder per capability) using `## ADDED|MODIFIED|REMOVED Requirements` with at least one `#### Scenario:` per requirement and cross-reference related capabilities when relevant.
-6. Create `tasks/` directory with numbered task files (minimum 3: implementation, review, test). Each file uses format `NNN-<name>.md` with End Goal, Currently, Should, Constraints, Acceptance Criteria, Implementation Checklist, and Notes sections.
+6. Create `tasks/` directory with numbered task files (minimum 3: implementation, review, test). Each file uses format `NNN-<name>.md` with frontmatter (status: to-do, skill-level: junior|medior|senior) and sections: End Goal, Currently, Should, Constraints, Acceptance Criteria, Implementation Checklist, Notes. Assign skill-level based on complexity: junior for straightforward changes, medior for feature implementation, senior for architectural work.
 7. Validate with `plx validate <id> --strict` and resolve every issue before sharing the proposal.
 
 **Reference**
