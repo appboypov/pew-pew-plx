@@ -120,9 +120,8 @@ export class ShowCommand {
 
   private printNonInteractiveHint(): void {
     console.error('Nothing to show. Try one of:');
-    console.error('  plx show <item>');
-    console.error('  plx change show');
-    console.error('  plx spec show');
+    console.error('  plx get change --id <id>');
+    console.error('  plx get spec --id <id>');
     console.error('Or run in an interactive terminal.');
   }
 

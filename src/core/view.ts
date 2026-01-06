@@ -83,7 +83,7 @@ export class ViewCommand {
     }
 
     console.log('\n' + '═'.repeat(60));
-    console.log(chalk.dim(`\nUse ${chalk.white('plx list --changes')} or ${chalk.white('plx list --specs')} for detailed views`));
+    console.log(chalk.dim(`\nUse ${chalk.white('plx get changes')} or ${chalk.white('plx get specs')} for detailed views`));
   }
 
   private async getChangesData(
