@@ -536,7 +536,7 @@ const syncWorkspaceSteps = `**Steps**
 const syncWorkspaceReference = `**Reference**
 - Use \`plx get changes\` to see all active changes.
 - Use \`plx get tasks\` to see all open tasks across changes.
-- Use \`plx get tasks --id <change-id>\` to see tasks for a specific change.
+- Use \`plx get tasks --parent-id <change-id> --parent-type change\` to see tasks for a specific change.
 - Use \`plx validate --all --strict\` for comprehensive validation.
 - Use \`plx archive change --id <id> --yes\` to archive without prompts.
 - Use \`plx get change --id <id>\` to inspect change details.

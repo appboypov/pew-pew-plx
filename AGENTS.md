@@ -38,7 +38,7 @@ Use `@/workspace/AGENTS.md` to learn:
 | `plx get task --constraints` | Show only Constraints | Focus on constraints |
 | `plx get task --acceptance-criteria` | Show only AC | Focus on acceptance |
 | `plx get tasks` | List all open tasks | See all pending work |
-| `plx get tasks --id <change-id>` | List tasks for change | See tasks in a change |
+| `plx get tasks --parent-id <change-id> --parent-type change` | List tasks for change | See tasks in a change |
 | `plx complete task --id <id>` | Mark task done | Finish a task |
 | `plx complete change --id <id>` | Complete all tasks | Finish entire change |
 | `plx undo task --id <id>` | Revert task to to-do | Reopen a task |

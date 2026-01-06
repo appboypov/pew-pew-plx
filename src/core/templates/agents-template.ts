@@ -157,7 +157,7 @@ plx get change --id [change] --json --deltas-only
 plx validate change --id <change-id> --strict
 
 # Create project artifacts
-plx create task "Title" --parent-id <id>      # Create task linked to change or review
+plx create task "Title" --parent-id <id> --parent-type <change|review>  # Create task linked to change or review
 plx create change "Name"                      # Create new change proposal
 plx create spec "Name"                        # Create new specification
 plx create request "Description"              # Create new request
@@ -170,8 +170,8 @@ plx get task --constraints            # Show only Constraints section
 plx get task --acceptance-criteria    # Show only Acceptance Criteria section
 plx get change --id <change-id>       # Retrieve change by ID
 plx get spec --id <spec-id>           # Retrieve spec by ID
-plx get tasks                         # List all open tasks
-plx get tasks --id <change-id>        # List tasks for specific change
+plx get tasks                                         # List all open tasks
+plx get tasks --parent-id <change-id> --parent-type change  # List tasks for specific change
 
 # Complete tasks and changes
 plx complete task --id <task-id>      # Mark task as done, check Implementation Checklist items
