@@ -20,12 +20,18 @@ describe('review-template', () => {
       expect(result).toContain('how code reviews should be conducted');
     });
 
-    it('contains Review Types section', () => {
+    it('contains Review Config section with yaml', () => {
       const result = reviewTemplate();
-      expect(result).toContain('## Review Types');
-      expect(result).toContain('Implementation Review');
-      expect(result).toContain('Architecture Review');
-      expect(result).toContain('Security Review');
+      expect(result).toContain('## Review Config');
+      expect(result).toContain('```yaml');
+      expect(result).toContain('review_types:');
+    });
+
+    it('contains Review Scope section', () => {
+      const result = reviewTemplate();
+      expect(result).toContain('## Review Scope');
+      expect(result).toContain('### Critical Paths');
+      expect(result).toContain('### Security-Sensitive');
     });
 
     it('contains Feedback Format section', () => {

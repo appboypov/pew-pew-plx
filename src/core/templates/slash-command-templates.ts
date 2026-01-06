@@ -163,33 +163,70 @@ const refineReviewGuardrails = `**Guardrails**
 | \`custom\` | User-defined items tailored to project needs | Domain-specific requirements, compliance mandates |`;
 
 const refineReviewSteps = `**Steps**
+
+## Part 1: Review Config
 1. Check if @REVIEW.md exists:
-   - If not: create from template with default configuration.
+   - If not: create from template.
    - If exists: read current configuration.
 
 2. Guide user through Review Types selection:
-   - Present review type options: implementation, architecture, security, performance, accessibility.
-   - Explain each type's focus areas and when to apply.
-   - Allow multiple selections (most projects use 2-3 types).
+   - Present options: implementation, architecture, security, performance, accessibility.
+   - Allow multiple selections.
    - Record selections.
 
 3. Guide user through Feedback Format selection:
-   - Present feedback format options: marker, annotation, inline-comment.
-   - Explain each format's structure and tooling compatibility.
+   - Present options: marker, annotation, inline-comment.
    - Record selection.
 
 4. Guide user through Checklist customization:
-   - Present checklist options: minimal, standard, comprehensive, custom.
-   - If custom: guide user to define checklist items.
-   - Explain tradeoffs between speed and thoroughness.
+   - Present options: minimal, standard, comprehensive, custom.
    - Record selection.
 
-5. Write all selections to REVIEW.md:
-   - Update Review Types section with selected types.
-   - Update Feedback Format section with format choice.
-   - Update Checklist section with selected level or custom items.
+5. Write selections to REVIEW.md Review Config section.
 
-6. Confirm configuration saved and explain how \`plx/review\` will use these settings.`;
+## Part 2: Review Scope Research
+6. Research and populate each Review Scope section in @REVIEW.md:
+
+   **Critical Paths**
+   - Find files imported by many others
+   - Identify core business logic files
+   - Locate entry points and main orchestration files
+
+   **Security-Sensitive**
+   - Find authentication/authorization code
+   - Locate input validation and sanitization
+   - Identify data encryption and secrets handling
+
+   **Performance-Critical**
+   - Find hot paths and frequently called code
+   - Locate database queries and I/O operations
+   - Identify caching and optimization logic
+
+   **Public API Surface**
+   - Find exported interfaces and types
+   - Locate public methods and endpoints
+   - Identify SDK/library entry points
+
+   **State Management**
+   - Find global state, stores, contexts
+   - Locate caching and session handling
+   - Identify data persistence logic
+
+   **Configuration**
+   - Find environment configs and feature flags
+   - Locate secrets handling
+   - Identify build and deployment configs
+
+   **External Dependencies**
+   - Find third-party API integrations
+   - Locate SDK and library usage
+   - Identify external service clients
+
+7. Write findings to each section with file paths.
+
+## Part 3: Confirm
+8. Present summary of configuration and populated scope.
+9. Explain how \`/plx:review\` will use these settings.`;
 
 const refineTestingGuardrails = `**Guardrails**
 - Reference @TESTING.md template structure.
@@ -225,37 +262,79 @@ const refineTestingGuardrails = `**Guardrails**
 | \`flutter_test\` | Flutter test framework | Flutter/Dart projects |`;
 
 const refineTestingSteps = `**Steps**
+
+## Part 1: Test Config
 1. Check if @TESTING.md exists:
-   - If not: create from template with default configuration.
+   - If not: create from template.
    - If exists: read current configuration.
 
 2. Guide user through Test Types selection:
-   - Present test type options: unit, integration, e2e, snapshot, performance.
-   - Explain each type's purpose and use case.
+   - Present options: unit, integration, e2e, snapshot, performance.
    - Allow multiple selections.
    - Record selections.
 
 3. Guide user through Coverage Threshold selection:
-   - Present coverage options: 70%, 80%, 90%.
-   - Explain tradeoffs for each level.
+   - Present options: 70%, 80%, 90%.
    - Record selection.
 
 4. Guide user through Test Runner selection:
-   - Present runner options based on detected project type.
-   - Explain each runner's strengths.
+   - Present options based on detected project type.
    - Record selection.
 
 5. Guide user through File Pattern configuration:
    - Present common patterns based on selected runner.
-   - Allow customization.
    - Record patterns.
 
-6. Write all selections to TESTING.md:
-   - Update Test Types section with selected types.
-   - Update Coverage section with threshold.
-   - Update Test Patterns section with runner and file patterns.
+6. Write selections to TESTING.md Test Config section.
 
-7. Confirm configuration saved and explain how test configuration will be used.`;
+## Part 2: Test Scope Research
+7. Research and populate each Test Scope section in @TESTING.md:
+
+   **Unit Tests**
+   - Find unit test directories and files
+   - Identify naming conventions
+   - Count total unit test files
+
+   **Integration Tests**
+   - Find integration test directories
+   - Identify integration test patterns
+   - Note which components have integration coverage
+
+   **E2E Tests**
+   - Find e2e test directories
+   - Identify e2e framework (Playwright, Cypress, etc.)
+   - Note critical user flows covered
+
+   **Test Utilities**
+   - Find shared test helpers
+   - Locate test fixtures and factories
+   - Identify mock utilities
+
+   **Test Data**
+   - Find sample data and fixtures
+   - Locate seed files
+   - Identify test database setup
+
+   **Mocking Patterns**
+   - Find mock files and directories
+   - Identify mocking approach (manual, library)
+   - Note external services that are mocked
+
+   **Coverage Reporting**
+   - Find coverage configuration
+   - Identify report output location
+   - Note exclusion patterns
+
+   **CI Integration**
+   - Find CI test configuration
+   - Identify test commands used in CI
+   - Note parallelization setup
+
+8. Write findings to each section with file paths and counts.
+
+## Part 3: Confirm
+9. Present summary of configuration and populated scope.
+10. Explain how \`/plx:test\` will use these settings.`;
 
 const parseFeedbackGuardrails = `**Guardrails**
 - Scan only tracked files.
