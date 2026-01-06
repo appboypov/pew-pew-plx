@@ -1,5 +1,32 @@
 # Pew Pew Plx Changelog
 
+## 0.13.0 - 2026-01-06
+
+### Added
+
+- **Feedback scanner excludes**: Default exclude patterns filter false positives from test files and AI tool directories
+  - Excludes `test/`, `__tests__/`, `.claude/`, `.cursor/`, `node_modules/`, and 30+ other patterns
+  - `--exclude <pattern>` flag adds custom exclude patterns
+  - `--no-default-excludes` flag disables default exclusions for full scans
+- **Lazy implementation checklist sync**: Tasks with `status: done` auto-mark Implementation Checklist items as `[x]`
+  - Persists changes to disk on first retrieval via any command
+  - Centralizes logic in `discoverTasks()` for consistent behavior
+  - Idempotent: only writes if content changed
+
+### Changed
+
+- **View command**: Now uses centralized task discovery for progress tracking
+  - Filters tasks by parent entity (`change` type)
+  - Aggregates progress across all linked tasks
+
+### Fixed
+
+- Task progress calculation now reflects actual status for migrated tasks
+  - Previously showed 0/N for `status: done` tasks with unchecked checkboxes
+  - Now auto-syncs Implementation Checklist on retrieval
+
+---
+
 ## 0.12.1 - 2026-01-06
 
 ### Changed
