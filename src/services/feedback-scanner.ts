@@ -38,6 +38,16 @@ export interface MarkerGroups {
 }
 
 /**
+ * Options for configuring the feedback scanner
+ */
+export interface FeedbackScannerOptions {
+  /** Additional patterns to exclude */
+  additionalExcludes?: string[];
+  /** Disable default feedback-specific excludes */
+  disableDefaultExcludes?: boolean;
+}
+
+/**
  * Extensions that can contain feedback markers
  */
 const SCANNABLE_EXTENSIONS = new Set([
@@ -86,16 +96,68 @@ const SCANNABLE_EXTENSIONS = new Set([
 const ALWAYS_EXCLUDED = ['node_modules', 'dist', 'build', '.git'];
 
 /**
+ * Directories and files excluded by default for feedback scanning
+ * These commonly contain example markers that are not actual feedback
+ */
+const FEEDBACK_SCANNER_EXCLUDES = [
+  // Test directories and files
+  'test/',
+  'tests/',
+  '__tests__/',
+  '*.test.ts',
+  '*.test.js',
+  '*.spec.ts',
+  '*.spec.js',
+
+  // AI tool template directories
+  '.claude/',
+  '.cursor/',
+  '.agent/',
+  '.qoder/',
+  '.codebuddy/',
+  '.kilocode/',
+  '.roo/',
+  '.crush/',
+  '.amazonq/',
+  '.factory/',
+  '.windsurf/',
+  '.cospec/',
+  '.iflow/',
+  '.gemini/',
+  '.clinerules/',
+  '.opencode/',
+  '.augment/',
+  '.qwen/',
+  '.github/prompts/',
+
+  // Documentation files
+  'README.md',
+  'REVIEW.md',
+  'ARCHITECTURE.md',
+  'CHANGELOG.md',
+  'docs/',
+
+  // Workspace archives
+  'workspace/changes/archive/',
+  'workspace/specs/*/archive/',
+  'workspace/tasks/archive/',
+];
+
+/**
  * Service for scanning codebase for feedback markers and generating review entities
  */
 export class FeedbackScannerService {
   private root: string;
   private reviewsPath: string;
   private ig: Ignore | null = null;
+  private customExcludes: string[];
+  private useDefaultExcludes: boolean;
 
-  constructor(root: string = process.cwd()) {
+  constructor(root: string = process.cwd(), options?: FeedbackScannerOptions) {
     this.root = root;
     this.reviewsPath = path.join(root, 'workspace', 'reviews');
+    this.customExcludes = options?.additionalExcludes ?? [];
+    this.useDefaultExcludes = options?.disableDefaultExcludes !== true;
   }
 
   /**
@@ -202,6 +264,16 @@ export class FeedbackScannerService {
 
     this.ig = ignore();
     this.ig.add(ALWAYS_EXCLUDED);
+
+    // Add feedback-specific excludes
+    if (this.useDefaultExcludes) {
+      this.ig.add(FEEDBACK_SCANNER_EXCLUDES);
+    }
+
+    // Add custom excludes
+    if (this.customExcludes.length > 0) {
+      this.ig.add(this.customExcludes);
+    }
 
     try {
       const gitignorePath = path.join(this.root, '.gitignore');

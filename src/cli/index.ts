@@ -752,9 +752,11 @@ parseCmd
   .option('--change-id <id>', 'Link review to a change (DEPRECATED: use --parent-id)')
   .option('--spec-id <id>', 'Link review to a spec (DEPRECATED: use --parent-id)')
   .option('--task-id <id>', 'Link review to a task (DEPRECATED: use --parent-id)')
+  .option('--exclude <patterns>', 'Additional exclude patterns (comma-separated)')
+  .option('--no-default-excludes', 'Disable default feedback-specific excludes')
   .option('--json', 'Output as JSON')
   .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (reviewName?: string, options?: { parentId?: string; parentType?: string; changeId?: string; specId?: string; taskId?: string; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
+  .action(async (reviewName?: string, options?: { parentId?: string; parentType?: string; changeId?: string; specId?: string; taskId?: string; exclude?: string; defaultExcludes?: boolean; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
     try {
       const command = new ParseFeedbackCommand();
       await command.execute(reviewName, options);

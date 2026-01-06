@@ -14,6 +14,7 @@ import {
   parseTaskParentInfo,
   parseStatus,
   parseSkillLevel,
+  completeImplementationChecklist,
   TaskStatus,
   SkillLevel,
 } from './task-status.js';
@@ -81,8 +82,23 @@ export async function discoverTasks(
       }
 
       try {
-        const content = await fs.readFile(filepath, 'utf-8');
-        const status = parseStatus(content);
+        const rawContent = await fs.readFile(filepath, 'utf-8');
+        const status = parseStatus(rawContent);
+
+        // Lazy file update: if done, ensure Implementation Checklist is marked complete
+        let content = rawContent;
+        if (status === 'done') {
+          const { updatedContent } = completeImplementationChecklist(rawContent);
+          if (updatedContent !== rawContent) {
+            try {
+              await fs.writeFile(filepath, updatedContent, 'utf-8');
+              content = updatedContent;
+            } catch {
+              // Write failed (read-only, disk full, etc.) - continue with original content
+            }
+          }
+        }
+
         const skillLevel = parseSkillLevel(content);
 
         // Parse parent info from frontmatter

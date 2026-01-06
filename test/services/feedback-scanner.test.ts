@@ -273,6 +273,168 @@ const z = 3;`
       expect(result).toHaveLength(1);
       expect(result[0].file).toBe('src/file.ts');
     });
+
+    it('excludes test directories by default', async () => {
+      const srcDir = path.join(tempDir, 'src');
+      const testDir = path.join(tempDir, 'test');
+      await fs.mkdir(srcDir, { recursive: true });
+      await fs.mkdir(testDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(srcDir, 'file.ts'),
+        '// #FEEDBACK #TODO | Should be found'
+      );
+      await fs.writeFile(
+        path.join(testDir, 'file.test.ts'),
+        '// #FEEDBACK #TODO | Should be excluded'
+      );
+
+      const result = await scanner.scanDirectory('.');
+      expect(result).toHaveLength(1);
+      expect(result[0].file).toBe('src/file.ts');
+    });
+
+    it('excludes test files by default', async () => {
+      const srcDir = path.join(tempDir, 'src');
+      await fs.mkdir(srcDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(srcDir, 'file.ts'),
+        '// #FEEDBACK #TODO | Should be found'
+      );
+      await fs.writeFile(
+        path.join(srcDir, 'file.test.ts'),
+        '// #FEEDBACK #TODO | Should be excluded'
+      );
+      await fs.writeFile(
+        path.join(srcDir, 'file.spec.js'),
+        '// #FEEDBACK #TODO | Should be excluded'
+      );
+
+      const result = await scanner.scanDirectory('src');
+      expect(result).toHaveLength(1);
+      expect(result[0].file).toBe('src/file.ts');
+    });
+
+    it('excludes AI tool directories by default', async () => {
+      const srcDir = path.join(tempDir, 'src');
+      const claudeDir = path.join(tempDir, '.claude');
+      const cursorDir = path.join(tempDir, '.cursor');
+      await fs.mkdir(srcDir, { recursive: true });
+      await fs.mkdir(claudeDir, { recursive: true });
+      await fs.mkdir(cursorDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(srcDir, 'file.ts'),
+        '// #FEEDBACK #TODO | Should be found'
+      );
+      await fs.writeFile(
+        path.join(claudeDir, 'template.ts'),
+        '// #FEEDBACK #TODO | Should be excluded'
+      );
+      await fs.writeFile(
+        path.join(cursorDir, 'template.ts'),
+        '// #FEEDBACK #TODO | Should be excluded'
+      );
+
+      const result = await scanner.scanDirectory('.');
+      expect(result).toHaveLength(1);
+      expect(result[0].file).toBe('src/file.ts');
+    });
+
+    it('excludes documentation files by default', async () => {
+      const srcDir = path.join(tempDir, 'src');
+      const docsDir = path.join(tempDir, 'docs');
+      await fs.mkdir(srcDir, { recursive: true });
+      await fs.mkdir(docsDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(srcDir, 'file.ts'),
+        '// #FEEDBACK #TODO | Should be found'
+      );
+      await fs.writeFile(
+        path.join(tempDir, 'README.md'),
+        '<!-- #FEEDBACK #TODO | Should be excluded -->'
+      );
+      await fs.writeFile(
+        path.join(docsDir, 'guide.md'),
+        '<!-- #FEEDBACK #TODO | Should be excluded -->'
+      );
+
+      const result = await scanner.scanDirectory('.');
+      expect(result).toHaveLength(1);
+      expect(result[0].file).toBe('src/file.ts');
+    });
+
+    it('excludes workspace archives by default', async () => {
+      const srcDir = path.join(tempDir, 'src');
+      const archiveDir = path.join(tempDir, 'workspace', 'changes', 'archive');
+      await fs.mkdir(srcDir, { recursive: true });
+      await fs.mkdir(archiveDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(srcDir, 'file.ts'),
+        '// #FEEDBACK #TODO | Should be found'
+      );
+      await fs.writeFile(
+        path.join(archiveDir, 'old-change.md'),
+        '<!-- #FEEDBACK #TODO | Should be excluded -->'
+      );
+
+      const result = await scanner.scanDirectory('.');
+      expect(result).toHaveLength(1);
+      expect(result[0].file).toBe('src/file.ts');
+    });
+
+    it('allows custom excludes via options', async () => {
+      const customScanner = new FeedbackScannerService(tempDir, {
+        additionalExcludes: ['custom-dir/'],
+      });
+
+      const srcDir = path.join(tempDir, 'src');
+      const customDir = path.join(tempDir, 'custom-dir');
+      await fs.mkdir(srcDir, { recursive: true });
+      await fs.mkdir(customDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(srcDir, 'file.ts'),
+        '// #FEEDBACK #TODO | Should be found'
+      );
+      await fs.writeFile(
+        path.join(customDir, 'file.ts'),
+        '// #FEEDBACK #TODO | Should be excluded'
+      );
+
+      const result = await customScanner.scanDirectory('.');
+      expect(result).toHaveLength(1);
+      expect(result[0].file).toBe('src/file.ts');
+    });
+
+    it('disables default excludes when requested', async () => {
+      const customScanner = new FeedbackScannerService(tempDir, {
+        disableDefaultExcludes: true,
+      });
+
+      const srcDir = path.join(tempDir, 'src');
+      const testDir = path.join(tempDir, 'test');
+      await fs.mkdir(srcDir, { recursive: true });
+      await fs.mkdir(testDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(srcDir, 'file.ts'),
+        '// #FEEDBACK #TODO | Should be found'
+      );
+      await fs.writeFile(
+        path.join(testDir, 'file.test.ts'),
+        '// #FEEDBACK #TODO | Now should be found'
+      );
+
+      const result = await customScanner.scanDirectory('.');
+      expect(result).toHaveLength(2);
+      const files = result.map((m) => m.file);
+      expect(files).toContain('src/file.ts');
+      expect(files).toContain('test/file.test.ts');
+    });
   });
 
   describe('groupMarkersByParent', () => {
