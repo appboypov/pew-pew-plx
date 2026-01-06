@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 skill-level: medior
 ---
 
@@ -38,13 +38,13 @@ The `PasteCommand` class only supports `plx paste request`. There is no way to s
 
 ## Implementation Checklist
 
-- [ ] 2.1 Add `change` method to `PasteCommand` class
-- [ ] 2.2 Implement change name derivation with kebab-case conversion
-- [ ] 2.3 Implement verb prefix detection from clipboard content
-- [ ] 2.4 Implement duplicate name handling with numeric suffix
-- [ ] 2.5 Create change directory structure (proposal.md, tasks/, specs/)
-- [ ] 2.6 Import and use change template from shared templates
-- [ ] 2.7 Register `paste change` subcommand in `src/cli/index.ts`
+- [x] 2.1 Add `change` method to `PasteCommand` class
+- [x] 2.2 Implement change name derivation with kebab-case conversion
+- [x] 2.3 Implement verb prefix detection from clipboard content
+- [x] 2.4 Implement duplicate name handling with numeric suffix
+- [x] 2.5 Create change directory structure (proposal.md, tasks/, specs/)
+- [x] 2.6 Import and use change template from shared templates
+- [x] 2.7 Register `paste change` subcommand in `src/cli/index.ts`
 
 ## Notes
 

@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 skill-level: senior
 ---
 
@@ -34,22 +34,22 @@ Task discovery scans `workspace/tasks/` instead of nested directories, with supp
 - [ ] Archived tasks are excluded from discovery
 
 ## Implementation Checklist
-- [ ] 2.1 Create `src/utils/centralized-task-discovery.ts`:
+- [x] 2.1 Create `src/utils/centralized-task-discovery.ts`:
   - `discoverTasks(workspacePath)` returns all task files
   - `filterTasksByParent(tasks, parentId, parentType?)` filters by frontmatter
   - `getTasksDir(workspacePath)` returns absolute path to tasks/
   - `getTasksArchiveDir(workspacePath)` returns path to tasks/archive/
-- [ ] 2.2 Update `src/services/item-retrieval.ts`:
+- [x] 2.2 Update `src/services/item-retrieval.ts`:
   - Refactor `getTaskById()` to use centralized discovery
   - Add `getTasksForParent(parentId, parentType?)` method
   - Update `getAllOpenTasks()` to use centralized discovery
-- [ ] 2.3 Update `src/utils/item-discovery.ts`:
+- [x] 2.3 Update `src/utils/item-discovery.ts`:
   - Add functions for task discovery in centralized location
   - Handle multi-workspace task aggregation
-- [ ] 2.4 Update task discovery in `src/commands/get.ts`:
+- [x] 2.4 Update task discovery in `src/commands/get.ts`:
   - Use new centralized discovery functions
   - Handle `--parent-id` and `--parent-type` filtering (assumes standardize-cli-pattern done)
-- [ ] 2.5 Add integration tests for centralized task discovery
+- [x] 2.5 Add integration tests for centralized task discovery
 
 ## Notes
 This task depends on task 001 for filename parsing utilities.

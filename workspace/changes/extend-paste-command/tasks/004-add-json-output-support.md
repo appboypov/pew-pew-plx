@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 skill-level: junior
 ---
 
@@ -36,13 +36,13 @@ Only `plx paste request` supports `--json` output. The new subcommands need the 
 
 ## Implementation Checklist
 
-- [ ] 4.1 Add `--json` option to paste task subcommand registration
-- [ ] 4.2 Add `--json` option to paste change subcommand registration
-- [ ] 4.3 Add `--json` option to paste spec subcommand registration
-- [ ] 4.4 Update task method to return JSON on success/error
-- [ ] 4.5 Update change method to return JSON on success/error
-- [ ] 4.6 Update spec method to return JSON on success/error
-- [ ] 4.7 Ensure consistent JSON structure across all subcommands
+- [x] 4.1 Add `--json` option to paste task subcommand registration
+- [x] 4.2 Add `--json` option to paste change subcommand registration
+- [x] 4.3 Add `--json` option to paste spec subcommand registration
+- [x] 4.4 Update task method to return JSON on success/error
+- [x] 4.5 Update change method to return JSON on success/error
+- [x] 4.6 Update spec method to return JSON on success/error
+- [x] 4.7 Ensure consistent JSON structure across all subcommands
 
 ## Notes
 

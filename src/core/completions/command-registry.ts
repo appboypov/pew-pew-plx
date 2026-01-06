@@ -642,7 +642,7 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
   },
   {
     name: 'complete',
-    description: 'Mark tasks or changes as complete',
+    description: 'Mark tasks, changes, reviews, or specs as complete',
     flags: [],
     subcommands: [
       {
@@ -670,11 +670,37 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
           COMMON_FLAGS.json,
         ],
       },
+      {
+        name: 'review',
+        description: 'Mark all tasks in a review as complete',
+        flags: [
+          {
+            name: 'id',
+            description: 'Review ID to complete',
+            takesValue: true,
+            valueType: 'review-id',
+          },
+          COMMON_FLAGS.json,
+        ],
+      },
+      {
+        name: 'spec',
+        description: 'Mark all tasks in a spec as complete',
+        flags: [
+          {
+            name: 'id',
+            description: 'Spec ID to complete',
+            takesValue: true,
+            valueType: 'spec-id',
+          },
+          COMMON_FLAGS.json,
+        ],
+      },
     ],
   },
   {
     name: 'undo',
-    description: 'Revert tasks or changes to to-do status',
+    description: 'Revert tasks, changes, reviews, or specs to to-do status',
     flags: [],
     subcommands: [
       {
@@ -698,6 +724,32 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
             description: 'Change ID to undo',
             takesValue: true,
             valueType: 'change-id',
+          },
+          COMMON_FLAGS.json,
+        ],
+      },
+      {
+        name: 'review',
+        description: 'Revert all tasks in a review to to-do status',
+        flags: [
+          {
+            name: 'id',
+            description: 'Review ID to undo',
+            takesValue: true,
+            valueType: 'review-id',
+          },
+          COMMON_FLAGS.json,
+        ],
+      },
+      {
+        name: 'spec',
+        description: 'Revert all tasks in a spec to to-do status',
+        flags: [
+          {
+            name: 'id',
+            description: 'Spec ID to undo',
+            takesValue: true,
+            valueType: 'spec-id',
           },
           COMMON_FLAGS.json,
         ],
@@ -749,6 +801,24 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
     ],
   },
   {
+    name: 'migrate',
+    description: 'Migrate Pew Pew Plx project to newer versions',
+    flags: [],
+    subcommands: [
+      {
+        name: 'tasks',
+        description: 'Migrate tasks to updated schema',
+        flags: [
+          {
+            name: 'dry-run',
+            description: 'Show changes without applying them',
+          },
+          COMMON_FLAGS.json,
+        ],
+      },
+    ],
+  },
+  {
     name: 'paste',
     description: 'Paste content from clipboard',
     flags: [],
@@ -756,6 +826,45 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
       {
         name: 'request',
         description: 'Paste clipboard content as a draft request',
+        flags: [
+          COMMON_FLAGS.json,
+        ],
+      },
+      {
+        name: 'task',
+        description: 'Paste clipboard content as a new task',
+        flags: [
+          {
+            name: 'parent-id',
+            description: 'Link task to a parent (change or review)',
+            takesValue: true,
+            valueType: 'change-id',
+          },
+          {
+            name: 'parent-type',
+            description: 'Specify parent type: change or review',
+            takesValue: true,
+            values: ['change', 'review'],
+          },
+          {
+            name: 'skill-level',
+            description: 'Task skill level: junior, medior, or senior',
+            takesValue: true,
+            values: ['junior', 'medior', 'senior'],
+          },
+          COMMON_FLAGS.json,
+        ],
+      },
+      {
+        name: 'change',
+        description: 'Paste clipboard content as a new change proposal',
+        flags: [
+          COMMON_FLAGS.json,
+        ],
+      },
+      {
+        name: 'spec',
+        description: 'Paste clipboard content as a new specification',
         flags: [
           COMMON_FLAGS.json,
         ],

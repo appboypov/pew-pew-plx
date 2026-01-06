@@ -7,12 +7,15 @@ import { createValidPlxWorkspace } from '../test-utils.js';
 describe('complete task command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-complete-task-tmp');
-  const changesDir = path.join(testDir, 'workspace', 'changes');
+  const workspaceDir = path.join(testDir, 'workspace');
+  const changesDir = path.join(workspaceDir, 'changes');
+  const tasksDir = path.join(workspaceDir, 'tasks');
   const plxBin = path.join(projectRoot, 'bin', 'plx.js');
 
   beforeEach(async () => {
     await createValidPlxWorkspace(testDir);
     await fs.mkdir(changesDir, { recursive: true });
+    await fs.mkdir(tasksDir, { recursive: true });
   });
 
   afterEach(async () => {
@@ -21,8 +24,7 @@ describe('complete task command', () => {
 
   it('completes a task by ID', async () => {
     const changeDir = path.join(changesDir, 'test-change');
-    const tasksDir = path.join(changeDir, 'tasks');
-    await fs.mkdir(tasksDir, { recursive: true });
+    await fs.mkdir(changeDir, { recursive: true });
 
     await fs.writeFile(
       path.join(changeDir, 'proposal.md'),
@@ -72,8 +74,7 @@ status: in-progress
 
   it('returns error when task not found', async () => {
     const changeDir = path.join(changesDir, 'test-change');
-    const tasksDir = path.join(changeDir, 'tasks');
-    await fs.mkdir(tasksDir, { recursive: true });
+    await fs.mkdir(changeDir, { recursive: true });
 
     await fs.writeFile(
       path.join(changeDir, 'proposal.md'),
@@ -99,8 +100,7 @@ status: in-progress
 
   it('warns when task already complete', async () => {
     const changeDir = path.join(changesDir, 'test-change');
-    const tasksDir = path.join(changeDir, 'tasks');
-    await fs.mkdir(tasksDir, { recursive: true });
+    await fs.mkdir(changeDir, { recursive: true });
 
     await fs.writeFile(
       path.join(changeDir, 'proposal.md'),
@@ -134,19 +134,20 @@ status: done
     }
   });
 
-  it('completes task with full ID format (changeId/taskName)', async () => {
+  it('completes parented task by ID', async () => {
     const changeDir = path.join(changesDir, 'test-change');
-    const tasksDir = path.join(changeDir, 'tasks');
-    await fs.mkdir(tasksDir, { recursive: true });
+    await fs.mkdir(changeDir, { recursive: true });
 
     await fs.writeFile(
       path.join(changeDir, 'proposal.md'),
       '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
     );
     await fs.writeFile(
-      path.join(tasksDir, '001-my-task.md'),
+      path.join(tasksDir, '001-test-change-my-task.md'),
       `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: My Task
@@ -160,7 +161,7 @@ status: to-do
     try {
       process.chdir(testDir);
       const output = execSync(
-        `node ${plxBin} complete task --id test-change/001-my-task --json`,
+        `node ${plxBin} complete task --id 001-test-change-my-task --json`,
         { encoding: 'utf-8' }
       );
       const json = JSON.parse(output);
@@ -176,12 +177,15 @@ status: to-do
 describe('complete change command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-complete-change-tmp');
-  const changesDir = path.join(testDir, 'workspace', 'changes');
+  const workspaceDir = path.join(testDir, 'workspace');
+  const changesDir = path.join(workspaceDir, 'changes');
+  const tasksDir = path.join(workspaceDir, 'tasks');
   const plxBin = path.join(projectRoot, 'bin', 'plx.js');
 
   beforeEach(async () => {
     await createValidPlxWorkspace(testDir);
     await fs.mkdir(changesDir, { recursive: true });
+    await fs.mkdir(tasksDir, { recursive: true });
   });
 
   afterEach(async () => {
@@ -190,17 +194,18 @@ describe('complete change command', () => {
 
   it('completes all tasks in a change', async () => {
     const changeDir = path.join(changesDir, 'test-change');
-    const tasksDir = path.join(changeDir, 'tasks');
-    await fs.mkdir(tasksDir, { recursive: true });
+    await fs.mkdir(changeDir, { recursive: true });
 
     await fs.writeFile(
       path.join(changeDir, 'proposal.md'),
       '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
     );
     await fs.writeFile(
-      path.join(tasksDir, '001-first.md'),
+      path.join(tasksDir, '001-test-change-first.md'),
       `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First
@@ -210,9 +215,11 @@ status: in-progress
 `
     );
     await fs.writeFile(
-      path.join(tasksDir, '002-second.md'),
+      path.join(tasksDir, '002-test-change-second.md'),
       `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Second
@@ -236,8 +243,14 @@ status: to-do
       expect(json.skippedTasks).toHaveLength(0);
 
       // Verify files were updated
-      const task1 = await fs.readFile(path.join(tasksDir, '001-first.md'), 'utf-8');
-      const task2 = await fs.readFile(path.join(tasksDir, '002-second.md'), 'utf-8');
+      const task1 = await fs.readFile(
+        path.join(tasksDir, '001-test-change-first.md'),
+        'utf-8'
+      );
+      const task2 = await fs.readFile(
+        path.join(tasksDir, '002-test-change-second.md'),
+        'utf-8'
+      );
       expect(task1).toContain('status: done');
       expect(task2).toContain('status: done');
     } finally {
@@ -247,17 +260,18 @@ status: to-do
 
   it('skips already-done tasks', async () => {
     const changeDir = path.join(changesDir, 'test-change');
-    const tasksDir = path.join(changeDir, 'tasks');
-    await fs.mkdir(tasksDir, { recursive: true });
+    await fs.mkdir(changeDir, { recursive: true });
 
     await fs.writeFile(
       path.join(changeDir, 'proposal.md'),
       '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
     );
     await fs.writeFile(
-      path.join(tasksDir, '001-done.md'),
+      path.join(tasksDir, '001-test-change-done.md'),
       `---
 status: done
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Done
@@ -267,9 +281,11 @@ status: done
 `
     );
     await fs.writeFile(
-      path.join(tasksDir, '002-pending.md'),
+      path.join(tasksDir, '002-test-change-pending.md'),
       `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Pending
@@ -289,7 +305,7 @@ status: to-do
       const json = JSON.parse(output);
 
       expect(json.completedTasks).toHaveLength(1);
-      expect(json.skippedTasks).toContain('001-done');
+      expect(json.skippedTasks).toContain('001-test-change-done');
     } finally {
       process.chdir(originalCwd);
     }
@@ -315,17 +331,18 @@ status: to-do
 
   it('reports all tasks skipped when all already complete', async () => {
     const changeDir = path.join(changesDir, 'test-change');
-    const tasksDir = path.join(changeDir, 'tasks');
-    await fs.mkdir(tasksDir, { recursive: true });
+    await fs.mkdir(changeDir, { recursive: true });
 
     await fs.writeFile(
       path.join(changeDir, 'proposal.md'),
       '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
     );
     await fs.writeFile(
-      path.join(tasksDir, '001-done.md'),
+      path.join(tasksDir, '001-test-change-done.md'),
       `---
 status: done
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Done
@@ -346,6 +363,341 @@ status: done
 
       expect(json.completedTasks).toHaveLength(0);
       expect(json.skippedTasks).toHaveLength(1);
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+});
+
+describe('complete review command', () => {
+  const projectRoot = process.cwd();
+  const testDir = path.join(projectRoot, 'test-complete-review-tmp');
+  const workspaceDir = path.join(testDir, 'workspace');
+  const reviewsDir = path.join(workspaceDir, 'reviews');
+  const tasksDir = path.join(workspaceDir, 'tasks');
+  const plxBin = path.join(projectRoot, 'bin', 'plx.js');
+
+  beforeEach(async () => {
+    await createValidPlxWorkspace(testDir);
+    await fs.mkdir(reviewsDir, { recursive: true });
+    await fs.mkdir(tasksDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(testDir, { recursive: true, force: true });
+  });
+
+  it('completes all tasks in a review', async () => {
+    const reviewDir = path.join(reviewsDir, 'test-review');
+    await fs.mkdir(reviewDir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(reviewDir, 'review.md'),
+      '# Review: Test\n\nReview content'
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '001-test-review-first.md'),
+      `---
+status: in-progress
+parent-type: review
+parent-id: test-review
+---
+
+# Task: First
+
+## Implementation Checklist
+- [ ] Item 1
+`
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '002-test-review-second.md'),
+      `---
+status: to-do
+parent-type: review
+parent-id: test-review
+---
+
+# Task: Second
+
+## Implementation Checklist
+- [ ] Item 2
+`
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(
+        `node ${plxBin} complete review --id test-review --json`,
+        { encoding: 'utf-8' }
+      );
+      const json = JSON.parse(output);
+
+      expect(json.reviewId).toBe('test-review');
+      expect(json.completedTasks).toHaveLength(2);
+      expect(json.skippedTasks).toHaveLength(0);
+
+      // Verify files were updated
+      const task1 = await fs.readFile(
+        path.join(tasksDir, '001-test-review-first.md'),
+        'utf-8'
+      );
+      const task2 = await fs.readFile(
+        path.join(tasksDir, '002-test-review-second.md'),
+        'utf-8'
+      );
+      expect(task1).toContain('status: done');
+      expect(task2).toContain('status: done');
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('skips already-done tasks', async () => {
+    const reviewDir = path.join(reviewsDir, 'test-review');
+    await fs.mkdir(reviewDir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(reviewDir, 'review.md'),
+      '# Review: Test\n\nReview content'
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '001-test-review-done.md'),
+      `---
+status: done
+parent-type: review
+parent-id: test-review
+---
+
+# Task: Done
+
+## Implementation Checklist
+- [x] Already done
+`
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '002-test-review-pending.md'),
+      `---
+status: to-do
+parent-type: review
+parent-id: test-review
+---
+
+# Task: Pending
+
+## Implementation Checklist
+- [ ] Not done
+`
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(
+        `node ${plxBin} complete review --id test-review --json`,
+        { encoding: 'utf-8' }
+      );
+      const json = JSON.parse(output);
+
+      expect(json.completedTasks).toHaveLength(1);
+      expect(json.skippedTasks).toContain('001-test-review-done');
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('returns error when review not found', async () => {
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      try {
+        execSync(
+          `node ${plxBin} complete review --id nonexistent --json`,
+          { encoding: 'utf-8' }
+        );
+      } catch (error: any) {
+        const json = JSON.parse(error.stdout);
+        expect(json.error).toContain('Review not found');
+      }
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+});
+
+describe('complete spec command', () => {
+  const projectRoot = process.cwd();
+  const testDir = path.join(projectRoot, 'test-complete-spec-tmp');
+  const workspaceDir = path.join(testDir, 'workspace');
+  const specsDir = path.join(workspaceDir, 'specs');
+  const tasksDir = path.join(workspaceDir, 'tasks');
+  const plxBin = path.join(projectRoot, 'bin', 'plx.js');
+
+  beforeEach(async () => {
+    await createValidPlxWorkspace(testDir);
+    await fs.mkdir(specsDir, { recursive: true });
+    await fs.mkdir(tasksDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(testDir, { recursive: true, force: true });
+  });
+
+  it('completes all tasks in a spec', async () => {
+    const specDir = path.join(specsDir, 'test-spec');
+    await fs.mkdir(specDir, { recursive: true });
+    await fs.writeFile(
+      path.join(specDir, 'spec.md'),
+      '# Spec: Test\n\n## Requirements\n- Requirement 1'
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '001-test-spec-first.md'),
+      `---
+status: in-progress
+parent-type: spec
+parent-id: test-spec
+---
+
+# Task: First
+
+## Implementation Checklist
+- [ ] Item 1
+`
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '002-test-spec-second.md'),
+      `---
+status: to-do
+parent-type: spec
+parent-id: test-spec
+---
+
+# Task: Second
+
+## Implementation Checklist
+- [ ] Item 2
+`
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(
+        `node ${plxBin} complete spec --id test-spec --json`,
+        { encoding: 'utf-8' }
+      );
+      const json = JSON.parse(output);
+
+      expect(json.specId).toBe('test-spec');
+      expect(json.completedTasks).toHaveLength(2);
+      expect(json.skippedTasks).toHaveLength(0);
+
+      // Verify files were updated
+      const task1 = await fs.readFile(
+        path.join(tasksDir, '001-test-spec-first.md'),
+        'utf-8'
+      );
+      const task2 = await fs.readFile(
+        path.join(tasksDir, '002-test-spec-second.md'),
+        'utf-8'
+      );
+      expect(task1).toContain('status: done');
+      expect(task2).toContain('status: done');
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('handles spec with no tasks', async () => {
+    const specDir = path.join(specsDir, 'test-spec');
+    await fs.mkdir(specDir, { recursive: true });
+    await fs.writeFile(
+      path.join(specDir, 'spec.md'),
+      '# Spec: Test\n\n## Requirements\n- Requirement 1'
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(
+        `node ${plxBin} complete spec --id test-spec --json`,
+        { encoding: 'utf-8' }
+      );
+      const json = JSON.parse(output);
+
+      expect(json.specId).toBe('test-spec');
+      expect(json.completedTasks).toHaveLength(0);
+      expect(json.skippedTasks).toHaveLength(0);
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('returns error when spec not found', async () => {
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      try {
+        execSync(
+          `node ${plxBin} complete spec --id nonexistent --json`,
+          { encoding: 'utf-8' }
+        );
+      } catch (error: any) {
+        const json = JSON.parse(error.stdout);
+        expect(json.error).toContain('Spec not found');
+      }
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('skips already-done tasks', async () => {
+    const specDir = path.join(specsDir, 'test-spec');
+    await fs.mkdir(specDir, { recursive: true });
+    await fs.writeFile(
+      path.join(specDir, 'spec.md'),
+      '# Spec: Test\n\n## Requirements\n- Requirement 1'
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '001-test-spec-done.md'),
+      `---
+status: done
+parent-type: spec
+parent-id: test-spec
+---
+
+# Task: Done
+
+## Implementation Checklist
+- [x] Already done
+`
+    );
+    await fs.writeFile(
+      path.join(tasksDir, '002-test-spec-pending.md'),
+      `---
+status: to-do
+parent-type: spec
+parent-id: test-spec
+---
+
+# Task: Pending
+
+## Implementation Checklist
+- [ ] Not done
+`
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(
+        `node ${plxBin} complete spec --id test-spec --json`,
+        { encoding: 'utf-8' }
+      );
+      const json = JSON.parse(output);
+
+      expect(json.completedTasks).toHaveLength(1);
+      expect(json.skippedTasks).toContain('001-test-spec-done');
     } finally {
       process.chdir(originalCwd);
     }

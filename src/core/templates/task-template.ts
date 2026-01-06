@@ -1,10 +1,12 @@
 export interface TaskContext {
   title: string;
   skillLevel?: 'junior' | 'medior' | 'senior';
+  parentType?: 'change' | 'review';
+  parentId?: string;
 }
 
 export const taskTemplate = (context: TaskContext): string => `---
-status: to-do${context.skillLevel ? `\nskill-level: ${context.skillLevel}` : ''}
+status: to-do${context.skillLevel ? `\nskill-level: ${context.skillLevel}` : ''}${context.parentType ? `\nparent-type: ${context.parentType}` : ''}${context.parentId ? `\nparent-id: ${context.parentId}` : ''}
 ---
 
 # Task: ${context.title}

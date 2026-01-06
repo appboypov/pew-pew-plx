@@ -5,7 +5,7 @@ import ora from 'ora';
 import {
   getPrioritizedChange,
   PrioritizedChange,
-} from '../utils/change-prioritization.js';
+} from '../utils/parent-prioritization.js';
 import {
   parseStatus,
   parseSkillLevel,

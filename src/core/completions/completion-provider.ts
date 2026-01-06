@@ -1,4 +1,4 @@
-import { getActiveChangeIds, getSpecIds } from '../../utils/item-discovery.js';
+import { getActiveChangeIds, getSpecIds, getActiveReviewIds } from '../../utils/item-discovery.js';
 
 /**
  * Cache entry for completion data
@@ -17,6 +17,7 @@ export class CompletionProvider {
   private readonly cacheTTL: number;
   private changeCache: CacheEntry<string[]> | null = null;
   private specCache: CacheEntry<string[]> | null = null;
+  private reviewCache: CacheEntry<string[]> | null = null;
 
   /**
    * Creates a new completion provider
@@ -82,17 +83,43 @@ export class CompletionProvider {
   }
 
   /**
-   * Get both change and spec IDs for completion
+   * Get all review IDs for completion
    *
-   * @returns Object with changeIds and specIds arrays
+   * @returns Array of review IDs
    */
-  async getAllIds(): Promise<{ changeIds: string[]; specIds: string[] }> {
-    const [changeIds, specIds] = await Promise.all([
+  async getReviewIds(): Promise<string[]> {
+    const now = Date.now();
+
+    // Check if cache is valid
+    if (this.reviewCache && now - this.reviewCache.timestamp < this.cacheTTL) {
+      return this.reviewCache.data;
+    }
+
+    // Fetch fresh data
+    const reviewIds = await getActiveReviewIds(this.projectRoot);
+
+    // Update cache
+    this.reviewCache = {
+      data: reviewIds,
+      timestamp: now,
+    };
+
+    return reviewIds;
+  }
+
+  /**
+   * Get change, spec, and review IDs for completion
+   *
+   * @returns Object with changeIds, specIds, and reviewIds arrays
+   */
+  async getAllIds(): Promise<{ changeIds: string[]; specIds: string[]; reviewIds: string[] }> {
+    const [changeIds, specIds, reviewIds] = await Promise.all([
       this.getChangeIds(),
       this.getSpecIds(),
+      this.getReviewIds(),
     ]);
 
-    return { changeIds, specIds };
+    return { changeIds, specIds, reviewIds };
   }
 
   /**
@@ -101,6 +128,7 @@ export class CompletionProvider {
   clearCache(): void {
     this.changeCache = null;
     this.specCache = null;
+    this.reviewCache = null;
   }
 
   /**
@@ -111,6 +139,7 @@ export class CompletionProvider {
   getCacheStats(): {
     changeCache: { valid: boolean; age?: number };
     specCache: { valid: boolean; age?: number };
+    reviewCache: { valid: boolean; age?: number };
   } {
     const now = Date.now();
 
@@ -122,6 +151,10 @@ export class CompletionProvider {
       specCache: {
         valid: this.specCache !== null && now - this.specCache.timestamp < this.cacheTTL,
         age: this.specCache ? now - this.specCache.timestamp : undefined,
+      },
+      reviewCache: {
+        valid: this.reviewCache !== null && now - this.reviewCache.timestamp < this.cacheTTL,
+        age: this.reviewCache ? now - this.reviewCache.timestamp : undefined,
       },
     };
   }

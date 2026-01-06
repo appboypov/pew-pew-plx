@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 skill-level: senior
 ---
 
@@ -38,22 +38,22 @@ Define the new centralized task storage location, filename parsing, and frontmat
 - [ ] Constants defined for new paths and patterns
 
 ## Implementation Checklist
-- [ ] 1.1 Define constants in `src/core/config.ts`:
+- [x] 1.1 Define constants in `src/core/config.ts`:
   - TASKS_DIR_NAME = 'tasks'
   - TASKS_ARCHIVE_DIR_NAME = 'archive'
   - PARENT_TYPES = ['change', 'review', 'spec']
-- [ ] 1.2 Create `src/utils/task-filename-parser.ts`:
+- [x] 1.2 Create `src/utils/task-filename-parser.ts`:
   - `parseTaskFilename(filename)` returns { sequence, parentId?, name }
   - `buildTaskFilename({ sequence, parentId?, name })` returns filename
   - `isParentedTask(filename)` returns boolean
-- [ ] 1.3 Update `src/core/schemas/task-schema.ts`:
+- [x] 1.3 Update `src/core/schemas/task-schema.ts`:
   - Add `parentType` field (optional, enum)
   - Add `parentId` field (optional, string)
   - Add refinement: both present or both absent
-- [ ] 1.4 Update `src/services/task-id.ts`:
+- [x] 1.4 Update `src/services/task-id.ts`:
   - Update `parseTaskId` to handle new format
   - Update `normalizeTaskId` for new patterns
-- [ ] 1.5 Add unit tests for filename parsing and schema validation
+- [x] 1.5 Add unit tests for filename parsing and schema validation
 
 ## Notes
 This task establishes the foundation. Subsequent tasks update discovery and retrieval logic.

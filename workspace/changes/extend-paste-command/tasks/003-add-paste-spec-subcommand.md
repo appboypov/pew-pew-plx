@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 skill-level: medior
 ---
 
@@ -38,12 +38,12 @@ The `PasteCommand` class only supports `plx paste request`. There is no way to s
 
 ## Implementation Checklist
 
-- [ ] 3.1 Add `spec` method to `PasteCommand` class
-- [ ] 3.2 Implement spec name derivation with kebab-case conversion
-- [ ] 3.3 Check for existing spec and return error if duplicate
-- [ ] 3.4 Create spec directory structure (spec.md)
-- [ ] 3.5 Import and use spec template from shared templates
-- [ ] 3.6 Register `paste spec` subcommand in `src/cli/index.ts`
+- [x] 3.1 Add `spec` method to `PasteCommand` class
+- [x] 3.2 Implement spec name derivation with kebab-case conversion
+- [x] 3.3 Check for existing spec and return error if duplicate
+- [x] 3.4 Create spec directory structure (spec.md)
+- [x] 3.5 Import and use spec template from shared templates
+- [x] 3.6 Register `paste spec` subcommand in `src/cli/index.ts`
 
 ## Notes
 

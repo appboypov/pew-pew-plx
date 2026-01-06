@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 skill-level: medior
 ---
 
@@ -41,12 +41,12 @@ The `PasteCommand` class in `src/commands/paste.ts` only supports the `request` 
 
 ## Implementation Checklist
 
-- [ ] 1.1 Add `task` method to `PasteCommand` class
-- [ ] 1.2 Implement parent entity validation using `ItemRetrievalService`
-- [ ] 1.3 Implement task sequence number generation utility
-- [ ] 1.4 Create task template integration (import from shared templates)
-- [ ] 1.5 Register `paste task` subcommand in `src/cli/index.ts`
-- [ ] 1.6 Add `--parent-id` option to paste task subcommand
+- [x] 1.1 Add `task` method to `PasteCommand` class
+- [x] 1.2 Implement parent entity validation using `ItemRetrievalService`
+- [x] 1.3 Implement task sequence number generation utility
+- [x] 1.4 Create task template integration (import from shared templates)
+- [x] 1.5 Register `paste task` subcommand in `src/cli/index.ts`
+- [x] 1.6 Add `--parent-id` option to paste task subcommand
 
 ## Notes
 

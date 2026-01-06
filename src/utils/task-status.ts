@@ -1,4 +1,5 @@
 import { promises as fs } from 'fs';
+import { PARENT_TYPES, type ParentType } from '../core/config.js';
 
 export type TaskStatus = 'to-do' | 'in-progress' | 'done';
 export type SkillLevel = 'junior' | 'medior' | 'senior';
@@ -15,9 +16,16 @@ export interface CheckboxUncompleteResult {
   uncheckedItems: string[];
 }
 
+export interface TaskParentInfo {
+  parentType: ParentType;
+  parentId: string;
+}
+
 const FRONTMATTER_REGEX = /^---\n([\s\S]*?)\n---/;
 const STATUS_LINE_REGEX = /^status:\s*(to-do|in-progress|done)\s*$/m;
 const SKILL_LEVEL_LINE_REGEX = /^skill-level:\s*(junior|medior|senior)\s*$/m;
+const PARENT_TYPE_LINE_REGEX = /^parent-type:\s*(change|review|spec)\s*$/m;
+const PARENT_ID_LINE_REGEX = /^parent-id:\s*(.+?)\s*$/m;
 
 /**
  * Normalizes line endings to Unix-style (\n).
@@ -278,4 +286,87 @@ export async function undoTaskFully(filePath: string): Promise<string[]> {
   await fs.writeFile(filePath, finalContent, 'utf-8');
 
   return uncheckedItems;
+}
+
+/**
+ * Parses the parent-type from YAML frontmatter in a task file's content.
+ * @returns The parent type or undefined if not present or invalid
+ */
+export function parseParentType(content: string): ParentType | undefined {
+  const normalized = normalizeContent(content);
+  const frontmatterMatch = normalized.match(FRONTMATTER_REGEX);
+  if (!frontmatterMatch) {
+    return undefined;
+  }
+
+  const frontmatter = frontmatterMatch[1];
+  const parentTypeMatch = frontmatter.match(PARENT_TYPE_LINE_REGEX);
+  if (!parentTypeMatch) {
+    return undefined;
+  }
+
+  const value = parentTypeMatch[1] as ParentType;
+  if (!PARENT_TYPES.includes(value)) {
+    return undefined;
+  }
+
+  return value;
+}
+
+/**
+ * Parses the parent-id from YAML frontmatter in a task file's content.
+ * @returns The parent ID or undefined if not present
+ */
+export function parseParentId(content: string): string | undefined {
+  const normalized = normalizeContent(content);
+  const frontmatterMatch = normalized.match(FRONTMATTER_REGEX);
+  if (!frontmatterMatch) {
+    return undefined;
+  }
+
+  const frontmatter = frontmatterMatch[1];
+  const parentIdMatch = frontmatter.match(PARENT_ID_LINE_REGEX);
+  if (!parentIdMatch) {
+    return undefined;
+  }
+
+  return parentIdMatch[1];
+}
+
+/**
+ * Parses parent information from YAML frontmatter in a task file's content.
+ *
+ * Validates that both parent-type and parent-id are either:
+ * - Both present (returns TaskParentInfo)
+ * - Both absent (returns null)
+ *
+ * @throws Error if only one of parent-type or parent-id is present
+ * @returns TaskParentInfo if both fields present, null if both absent
+ */
+export function parseTaskParentInfo(content: string): TaskParentInfo | null {
+  const parentType = parseParentType(content);
+  const parentId = parseParentId(content);
+
+  const hasParentType = parentType !== undefined;
+  const hasParentId = parentId !== undefined;
+
+  if (hasParentType && hasParentId) {
+    return {
+      parentType,
+      parentId,
+    };
+  }
+
+  if (!hasParentType && !hasParentId) {
+    return null;
+  }
+
+  // Only one present - validation error
+  if (hasParentType && !hasParentId) {
+    throw new Error(
+      'Task has parent-type but missing parent-id in frontmatter'
+    );
+  }
+
+  throw new Error('Task has parent-id but missing parent-type in frontmatter');
 }

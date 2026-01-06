@@ -35,7 +35,7 @@ const proposalSteps = `**Steps**
 0. Check for existing \`workspace/changes/<change-id>/request.md\`:
    - If found: consume it as the source of truth for user intent and skip interactive clarification.
    - If not found: proceed with gathering intent through conversation or your question tool.
-1. Review \`ARCHITECTURE.md\`, run \`plx list\` and \`plx list --specs\`, and inspect related code or docs (e.g., via \`rg\`/\`ls\`) to ground the proposal in current behaviour; note any gaps that require clarification.
+1. Review \`ARCHITECTURE.md\`, run \`plx get changes\` and \`plx get specs\`, and inspect related code or docs (e.g., via \`rg\`/\`ls\`) to ground the proposal in current behaviour; note any gaps that require clarification.
 2. Choose a unique verb-led \`change-id\` and scaffold \`proposal.md\`, \`tasks/\` directory, and \`design.md\` (when needed) under \`workspace/changes/<id>/\`.
 3. Map the change into concrete capabilities or requirements, breaking multi-scope efforts into distinct spec deltas with clear relationships and sequencing.
 4. Capture architectural reasoning in \`design.md\` when the solution spans multiple systems, introduces new patterns, or demands trade-off discussion before committing to specs.
@@ -45,7 +45,7 @@ const proposalSteps = `**Steps**
 
 
 const proposalReferences = `**Reference**
-- Use \`plx show <id> --json --deltas-only\` or \`plx show <spec> --type spec\` to inspect details when validation fails.
+- Use \`plx get change --id <id> --json --deltas-only\` or \`plx get spec --id <spec>\` to inspect details when validation fails.
 - Search existing requirements with \`rg -n "Requirement:|Scenario:" workspace/specs\` before writing new ones.
 - Explore the codebase with \`rg <keyword>\`, \`ls\`, or direct file reads so proposals align with current implementation realities.`;
 
@@ -61,25 +61,25 @@ Track these steps as TODOs and complete them one by one.
 3. Stop when complete:
    - If implementing a specific task ID (from step 1), stop after completing that task
    - If implementing all tasks in a change, stop after all tasks have been completed
-4. Reference \`plx list\` or \`plx show <item>\` when additional context is required.`;
+4. Reference \`plx get changes\` or \`plx get change --id <item>\` when additional context is required.`;
 
 const implementReferences = `**Reference**
-- Use \`plx show <id> --json --deltas-only\` if you need additional context from the proposal while implementing.`;
+- Use \`plx get change --id <id> --json --deltas-only\` if you need additional context from the proposal while implementing.`;
 
 const archiveSteps = `**Steps**
 1. Determine the change ID to archive:
    - If this prompt already includes a specific change ID (for example inside a \`<ChangeId>\` block populated by slash-command arguments), use that value after trimming whitespace.
-   - If the conversation references a change loosely (for example by title or summary), run \`plx list\` to surface likely IDs, share the relevant candidates, and confirm which one the user intends.
-   - Otherwise, review the conversation, run \`plx list\`, and ask the user which change to archive; wait for a confirmed change ID before proceeding.
+   - If the conversation references a change loosely (for example by title or summary), run \`plx get changes\` to surface likely IDs, share the relevant candidates, and confirm which one the user intends.
+   - Otherwise, review the conversation, run \`plx get changes\`, and ask the user which change to archive; wait for a confirmed change ID before proceeding.
    - If you still cannot identify a single change ID, stop and tell the user you cannot archive anything yet.
-2. Validate the change ID by running \`plx list\` (or \`plx show <id>\`) and stop if the change is missing, already archived, or otherwise not ready to archive.
-3. Run \`plx archive <id> --yes\` so the CLI moves the change and applies spec updates without prompts (use \`--skip-specs\` only for tooling-only work).
+2. Validate the change ID by running \`plx get changes\` (or \`plx get change --id <id>\`) and stop if the change is missing, already archived, or otherwise not ready to archive.
+3. Run \`plx archive change --id <id> --yes\` so the CLI moves the change and applies spec updates without prompts (use \`--skip-specs\` only for tooling-only work).
 4. Review the command output to confirm the target specs were updated and the change landed in \`changes/archive/\`.
-5. Validate with \`plx validate --strict\` and inspect with \`plx show <id>\` if anything looks off.`;
+5. Validate with \`plx validate --strict\` and inspect with \`plx get change --id <id>\` if anything looks off.`;
 
 const archiveReferences = `**Reference**
-- Use \`plx list\` to confirm change IDs before archiving.
-- Inspect refreshed specs with \`plx list --specs\` and address any validation issues before handing off.`;
+- Use \`plx get changes\` to confirm change IDs before archiving.
+- Inspect refreshed specs with \`plx get specs\` and address any validation issues before handing off.`;
 
 const getTaskGuardrails = `**Guardrails**
 - Complete tasks sequentially, marking each done before starting the next.
@@ -464,8 +464,8 @@ const orchestrateSteps = `**Steps**
 7. Final validation: run \`plx validate\` if applicable.`;
 
 const orchestrateReference = `**Reference**
-- Use \`plx show <change-id>\` for proposal context.
-- Use \`plx list\` to see all changes and progress.
+- Use \`plx get change --id <change-id>\` for proposal context.
+- Use \`plx get changes\` to see all changes and progress.
 - Use \`plx review\` for review context.
 - Use \`plx parse feedback\` to convert review feedback to tasks.`;
 
@@ -509,7 +509,7 @@ const syncWorkspaceSteps = `**Steps**
    - If task-id provided: focus on that task's parent change.
    - If no arguments: scan entire workspace.
 2. Scan workspace state:
-   - Run \`plx list\` to see all active changes.
+   - Run \`plx get changes\` to see all active changes.
    - Run \`plx get tasks\` to see all open tasks.
    - Run \`plx validate --all --strict\` to identify validation issues.
 3. Assess and categorize issues:
@@ -524,22 +524,23 @@ const syncWorkspaceSteps = `**Steps**
    - Group suggestions by category (archive, create, update, validate, delete).
 5. Wait for user selection—do not proceed without explicit confirmation.
 6. Execute selected actions sequentially:
-   - Archive: \`plx archive <id> --yes\`
+   - Archive: \`plx archive change --id <id> --yes\`
    - Create tasks: scaffold task files in \`workspace/changes/<id>/tasks/\`
    - Update proposals: edit \`proposal.md\` or \`design.md\`
    - Validate: \`plx validate <id> --strict\`
 7. Report summary:
    - List all actions taken with outcomes.
-   - Show current workspace state with \`plx list\`.
+   - Show current workspace state with \`plx get changes\`.
    - Highlight any remaining issues.`;
 
 const syncWorkspaceReference = `**Reference**
-- Use \`plx list\` to see all active changes.
+- Use \`plx get changes\` to see all active changes.
 - Use \`plx get tasks\` to see all open tasks across changes.
 - Use \`plx get tasks --id <change-id>\` to see tasks for a specific change.
 - Use \`plx validate --all --strict\` for comprehensive validation.
-- Use \`plx archive <id> --yes\` to archive without prompts.
-- Use \`plx show <id>\` to inspect change or spec details.`;
+- Use \`plx archive change --id <id> --yes\` to archive without prompts.
+- Use \`plx get change --id <id>\` to inspect change details.
+- Use \`plx get spec --id <id>\` to inspect spec details.`;
 
 const completeTaskSteps = `**Steps**
 1. Parse \`$ARGUMENTS\` to extract task-id.
@@ -570,9 +571,9 @@ const testSteps = `**Steps**
    - Coverage threshold (70%, 80%, 90%).
    - Test patterns and file locations.
 3. Determine test scope based on arguments:
-   - If \`--change-id\`: use \`plx show <id> --json\` to get changed files, derive test files.
+   - If \`--change-id\`: use \`plx get change --id <id> --json\` to get changed files, derive test files.
    - If \`--task-id\`: use \`plx get task --id <id>\` to get task scope, derive test files.
-   - If \`--spec-id\`: use \`plx show <id> --type spec\` to get spec scope, derive test files.
+   - If \`--spec-id\`: use \`plx get spec --id <id>\` to get spec scope, derive test files.
    - If no scope: run full test suite.
 4. Execute tests using configured runner:
    - Run scoped tests if arguments provided.

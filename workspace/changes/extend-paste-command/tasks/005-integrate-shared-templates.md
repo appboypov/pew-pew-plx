@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 skill-level: medior
 ---
 
@@ -38,13 +38,13 @@ The `plx paste request` command writes raw clipboard content without templating.
 
 ## Implementation Checklist
 
-- [ ] 5.1 Create `entity-templates.ts` in `src/core/templates/` (or extend existing)
-- [ ] 5.2 Implement `getTaskTemplate(options)` function
-- [ ] 5.3 Implement `getChangeProposalTemplate(options)` function
-- [ ] 5.4 Implement `getSpecTemplate(options)` function
-- [ ] 5.5 Export templates from `src/core/templates/index.ts`
-- [ ] 5.6 Update paste subcommands to use shared templates
-- [ ] 5.7 Add template options interface for content injection
+- [x] 5.1 Create `entity-templates.ts` in `src/core/templates/` (or extend existing)
+- [x] 5.2 Implement `getTaskTemplate(options)` function
+- [x] 5.3 Implement `getChangeProposalTemplate(options)` function
+- [x] 5.4 Implement `getSpecTemplate(options)` function
+- [x] 5.5 Export templates from `src/core/templates/index.ts`
+- [x] 5.6 Update paste subcommands to use shared templates
+- [x] 5.7 Add template options interface for content injection
 
 ## Notes
 

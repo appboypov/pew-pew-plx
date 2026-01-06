@@ -6,6 +6,8 @@ import {
   TaskFileInfo,
 } from './task-progress.js';
 import { parseStatus } from './task-status.js';
+import { DiscoveredTask } from './centralized-task-discovery.js';
+import { ParentType } from '../core/config.js';
 
 export interface PrioritizedChange {
   id: string;
@@ -152,4 +154,121 @@ export async function getPrioritizedChange(
   });
 
   return actionableChanges[0];
+}
+
+export interface PrioritizedParent {
+  parentId: string;
+  parentType: ParentType;
+  completionPercentage: number;
+  completedCount: number;
+  totalCount: number;
+  tasks: DiscoveredTask[];
+  inProgressTask: DiscoveredTask | null;
+  nextTask: DiscoveredTask | null;
+}
+
+/**
+ * Finds the in-progress task and next to-do task from a list of discovered tasks.
+ */
+function findDiscoveredTasksByStatus(
+  tasks: DiscoveredTask[]
+): { inProgress: DiscoveredTask | null; nextTodo: DiscoveredTask | null } {
+  let inProgress: DiscoveredTask | null = null;
+  let nextTodo: DiscoveredTask | null = null;
+
+  for (const task of tasks) {
+    if (task.status === 'in-progress' && !inProgress) {
+      inProgress = task;
+    } else if (task.status === 'to-do' && !nextTodo) {
+      nextTodo = task;
+    }
+
+    // Stop early if we found both
+    if (inProgress && nextTodo) {
+      break;
+    }
+  }
+
+  return { inProgress, nextTodo };
+}
+
+/**
+ * Selects the highest-priority parent from centralized tasks based on completion percentage.
+ * Uses oldest creation date as tiebreaker when percentages are equal.
+ * Standalone tasks (no parentId) are deprioritized.
+ * Returns null if no actionable parents exist.
+ */
+export function getPrioritizedParent(
+  tasks: DiscoveredTask[]
+): PrioritizedParent | null {
+  // Group tasks by parentId
+  const tasksByParent = new Map<string, DiscoveredTask[]>();
+
+  for (const task of tasks) {
+    if (!task.parentId) {
+      // Skip standalone tasks for now (deprioritized)
+      continue;
+    }
+
+    const parentKey = task.parentId;
+    if (!tasksByParent.has(parentKey)) {
+      tasksByParent.set(parentKey, []);
+    }
+    tasksByParent.get(parentKey)!.push(task);
+  }
+
+  if (tasksByParent.size === 0) {
+    return null;
+  }
+
+  const parents: PrioritizedParent[] = [];
+
+  for (const [parentId, parentTasks] of tasksByParent.entries()) {
+    // Sort tasks by sequence to maintain order
+    const sortedTasks = [...parentTasks].sort((a, b) => a.sequence - b.sequence);
+
+    // Calculate completion
+    const totalCount = sortedTasks.length;
+    const completedCount = sortedTasks.filter((t) => t.status === 'done').length;
+    const completionPercentage =
+      totalCount === 0 ? 0 : (completedCount / totalCount) * 100;
+
+    // Find in-progress and next to-do tasks
+    const { inProgress, nextTodo } = findDiscoveredTasksByStatus(sortedTasks);
+    const nextTask = inProgress || nextTodo;
+
+    // Skip parents with no actionable tasks
+    if (!nextTask) {
+      continue;
+    }
+
+    // Use the first task's parentType (all tasks should have the same parentType for a given parentId)
+    const parentType = sortedTasks[0].parentType!;
+
+    parents.push({
+      parentId,
+      parentType,
+      completionPercentage,
+      completedCount,
+      totalCount,
+      tasks: sortedTasks,
+      inProgressTask: inProgress,
+      nextTask,
+    });
+  }
+
+  if (parents.length === 0) {
+    return null;
+  }
+
+  // Sort by completion percentage (highest first), then by oldest task creation date
+  parents.sort((a, b) => {
+    if (b.completionPercentage !== a.completionPercentage) {
+      return b.completionPercentage - a.completionPercentage;
+    }
+    // Use oldest task creation date as tiebreaker (earliest sequence as proxy)
+    return a.tasks[0].sequence - b.tasks[0].sequence;
+  });
+
+  return parents[0];
 }

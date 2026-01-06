@@ -85,11 +85,11 @@ argument-hint: (optional context)
 ---`,
   'sync-workspace': `---
 description: "Scan workspace state and suggest maintenance actions."
-argument-hint: (optional change-id or task-id)
+argument-hint: --id <id> --parent-type change|task
 ---`,
   'test': `---
 description: "Run tests based on scope (change, task, or spec) using TESTING.md configuration."
-argument-hint: --change-id, --task-id, or --spec-id
+argument-hint: --id <id> --parent-type change|task|spec
 ---`,
   'undo-task': `---
 description: "Revert a task to to-do."

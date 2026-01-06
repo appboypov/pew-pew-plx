@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 skill-level: medior
 ---
 
@@ -38,14 +38,14 @@ Tests exist for `plx paste request` in `test/commands/paste.test.ts`. New subcom
 
 ## Implementation Checklist
 
-- [ ] 6.1 Add test suite for `paste task` subcommand
-- [ ] 6.2 Add test cases for parented task creation
-- [ ] 6.3 Add test suite for `paste change` subcommand
-- [ ] 6.4 Add test cases for change name derivation
-- [ ] 6.5 Add test suite for `paste spec` subcommand
-- [ ] 6.6 Add test cases for duplicate spec rejection
-- [ ] 6.7 Add test cases for JSON output format
-- [ ] 6.8 Add test cases for empty clipboard error handling
+- [x] 6.1 Add test suite for `paste task` subcommand
+- [x] 6.2 Add test cases for parented task creation
+- [x] 6.3 Add test suite for `paste change` subcommand
+- [x] 6.4 Add test cases for change name derivation
+- [x] 6.5 Add test suite for `paste spec` subcommand
+- [x] 6.6 Add test cases for duplicate spec rejection
+- [x] 6.7 Add test cases for JSON output format
+- [x] 6.8 Add test cases for empty clipboard error handling
 
 ## Notes
 

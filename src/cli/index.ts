@@ -21,6 +21,7 @@ import { ParseFeedbackCommand } from '../commands/parse-feedback.js';
 import { ReviewCommand } from '../commands/review.js';
 import { PasteCommand } from '../commands/paste.js';
 import { CreateCommand } from '../commands/create.js';
+import { MigrateCommand } from '../commands/migrate.js';
 import { emitDeprecationWarning } from '../utils/deprecation.js';
 
 // Import command name detection utility
@@ -173,7 +174,7 @@ changeCmd
 
 changeCmd
   .command('list')
-  .description('List all active changes (DEPRECATED: use "plx list" instead)')
+  .description('List all active changes (DEPRECATED: use "plx get changes" instead)')
   .option('--json', 'Output as JSON')
   .option('--long', 'Show id and title with counts')
   .action(async (options?: { json?: boolean; long?: boolean }) => {
@@ -637,6 +638,38 @@ completeCmd
     }
   });
 
+completeCmd
+  .command('review')
+  .description('Mark all tasks in a review as complete')
+  .requiredOption('--id <id>', 'Review ID to complete')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const completeCommand = new CompleteCommand();
+      await completeCommand.review(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+completeCmd
+  .command('spec')
+  .description('Mark all tasks in a spec as complete')
+  .requiredOption('--id <id>', 'Spec ID to complete')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const completeCommand = new CompleteCommand();
+      await completeCommand.spec(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 // Undo command with subcommands
 const undoCmd = program
   .command('undo')
@@ -667,6 +700,38 @@ undoCmd
     try {
       const undoCommand = new UndoCommand();
       await undoCommand.change(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+undoCmd
+  .command('review')
+  .description('Revert all tasks in a review to to-do status')
+  .requiredOption('--id <id>', 'Review ID to undo')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const undoCommand = new UndoCommand();
+      await undoCommand.review(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+undoCmd
+  .command('spec')
+  .description('Revert all tasks in a spec to to-do status')
+  .requiredOption('--id <id>', 'Spec ID to undo')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const undoCommand = new UndoCommand();
+      await undoCommand.spec(options);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);
@@ -802,6 +867,59 @@ pasteCmd
     }
   });
 
+pasteCmd
+  .command('task')
+  .description('Paste clipboard content as a new task')
+  .option('--parent-id <id>', 'Link task to a parent (change or review)')
+  .option('--parent-type <type>', 'Specify parent type: change or review')
+  .option('--skill-level <level>', 'Task skill level: junior, medior, or senior')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { parentId?: string; parentType?: string; skillLevel?: string; json?: boolean }) => {
+    try {
+      const pasteCommand = new PasteCommand();
+      await pasteCommand.task({
+        parentId: options.parentId,
+        parentType: options.parentType as 'change' | 'review' | 'spec' | undefined,
+        skillLevel: options.skillLevel as 'junior' | 'medior' | 'senior' | undefined,
+        json: options.json,
+      });
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+pasteCmd
+  .command('change')
+  .description('Paste clipboard content as a new change proposal')
+  .option('--json', 'Output as JSON')
+  .action(async (options?: { json?: boolean }) => {
+    try {
+      const pasteCommand = new PasteCommand();
+      await pasteCommand.change(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+pasteCmd
+  .command('spec')
+  .description('Paste clipboard content as a new specification')
+  .option('--json', 'Output as JSON')
+  .action(async (options?: { json?: boolean }) => {
+    try {
+      const pasteCommand = new PasteCommand();
+      await pasteCommand.spec(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 // Create command with subcommands
 const createCmd = program
   .command('create')
@@ -868,6 +986,27 @@ createCmd
     try {
       const createCommand = new CreateCommand();
       await createCommand.createRequest(description, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Migrate command with subcommands
+const migrateCmd = program
+  .command('migrate')
+  .description('Migration commands');
+
+migrateCmd
+  .command('tasks')
+  .description('Migrate nested tasks to centralized storage')
+  .option('--dry-run', 'Preview changes without executing')
+  .option('--json', 'Output results as JSON')
+  .action(async (options?: { dryRun?: boolean; json?: boolean }) => {
+    try {
+      const migrateCommand = new MigrateCommand();
+      await migrateCommand.tasks(options);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);
