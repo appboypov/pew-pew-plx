@@ -44,9 +44,8 @@ describe('top-level show command', () => {
       expect(err.status).not.toBe(0);
       const stderr = err.stderr.toString();
       expect(stderr).toContain('Nothing to show.');
-      expect(stderr).toContain('plx show <item>');
-      expect(stderr).toContain('plx change show');
-      expect(stderr).toContain('plx spec show');
+      expect(stderr).toContain('plx get change --id <id>');
+      expect(stderr).toContain('plx get spec --id <id>');
     } finally {
       process.chdir(originalCwd);
       process.env = originalEnv;

@@ -11,7 +11,7 @@ argument-hint: (optional change-id or task-id)
 - Spawn sub-agents for complex assessments when context is heavy (multiple changes, many tasks).
 - Present actionable suggestions using question tool (multi-select if available) or numbered list.
 - Wait for user selection before executing any actions.
-- Validate workspace state with `plx validate --all --strict` before and after actions.
+- Validate workspace state with `plx validate all --strict` before and after actions.
 - Execute only the actions explicitly selected by the user.
 
 **Steps**
@@ -22,7 +22,7 @@ argument-hint: (optional change-id or task-id)
 2. Scan workspace state:
    - Run `plx get changes` to see all active changes.
    - Run `plx get tasks` to see all open tasks.
-   - Run `plx validate --all --strict` to identify validation issues.
+   - Run `plx validate all --strict` to identify validation issues.
 3. Assess and categorize issues:
    - Ready to archive: changes with all tasks completed.
    - Stale changes: changes with no recent activity.
@@ -48,7 +48,7 @@ argument-hint: (optional change-id or task-id)
 - Use `plx get changes` to see all active changes.
 - Use `plx get tasks` to see all open tasks across changes.
 - Use `plx get tasks --parent-id <change-id> --parent-type change` to see tasks for a specific change.
-- Use `plx validate --all --strict` for comprehensive validation.
+- Use `plx validate all --strict` for comprehensive validation.
 - Use `plx archive change --id <id> --yes` to archive without prompts.
 - Use `plx get change --id <id>` to inspect change details.
 - Use `plx get spec --id <id>` to inspect spec details.

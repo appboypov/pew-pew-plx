@@ -180,6 +180,22 @@ plx complete change --id <change-id>  # Complete all tasks in a change
 # Undo task/change completion
 plx undo task --id <task-id>          # Revert task to to-do, uncheck Implementation Checklist items
 plx undo change --id <change-id>      # Revert all tasks in a change to to-do
+
+# Review
+plx get reviews                       # List all active reviews
+plx get review --id <review-id>       # Retrieve specific review
+plx review change --id <change-id>    # Review a change proposal
+plx review spec --id <spec-id>        # Review a specification
+plx review task --id <task-id>        # Review a task
+
+# Parse feedback
+plx parse feedback <name> --parent-id <id> --parent-type change|spec|task  # Parse feedback into tasks
+
+# Archive
+plx archive change --id <change-id>             # Archive after deployment
+plx archive change --id <id> --yes             # Archive without prompts
+plx archive change --id <id> --skip-specs --yes # Archive tooling-only changes
+plx archive review --id <review-id>            # Archive completed review
 \`\`\`
 
 ### Command Flags

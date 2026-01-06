@@ -88,11 +88,11 @@ The CLI SHALL provide a top-level `validate` command for validating changes and 
 
 ### Requirement: Bulk and filtered validation
 
-The validate command SHALL support flags for bulk validation (--all) and filtered validation by type (--changes, --specs).
+The validate command SHALL support subcommands for bulk validation (`all`, `changes`, `specs`) and flags for filtered validation by type.
 
 #### Scenario: Validate everything
 
-- **WHEN** executing `plx validate --all`
+- **WHEN** executing `plx validate all`
 - **THEN** validate all changes in workspace/changes/ (excluding archive)
 - **AND** validate all specs in workspace/specs/
 - **AND** display a summary showing passed/failed items
@@ -100,11 +100,11 @@ The validate command SHALL support flags for bulk validation (--all) and filtere
 
 #### Scenario: Scope of bulk validation
 
-- **WHEN** validating with `--all` or `--changes`
+- **WHEN** validating with `all` or `changes` subcommand
 - **THEN** include all change proposals under `workspace/changes/`
 - **AND** exclude the `workspace/changes/archive/` directory
 
-- **WHEN** validating with `--specs`
+- **WHEN** validating with `specs` subcommand
 - **THEN** include all specs that have a `spec.md` under `workspace/specs/<id>/spec.md`
 
 #### Scenario: Validate all changes
@@ -127,21 +127,21 @@ The validate command SHALL support standard validation options (--strict, --json
 
 #### Scenario: Strict validation
 
-- **WHEN** executing `plx validate --all --strict`
+- **WHEN** executing `plx validate all --strict`
 - **THEN** apply strict validation to all items
 - **AND** treat warnings as errors
 - **AND** fail if any item has warnings or errors
 
 #### Scenario: JSON output
 
-- **WHEN** executing `plx validate --all --json`
+- **WHEN** executing `plx validate all --json`
 - **THEN** output validation results as JSON
 - **AND** include detailed issues for each item
 - **AND** include summary statistics
 
 #### Scenario: JSON output schema for bulk validation
 
-- **WHEN** executing `plx validate --all --json` (or `--changes` / `--specs`)
+- **WHEN** executing `plx validate all --json` (or `--changes` / `--specs`)
 - **THEN** output a JSON object with the following shape:
   - `items`: Array of objects with fields `{ id: string, type: "change"|"spec", valid: boolean, issues: Issue[], durationMs: number }`
   - `summary`: Object `{ totals: { items: number, passed: number, failed: number }, byType: { change?: { items: number, passed: number, failed: number }, spec?: { items: number, passed: number, failed: number } } }`
@@ -152,7 +152,7 @@ Where `Issue` follows the existing per-item validation report shape `{ level: "E
 
 #### Scenario: Show validation progress
 
-- **WHEN** validating multiple items (--all, --changes, or --specs)
+- **WHEN** validating multiple items (`all`, `changes`, or `specs` subcommand)
 - **THEN** show progress indicator or status updates
 - **AND** indicate which item is currently being validated
 - **AND** display running count of passed/failed items

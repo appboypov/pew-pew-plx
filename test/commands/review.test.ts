@@ -115,7 +115,7 @@ describe('ReviewCommand', () => {
     it('outputs usage help when parent missing', async () => {
       await command.execute({ noInteractive: true });
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('--change-id')
+        expect.stringContaining('plx review change --id')
       );
     });
 

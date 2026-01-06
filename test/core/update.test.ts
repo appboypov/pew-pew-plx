@@ -1332,7 +1332,7 @@ More instructions after.`;
     expect(updated).toContain('## Custom Intro Title');
     expect(updated).toContain('Footer stays');
     expect(updated).not.toContain('Old body');
-    expect(updated).toContain('Validate with `plx validate <id> --strict`');
+    expect(updated).toContain('Validate with `plx validate change --id <id> --strict`');
   });
 
   it('should handle configurator errors gracefully for CoStrict', async () => {
@@ -1388,7 +1388,7 @@ More instructions after.`;
     expect(updated).toContain('## Custom Intro Title');
     expect(updated).toContain('Footer stays');
     expect(updated).not.toContain('Old body');
-    expect(updated).toContain('Validate with `plx validate <id> --strict`');
+    expect(updated).toContain('Validate with `plx validate change --id <id> --strict`');
   });
 
   it('should create missing Windsurf workflows on update', async () => {
