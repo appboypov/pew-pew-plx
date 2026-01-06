@@ -282,7 +282,7 @@ Write AGENTS.md root stub
 ### Validation Flow
 
 ```
-User runs: plx validate <item>
+User runs: plx validate change --id <id>  (or plx validate spec --id <id>)
     ↓
 ValidateCommand.execute()
     ↓
