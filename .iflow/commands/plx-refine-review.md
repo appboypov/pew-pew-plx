@@ -102,6 +102,11 @@ description: Create or update REVIEW.md.
    - Locate secrets handling
    - Identify build and deployment configs
 
+   **Package Adherence**
+   - List installed packages that solve common problems
+   - Note which packages must be used (no custom alternatives)
+   - Identify wrapper patterns around third-party libraries
+
    **External Dependencies**
    - Find third-party API integrations
    - Locate SDK and library usage
