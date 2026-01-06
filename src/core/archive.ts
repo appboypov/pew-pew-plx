@@ -107,7 +107,7 @@ export class ArchiveCommand {
     if (!isChange && !isReview) {
       throw new Error(
         `Item '${id}' not found in changes or reviews. ` +
-        `Use 'plx list' to see available items.`
+        `Use 'plx get changes' or 'plx get reviews' to see available items.`
       );
     }
 

@@ -188,9 +188,9 @@ export class ValidateCommand {
 
   private printNonInteractiveHint(): void {
     console.error('Nothing to validate. Try one of:');
-    console.error('  plx validate --all');
-    console.error('  plx validate --changes');
-    console.error('  plx validate --specs');
+    console.error('  plx validate all');
+    console.error('  plx validate changes');
+    console.error('  plx validate specs');
     console.error('  plx validate change --id <id>');
     console.error('  plx validate spec --id <id>');
     console.error('Or run in an interactive terminal.');
@@ -230,7 +230,7 @@ export class ValidateCommand {
     if (projectPrefix === null && matchingChanges.length > 1) {
       const workspaceNames = matchingChanges.map(c => c.displayId).join(', ');
       console.error(`Ambiguous item '${itemName}' exists in multiple workspaces: ${workspaceNames}`);
-      console.error('Specify the workspace prefix, e.g.: plx validate <workspace>/<item>');
+      console.error('Specify the workspace prefix, e.g.: plx validate change --id <workspace>/<id>');
       process.exitCode = 1;
       return;
     }
@@ -238,7 +238,7 @@ export class ValidateCommand {
     if (projectPrefix === null && matchingSpecs.length > 1) {
       const workspaceNames = matchingSpecs.map(s => s.displayId).join(', ');
       console.error(`Ambiguous item '${itemName}' exists in multiple workspaces: ${workspaceNames}`);
-      console.error('Specify the workspace prefix, e.g.: plx validate <workspace>/<item>');
+      console.error('Specify the workspace prefix, e.g.: plx validate spec --id <workspace>/<id>');
       process.exitCode = 1;
       return;
     }

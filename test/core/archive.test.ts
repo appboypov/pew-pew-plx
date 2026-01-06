@@ -525,7 +525,7 @@ New feature description.
     it('should throw error if change does not exist', async () => {
       await expect(
         archiveCommand.execute('non-existent-change', { yes: true })
-      ).rejects.toThrow("Item 'non-existent-change' not found in changes or reviews. Use 'plx list' to see available items.");
+      ).rejects.toThrow("Item 'non-existent-change' not found in changes or reviews. Use 'plx get changes' or 'plx get reviews' to see available items.");
     });
 
     it('should throw error if archive already exists', async () => {
@@ -984,7 +984,7 @@ E1 updated`);
 
       await expect(
         archiveCommand.execute('any-change', { yes: true })
-      ).rejects.toThrow("Item 'any-change' not found in changes or reviews. Use 'plx list' to see available items.");
+      ).rejects.toThrow("Item 'any-change' not found in changes or reviews. Use 'plx get changes' or 'plx get reviews' to see available items.");
     });
   });
 

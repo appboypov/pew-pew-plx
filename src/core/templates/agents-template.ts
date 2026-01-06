@@ -9,7 +9,7 @@ Instructions for AI coding assistants using Pew Pew Plx for spec-driven developm
 - Pick a unique \`change-id\`: kebab-case, verb-led (\`add-\`, \`update-\`, \`remove-\`, \`refactor-\`)
 - Scaffold: \`proposal.md\`, \`tasks/\` directory, \`design.md\` (only if needed), and delta specs per affected capability
 - Write deltas: use \`## ADDED|MODIFIED|REMOVED|RENAMED Requirements\`; include at least one \`#### Scenario:\` per requirement
-- Validate: \`plx validate [change-id] --strict\` and fix issues
+- Validate: \`plx validate change --id <change-id> --strict\` and fix issues
 - Request approval: Do not start implementation until proposal is approved
 
 ## Three-Stage Workflow
@@ -42,14 +42,14 @@ Skip proposal for:
 
 **Slash Commands**
 - \`plx/plan-request\` - Clarify ambiguous requirements through iterative yes/no questions before scaffolding
-- \`plx/plan-proposal\` - Scaffold \`proposal.md\`, \`tasks/\` directory, \`design.md\`, and spec deltas. Consumes request.md when present.
+- \`plx/plan-proposal\` - Scaffold \`proposal.md\`, task files in \`workspace/tasks/\`, \`design.md\`, and spec deltas. Consumes request.md when present.
 
 **Workflow**
 1. Review \`ARCHITECTURE.md\`, \`plx get changes\`, and \`plx get specs\` to understand current context.
 2. If requirements are ambiguous, run \`plx/plan-request\` to clarify intent first.
-3. Choose a unique verb-led \`change-id\` and scaffold \`proposal.md\`, \`tasks/\` directory, optional \`design.md\`, and spec deltas under \`workspace/changes/<id>/\`.
+3. Choose a unique verb-led \`change-id\` and scaffold \`proposal.md\`, task files in \`workspace/tasks/\`, optional \`design.md\`, and spec deltas under \`workspace/changes/<id>/\`.
 4. Draft spec deltas using \`## ADDED|MODIFIED|REMOVED Requirements\` with at least one \`#### Scenario:\` per requirement.
-5. Run \`plx validate <id> --strict\` and resolve any issues before sharing the proposal.
+5. Run \`plx validate change --id <id> --strict\` and resolve any issues before sharing the proposal.
 
 ### Stage 2: Implementing Changes
 Track these steps as TODOs and complete them one by one.
@@ -66,7 +66,7 @@ After deployment, create separate PR to:
 - Move \`changes/[name]/\` → \`changes/archive/YYYY-MM-DD-[name]/\`
 - Update \`specs/\` if capabilities changed
 - Use \`plx archive change --id <change-id> --skip-specs --yes\` for tooling-only changes (always pass the change ID explicitly)
-- Run \`plx validate --strict\` to confirm the archived change passes checks
+- Run \`plx validate all --strict\` to confirm the archived change passes checks
 
 ## Before Any Task
 
@@ -138,7 +138,11 @@ plx get changes           # List active changes
 plx get specs             # List specifications
 plx get change --id [id]  # Display change
 plx get spec --id [id]    # Display spec
-plx validate [item]       # Validate changes or specs
+plx validate change --id <id>  # Validate specific change
+plx validate spec --id <id>     # Validate specific spec
+plx validate changes            # Validate all changes
+plx validate specs              # Validate all specs
+plx validate all                # Validate everything
 plx archive change --id <change-id> [--yes|-y]   # Archive after deployment (add --yes for non-interactive runs)
 
 # Project management
@@ -150,10 +154,10 @@ plx validate              # Bulk validation mode
 
 # Debugging
 plx get change --id [change] --json --deltas-only
-plx validate [change] --strict
+plx validate change --id <change-id> --strict
 
 # Create project artifacts
-plx create task "Title" --parent-id <id>      # Create task linked to change or review
+plx create task "Title" --parent-id <id> --parent-type <change|review>  # Create task linked to change or review
 plx create change "Name"                      # Create new change proposal
 plx create spec "Name"                        # Create new specification
 plx create request "Description"              # Create new request
@@ -166,8 +170,8 @@ plx get task --constraints            # Show only Constraints section
 plx get task --acceptance-criteria    # Show only Acceptance Criteria section
 plx get change --id <change-id>       # Retrieve change by ID
 plx get spec --id <spec-id>           # Retrieve spec by ID
-plx get tasks                         # List all open tasks
-plx get tasks --id <change-id>        # List tasks for specific change
+plx get tasks                                         # List all open tasks
+plx get tasks --parent-id <change-id> --parent-type change  # List tasks for specific change
 
 # Complete tasks and changes
 plx complete task --id <task-id>      # Mark task as done, check Implementation Checklist items
@@ -176,6 +180,22 @@ plx complete change --id <change-id>  # Complete all tasks in a change
 # Undo task/change completion
 plx undo task --id <task-id>          # Revert task to to-do, uncheck Implementation Checklist items
 plx undo change --id <change-id>      # Revert all tasks in a change to to-do
+
+# Review
+plx get reviews                       # List all active reviews
+plx get review --id <review-id>       # Retrieve specific review
+plx review change --id <change-id>    # Review a change proposal
+plx review spec --id <spec-id>        # Review a specification
+plx review task --id <task-id>        # Review a task
+
+# Parse feedback
+plx parse feedback <name> --parent-id <id> --parent-type change|spec|task  # Parse feedback into tasks
+
+# Archive
+plx archive change --id <change-id>             # Archive after deployment
+plx archive change --id <id> --yes             # Archive without prompts
+plx archive change --id <id> --skip-specs --yes # Archive tooling-only changes
+plx archive review --id <review-id>            # Archive completed review
 \`\`\`
 
 ### Command Flags
@@ -271,20 +291,23 @@ The system SHALL provide...
 \`\`\`
 If multiple capabilities are affected, create multiple delta files under \`changes/[change-id]/specs/<capability>/spec.md\`—one per capability.
 
-4. **Create tasks/ directory:**
+4. **Create tasks:**
 
-Create a \`tasks/\` directory with numbered task files. Minimum 3 files recommended:
+Create task files in \`workspace/tasks/\` with numbered files. Minimum 3 files recommended:
 - Implementation task(s): The actual work
 - Review task: Verify all changes are complete and consistent
 - Test task: Validate behavior meets acceptance criteria
 
-Each task file uses format \`NNN-<kebab-case-name>.md\` (e.g., \`001-implement-core.md\`).
+For parented tasks, use format \`NNN-<parent-id>-<kebab-case-name>.md\` (e.g., \`001-add-feature-implement.md\`).
+For standalone tasks, use format \`NNN-<kebab-case-name>.md\` (e.g., \`003-standalone-task.md\`).
 
-Example \`tasks/001-implement-feature.md\`:
+Example \`workspace/tasks/001-add-feature-implement.md\`:
 \`\`\`markdown
 ---
 status: to-do
 skill-level: junior|medior|senior
+parent-type: change
+parent-id: add-feature
 ---
 
 # Task: Implement feature
@@ -339,7 +362,7 @@ For non-Claude models, the agent determines an equivalent model or ignores the f
 
 **Usage:**
 - Add \`skill-level\` to task frontmatter during proposal creation
-- \`plx validate --strict\` warns when skill-level is missing
+- \`plx validate change --id <id> --strict\` warns when skill-level is missing
 - Skill level appears in \`plx get task\` output
 
 5. **Create design.md when needed:**
@@ -444,7 +467,7 @@ Example for RENAMED:
 
 \`\`\`bash
 # Always use strict mode for comprehensive checks
-plx validate [change] --strict
+plx validate change --id <change-id> --strict
 
 # Debug delta parsing
 plx get change --id [change] --json | jq '.deltas'
@@ -465,9 +488,9 @@ plx get changes
 
 # 2) Choose change id and scaffold
 CHANGE=add-two-factor-auth
-mkdir -p workspace/changes/$CHANGE/{specs/auth,tasks}
+mkdir -p workspace/changes/$CHANGE/specs/auth
 printf "## Why\\n...\\n\\n## What Changes\\n- ...\\n\\n## Impact\\n- ...\\n" > workspace/changes/$CHANGE/proposal.md
-printf "---\\nstatus: to-do\\nskill-level: junior|medior|senior\\n---\\n\\n# Task: Implement feature\\n\\n## End Goal\\n...\\n\\n## Implementation Checklist\\n- [ ] 1.1 ...\\n" > workspace/changes/$CHANGE/tasks/001-implement.md
+printf "---\\nstatus: to-do\\nskill-level: junior|medior|senior\\nparent-type: change\\nparent-id: add-two-factor-auth\\n---\\n\\n# Task: Implement feature\\n\\n## End Goal\\n...\\n\\n## Implementation Checklist\\n- [ ] 1.1 ...\\n" > workspace/tasks/001-add-two-factor-auth-implement.md
 
 # 3) Add deltas (example)
 cat > workspace/changes/$CHANGE/specs/auth/spec.md << 'EOF'
@@ -481,7 +504,7 @@ Users MUST provide a second factor during login.
 EOF
 
 # 4) Validate
-plx validate $CHANGE --strict
+plx validate change --id $CHANGE --strict
 \`\`\`
 
 ## Multi-Capability Example
@@ -592,7 +615,7 @@ Only add complexity with:
 plx get changes            # What's in progress?
 plx get change --id [item] # View change details
 plx get spec --id [item]   # View spec details
-plx validate --strict      # Is it correct?
+plx validate change --id <id> --strict  # Is it correct?
 plx archive change --id <change-id> [--yes|-y]  # Mark complete (add --yes for automation)
 \`\`\`
 

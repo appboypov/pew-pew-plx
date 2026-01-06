@@ -49,10 +49,12 @@ This creates the `workspace/` directory structure and configures slash commands 
 
 | Command | Description |
 |---------|-------------|
-| `plx list` | List active changes |
-| `plx list --specs` | List specifications |
-| `plx list --reviews` | List active reviews |
+| `plx get changes` | List active changes |
+| `plx get specs` | List specifications |
+| `plx get reviews` | List active reviews |
 | `plx view` | Interactive dashboard |
+
+**Note:** `plx list` is deprecated. Use `plx get changes`, `plx get specs`, or `plx get reviews` instead.
 
 ### Task Management
 
@@ -75,17 +77,18 @@ This creates the `workspace/` directory structure and configures slash commands 
 |---------|-------------|
 | `plx get change --id <id>` | Get change by ID |
 | `plx get spec --id <id>` | Get spec by ID |
-| `plx show <item>` | Display change or spec |
-| `plx show <item> --json` | JSON output |
+| `plx get review --id <id>` | Get review by ID |
+
+**Note:** `plx show` is deprecated. Use `plx get change --id <id>` or `plx get spec --id <id>` instead.
 
 ### Review System
 
 | Command | Description |
 |---------|-------------|
-| `plx review --change-id <id>` | Review a change |
-| `plx review --spec-id <id>` | Review a spec |
-| `plx review --task-id <id>` | Review a task |
-| `plx parse feedback <name> --change-id <id>` | Parse feedback markers |
+| `plx review change --id <id>` | Review a change |
+| `plx review spec --id <id>` | Review a spec |
+| `plx review task --id <id>` | Review a task |
+| `plx parse feedback <name> --parent-id <id> --parent-type change|spec|task` | Parse feedback markers |
 
 ### Draft Management
 
@@ -97,9 +100,13 @@ This creates the `workspace/` directory structure and configures slash commands 
 
 | Command | Description |
 |---------|-------------|
-| `plx validate <item>` | Validate single item |
-| `plx validate --all` | Validate everything |
-| `plx archive <change-id>` | Archive completed change |
+| `plx validate change --id <id>` | Validate specific change |
+| `plx validate changes` | Validate all changes |
+| `plx validate spec --id <id>` | Validate specific spec |
+| `plx validate specs` | Validate all specs |
+| `plx validate all` | Validate everything |
+| `plx archive change --id <id>` | Archive completed change |
+| `plx archive review --id <id>` | Archive completed review |
 
 ### Configuration
 
@@ -117,29 +124,37 @@ All PLX commands work from any subdirectory within a project. The CLI automatica
 
 | Command | Description |
 |---------|-------------|
-| `plx list --workspace <name>` | Filter to specific workspace |
+| `plx get changes --workspace <name>` | Filter to specific workspace |
 | `plx get task --workspace <name>` | Get task from specific workspace |
-| `plx validate --all --workspace <name>` | Validate specific workspace |
+| `plx validate all --workspace <name>` | Validate specific workspace |
 
 In monorepos, items display with project prefixes (e.g., `project-a/add-feature`). Use `--workspace` to filter operations.
 
 ## Task Structure
 
-Tasks live in `workspace/changes/<change-id>/tasks/` as numbered files:
+Tasks are stored centrally in `workspace/tasks/` as numbered files:
 
 ```
-tasks/
-├── 001-setup-database.md
-├── 002-implement-api.md
-└── 003-add-tests.md
+workspace/tasks/
+├── 001-add-feature-implement.md          # Parented task (linked to change)
+├── 002-add-feature-review.md             # Parented task (linked to change)
+├── 003-standalone-task.md                # Standalone task
+└── archive/                              # Archived tasks
+    └── 001-completed-task.md
 ```
 
-Each task uses YAML frontmatter for status and skill-level tracking:
+**Task Filename Patterns:**
+- **Parented tasks**: `NNN-<parent-id>-<kebab-case-name>.md` (e.g., `001-add-feature-implement.md`)
+- **Standalone tasks**: `NNN-<kebab-case-name>.md` (e.g., `003-standalone-task.md`)
+
+Each task uses YAML frontmatter for status, skill-level, and parent linking:
 
 ```yaml
 ---
 status: to-do  # or: in-progress, done
 skill-level: medior  # or: junior, senior (optional, guides AI model selection)
+parent-type: change  # or: review, spec (optional, for parented tasks)
+parent-id: add-feature  # optional, for parented tasks
 ---
 ```
 
@@ -163,9 +178,14 @@ Add inline feedback markers during code review:
 <!-- #FEEDBACK #TODO | Missing accessibility attributes -->
 ```
 
-For spec-impacting feedback, add suffix: `(spec:<spec-id>)`
+For parent-linked feedback, include parent type and ID in the marker:
 
-Parse markers with: `plx parse feedback review-name --change-id <id>`
+```typescript
+// #FEEDBACK #TODO | change:add-feature | Validate input before processing
+// #FEEDBACK #TODO | spec:user-auth | Update validation logic
+```
+
+Parse markers with: `plx parse feedback review-name --parent-id <id> --parent-type change|spec|task`
 
 ## Slash Commands
 
@@ -187,6 +207,7 @@ When you run `plx init`, these commands are installed for supported AI tools:
 - `/plx/parse-feedback` - Parse feedback markers
 - `/plx/prepare-release` - Guided release preparation workflow
 - `/plx/prepare-compact` - Preserve session progress in PROGRESS.md
+- `/plx/sync-workspace` - Sync workspace state across changes
 
 ## Supported AI Tools
 

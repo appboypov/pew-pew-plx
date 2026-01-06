@@ -25,8 +25,8 @@ Use `@/workspace/AGENTS.md` to learn:
 ### Navigation & Listing
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `plx list` | List active changes | Check what's in progress |
-| `plx list --specs` | List specifications | Find existing specs |
+| `plx get changes` | List active changes | Check what's in progress |
+| `plx get specs` | List specifications | Find existing specs |
 | `plx view` | Interactive dashboard | Visual overview |
 
 ### Task Management
@@ -38,7 +38,7 @@ Use `@/workspace/AGENTS.md` to learn:
 | `plx get task --constraints` | Show only Constraints | Focus on constraints |
 | `plx get task --acceptance-criteria` | Show only AC | Focus on acceptance |
 | `plx get tasks` | List all open tasks | See all pending work |
-| `plx get tasks --id <change-id>` | List tasks for change | See tasks in a change |
+| `plx get tasks --parent-id <id> --parent-type change` | List tasks for change | See tasks in a change |
 | `plx complete task --id <id>` | Mark task done | Finish a task |
 | `plx complete change --id <id>` | Complete all tasks | Finish entire change |
 | `plx undo task --id <id>` | Revert task to to-do | Reopen a task |
@@ -49,31 +49,34 @@ Use `@/workspace/AGENTS.md` to learn:
 |---------|-------------|-------------|
 | `plx get change --id <id>` | Get change by ID | View specific change |
 | `plx get spec --id <id>` | Get spec by ID | View specific spec |
+| `plx get review --id <id>` | Get review by ID | View specific review |
+| `plx get reviews` | List all reviews | See all active reviews |
 
 ### Display & Inspection
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `plx show <item>` | Display change or spec | View details |
-| `plx show <item> --json` | JSON output | Machine-readable |
-| `plx show <item> --type change\|spec` | Disambiguate item type | When names collide |
-| `plx show <change> --deltas-only` | Show only deltas | Focus on changes |
+| `plx get change --id <id>` | Display change | View change details |
+| `plx get spec --id <id>` | Display spec | View spec details |
+| `plx get change --id <id> --json` | JSON output | Machine-readable |
+| `plx get change --id <id> --deltas-only` | Show only deltas | Focus on changes |
 
 ### Validation
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `plx validate <item>` | Validate single item | Check for issues |
-| `plx validate --all` | Validate everything | Full project check |
-| `plx validate --changes` | Validate all changes | Check all changes |
-| `plx validate --specs` | Validate all specs | Check all specs |
-| `plx validate --strict` | Strict validation | Comprehensive check |
-| `plx validate --json` | JSON output | Machine-readable |
+| `plx validate change --id <id>` | Validate specific change | Check for issues |
+| `plx validate spec --id <id>` | Validate specific spec | Check for issues |
+| `plx validate all` | Validate everything | Full project check |
+| `plx validate changes` | Validate all changes | Check all changes |
+| `plx validate specs` | Validate all specs | Check all specs |
+| `plx validate change --id <id> --strict` | Strict validation | Comprehensive check |
+| `plx validate all --json` | JSON output | Machine-readable |
 
 ### Archival
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `plx archive <change-id>` | Archive completed change | After deployment |
-| `plx archive <id> --yes` | Archive without prompts | Non-interactive |
-| `plx archive <id> --skip-specs` | Archive, skip spec updates | Tooling-only changes |
+| `plx archive change --id <change-id>` | Archive completed change | After deployment |
+| `plx archive change --id <id> --yes` | Archive without prompts | Non-interactive |
+| `plx archive change --id <id> --skip-specs` | Archive, skip spec updates | Tooling-only changes |
 
 ### Configuration
 | Command | Description | When to Use |

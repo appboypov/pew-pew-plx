@@ -55,8 +55,10 @@ Node:      ![Node](https://img.shields.io/node/v/PACKAGE)
 ```
 
 **Steps**
+
+## Part 1: Documentation Config
 1. Check if @RELEASE.md exists:
-   - If not: create from template with empty Config section.
+   - If not: create from template.
    - If exists: read current configuration.
 
 2. Guide user through Format selection:
@@ -84,21 +86,64 @@ Node:      ![Node](https://img.shields.io/node/v/PACKAGE)
    - If yes, present badge options and record selections.
    - Collect OWNER, REPO, PACKAGE values if needed.
 
-7. Write all selections to RELEASE.md Config section:
-   ```yaml
-   # Config
-   format: <selected-format>
-   style: <selected-style>
-   audience: <selected-audience>
-   emoji: <selected-emoji>
-   badges:
-     - <badge1>
-     - <badge2>
-   owner: <github-owner>
-   repo: <github-repo>
-   package: <npm-package>
-   ```
+7. Write selections to RELEASE.md Documentation Config section.
 
-8. Confirm configuration saved and explain how `plx/prepare-release` will use it.
+## Part 2: Consistency Checklist Research
+8. Research and populate each Consistency Checklist section in @RELEASE.md:
+
+   **Primary Sources**
+   - Search for entry points, main configs, core definitions
+   - Identify files that other files depend on
+   - List files that must change first when modifying behavior
+
+   **Derived Artifacts**
+   - Find code generation (templates, schemas, configs that produce other files)
+   - Identify build outputs that derive from source
+   - Determine the regeneration command
+   - Count total derived files
+
+   **Shared Values**
+   - Search for version numbers, project names, identifiers
+   - Find values appearing in multiple files (configs, docs, code)
+   - Note environment-specific values that must align
+
+   **Behavioral Contracts**
+   - Find type definitions, schemas, interfaces
+   - Identify API contracts, database schemas
+   - Locate spec files defining expected behavior
+
+   **Assertion Updates**
+   - Find test files with string assertions
+   - Identify snapshot tests
+   - Note tests checking specific output formats or messages
+
+   **Documentation References**
+   - List markdown files with code examples
+   - Find docs referencing specific implementations
+   - Identify inline documentation with version-specific content
+
+   **External Integrations**
+   - Find IDE configurations, editor settings
+   - Locate CI/CD pipeline definitions
+   - Identify third-party service configs referencing codebase
+
+   **Platform Variations**
+   - Find platform-specific directories
+   - Identify files duplicated across targets
+   - Count synchronized files per platform
+
+   **Cleanup**
+   - Note patterns for files to delete when features are removed
+
+   **Verification**
+   - Determine test command for project
+   - Identify validation/lint commands
+   - Document grep patterns for common changes
+
+9. Write findings to each section with file paths and counts.
+
+## Part 3: Confirm
+10. Present summary of configuration and populated checklist.
+11. Explain how `/plx:prepare-release` will use this configuration.
 <!-- PLX:END -->
 """

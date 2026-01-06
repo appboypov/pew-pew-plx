@@ -36,36 +36,78 @@ prompt = """
 | `flutter_test` | Flutter test framework | Flutter/Dart projects |
 
 **Steps**
+
+## Part 1: Test Config
 1. Check if @TESTING.md exists:
-   - If not: create from template with default configuration.
+   - If not: create from template.
    - If exists: read current configuration.
 
 2. Guide user through Test Types selection:
-   - Present test type options: unit, integration, e2e, snapshot, performance.
-   - Explain each type's purpose and use case.
+   - Present options: unit, integration, e2e, snapshot, performance.
    - Allow multiple selections.
    - Record selections.
 
 3. Guide user through Coverage Threshold selection:
-   - Present coverage options: 70%, 80%, 90%.
-   - Explain tradeoffs for each level.
+   - Present options: 70%, 80%, 90%.
    - Record selection.
 
 4. Guide user through Test Runner selection:
-   - Present runner options based on detected project type.
-   - Explain each runner's strengths.
+   - Present options based on detected project type.
    - Record selection.
 
 5. Guide user through File Pattern configuration:
    - Present common patterns based on selected runner.
-   - Allow customization.
    - Record patterns.
 
-6. Write all selections to TESTING.md:
-   - Update Test Types section with selected types.
-   - Update Coverage section with threshold.
-   - Update Test Patterns section with runner and file patterns.
+6. Write selections to TESTING.md Test Config section.
 
-7. Confirm configuration saved and explain how test configuration will be used.
+## Part 2: Test Scope Research
+7. Research and populate each Test Scope section in @TESTING.md:
+
+   **Unit Tests**
+   - Find unit test directories and files
+   - Identify naming conventions
+   - Count total unit test files
+
+   **Integration Tests**
+   - Find integration test directories
+   - Identify integration test patterns
+   - Note which components have integration coverage
+
+   **E2E Tests**
+   - Find e2e test directories
+   - Identify e2e framework (Playwright, Cypress, etc.)
+   - Note critical user flows covered
+
+   **Test Utilities**
+   - Find shared test helpers
+   - Locate test fixtures and factories
+   - Identify mock utilities
+
+   **Test Data**
+   - Find sample data and fixtures
+   - Locate seed files
+   - Identify test database setup
+
+   **Mocking Patterns**
+   - Find mock files and directories
+   - Identify mocking approach (manual, library)
+   - Note external services that are mocked
+
+   **Coverage Reporting**
+   - Find coverage configuration
+   - Identify report output location
+   - Note exclusion patterns
+
+   **CI Integration**
+   - Find CI test configuration
+   - Identify test commands used in CI
+   - Note parallelization setup
+
+8. Write findings to each section with file paths and counts.
+
+## Part 3: Confirm
+9. Present summary of configuration and populated scope.
+10. Explain how `/plx:test` will use these settings.
 <!-- PLX:END -->
 """

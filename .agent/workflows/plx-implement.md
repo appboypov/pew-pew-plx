@@ -20,8 +20,8 @@ Track these steps as TODOs and complete them one by one.
 3. Stop when complete:
    - If implementing a specific task ID (from step 1), stop after completing that task
    - If implementing all tasks in a change, stop after all tasks have been completed
-4. Reference `plx list` or `plx show <item>` when additional context is required.
+4. Reference `plx get changes` or `plx get change --id <item>` when additional context is required.
 
 **Reference**
-- Use `plx show <id> --json --deltas-only` if you need additional context from the proposal while implementing.
+- Use `plx get change --id <id> --json --deltas-only` if you need additional context from the proposal while implementing.
 <!-- PLX:END -->

@@ -1,5 +1,27 @@
 # Pew Pew Plx Changelog
 
+## 0.12.1 - 2026-01-06
+
+### Changed
+
+- **CLI error messages updated**: All command usage hints now show correct verb-first syntax
+  - `plx review` hints: `plx review change --id <id>` instead of `--change-id`
+  - `plx parse feedback` hints: `--parent-id <id> --parent-type change|spec|task`
+  - `plx validate` hints: `plx validate all/changes/specs` instead of `--all/--changes/--specs`
+  - `plx archive` errors: reference `plx get changes` instead of `plx list`
+- **Deprecation warnings updated**: `plx change` and `plx spec` commands show correct replacement syntax
+- **AGENTS.md template updated**: CLI reference reflects centralized task storage and parent linking
+- **RELEASE.md template restructured**: Config-style format with Consistency Checklist sections
+- **REVIEW.md template restructured**: Config-style format with Review Scope sections
+- **Slash command templates updated**: Three-phase workflow structure for refine commands
+
+### Fixed
+
+- CLI help text in `show.ts` removed references to deprecated `plx show <item>` syntax
+- Workspace prefix error messages in `validate.ts` use correct `--id` flag syntax
+
+---
+
 ## 0.12.0 - 2026-01-05
 
 ### Added

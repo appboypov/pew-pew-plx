@@ -90,7 +90,7 @@ export function registerSpecCommand(rootProgram: typeof program) {
 
   // Deprecation notice for noun-based commands
   specCommand.hook('preAction', () => {
-    console.error('Warning: The "plx spec ..." commands are deprecated. Prefer verb-first commands (e.g., "plx show", "plx validate --specs").');
+    console.error('Warning: The "plx spec ..." commands are deprecated. Prefer verb-first commands (e.g., "plx get spec --id <id>", "plx validate spec --id <id>").');
   });
 
   specCommand

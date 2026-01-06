@@ -37,31 +37,78 @@ $ARGUMENTS
 | `custom` | User-defined items tailored to project needs | Domain-specific requirements, compliance mandates |
 
 **Steps**
+
+## Part 1: Review Config
 1. Check if @REVIEW.md exists:
-   - If not: create from template with default configuration.
+   - If not: create from template.
    - If exists: read current configuration.
 
 2. Guide user through Review Types selection:
-   - Present review type options: implementation, architecture, security, performance, accessibility.
-   - Explain each type's focus areas and when to apply.
-   - Allow multiple selections (most projects use 2-3 types).
+   - Present options: implementation, architecture, security, performance, accessibility.
+   - Allow multiple selections.
    - Record selections.
 
 3. Guide user through Feedback Format selection:
-   - Present feedback format options: marker, annotation, inline-comment.
-   - Explain each format's structure and tooling compatibility.
+   - Present options: marker, annotation, inline-comment.
    - Record selection.
 
 4. Guide user through Checklist customization:
-   - Present checklist options: minimal, standard, comprehensive, custom.
-   - If custom: guide user to define checklist items.
-   - Explain tradeoffs between speed and thoroughness.
+   - Present options: minimal, standard, comprehensive, custom.
    - Record selection.
 
-5. Write all selections to REVIEW.md:
-   - Update Review Types section with selected types.
-   - Update Feedback Format section with format choice.
-   - Update Checklist section with selected level or custom items.
+5. Write selections to REVIEW.md Review Config section.
 
-6. Confirm configuration saved and explain how `plx/review` will use these settings.
+## Part 2: Review Scope Research
+6. Research and populate each Review Scope section in @REVIEW.md:
+
+   **Architecture Patterns**
+   - Identify core architectural patterns (MVC, MVVM, Clean Architecture, etc.)
+   - Find pattern documentation or examples
+   - Note where patterns are enforced vs flexible
+
+   **Project Conventions**
+   - Find style guides, linting configs, formatting rules
+   - Identify naming conventions (files, classes, functions)
+   - Note file organization rules and folder structure patterns
+
+   **Critical Paths**
+   - Find files imported by many others
+   - Identify core business logic files
+   - Locate entry points and main orchestration files
+
+   **Security-Sensitive**
+   - Find authentication/authorization code
+   - Locate input validation and sanitization
+   - Identify data encryption and secrets handling
+
+   **Performance-Critical**
+   - Find hot paths and frequently called code
+   - Locate database queries and I/O operations
+   - Identify caching and optimization logic
+
+   **Public API Surface**
+   - Find exported interfaces and types
+   - Locate public methods and endpoints
+   - Identify SDK/library entry points
+
+   **State Management**
+   - Find global state, stores, contexts
+   - Locate caching and session handling
+   - Identify data persistence logic
+
+   **Configuration**
+   - Find environment configs and feature flags
+   - Locate secrets handling
+   - Identify build and deployment configs
+
+   **External Dependencies**
+   - Find third-party API integrations
+   - Locate SDK and library usage
+   - Identify external service clients
+
+7. Write findings to each section with file paths.
+
+## Part 3: Confirm
+8. Present summary of configuration and populated scope.
+9. Explain how `/plx:review` will use these settings.
 <!-- PLX:END -->

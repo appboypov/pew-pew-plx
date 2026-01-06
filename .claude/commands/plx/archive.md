@@ -20,7 +20,7 @@ tags: [plx, archive]
 2. Validate the change ID by running `plx get changes` (or `plx get change --id <id>`) and stop if the change is missing, already archived, or otherwise not ready to archive.
 3. Run `plx archive change --id <id> --yes` so the CLI moves the change and applies spec updates without prompts (use `--skip-specs` only for tooling-only work).
 4. Review the command output to confirm the target specs were updated and the change landed in `changes/archive/`.
-5. Validate with `plx validate --strict` and inspect with `plx get change --id <id>` if anything looks off.
+5. Validate with `plx validate all --strict` and inspect with `plx get change --id <id>` if anything looks off.
 
 **Reference**
 - Use `plx get changes` to confirm change IDs before archiving.

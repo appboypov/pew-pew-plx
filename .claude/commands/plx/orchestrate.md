@@ -54,6 +54,6 @@ tags: [plx, orchestrate, sub-agents]
 **Reference**
 - Use `plx get change --id <change-id>` for proposal context.
 - Use `plx get changes` to see all changes and progress.
-- Use `plx review change --id <id>` for review context.
+- Use `plx review` for review context.
 - Use `plx parse feedback` to convert review feedback to tasks.
 <!-- PLX:END -->

@@ -171,7 +171,7 @@ export class ParseFeedbackCommand {
           );
         } else {
           ora().fail('Review name is required');
-          console.log(chalk.dim('  Usage: plx parse feedback <review-name> --change-id <id>'));
+          console.log(chalk.dim('  Usage: plx parse feedback <review-name> --parent-id <id> --parent-type change|spec|task'));
         }
         process.exitCode = 1;
         return;
@@ -435,9 +435,9 @@ export class ParseFeedbackCommand {
       console.log(chalk.dim('  1. Work on tasks: plx get task'));
       console.log(chalk.dim('  2. Address feedback and remove markers'));
       if (results.length === 1) {
-        console.log(chalk.dim(`  3. Archive when complete: plx archive ${results[0].reviewId}`));
+        console.log(chalk.dim(`  3. Archive when complete: plx archive review --id ${results[0].reviewId}`));
       } else {
-        console.log(chalk.dim('  3. Archive when complete: plx archive <review-id>'));
+        console.log(chalk.dim('  3. Archive when complete: plx archive review --id <review-id>'));
       }
     }
   }

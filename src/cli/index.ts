@@ -151,7 +151,7 @@ const changeCmd = program
 
 // Deprecation notice for noun-based commands
 changeCmd.hook('preAction', () => {
-  console.error('Warning: The "plx change ..." commands are deprecated. Prefer verb-first commands (e.g., "plx list", "plx validate --changes").');
+  console.error('Warning: The "plx change ..." commands are deprecated. Prefer verb-first commands (e.g., "plx get changes", "plx validate changes").');
 });
 
 changeCmd

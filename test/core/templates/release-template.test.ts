@@ -19,12 +19,10 @@ describe('release-template', () => {
       expect(result).toContain('## Purpose');
     });
 
-    it('contains config-style default sections', () => {
+    it('contains Documentation Config section with yaml', () => {
       const result = releaseTemplate();
-      expect(result).toContain('## Changelog Format');
-      expect(result).toContain('## README Style');
-      expect(result).toContain('## Audience');
-      expect(result).toContain('## Emoji Level');
+      expect(result).toContain('## Documentation Config');
+      expect(result).toContain('```yaml');
     });
 
     it('contains default values', () => {
@@ -35,10 +33,12 @@ describe('release-template', () => {
       expect(result).toContain('none');
     });
 
-    it('contains Project Overrides section with yaml config', () => {
+    it('contains Consistency Checklist section', () => {
       const result = releaseTemplate();
-      expect(result).toContain('## Project Overrides');
-      expect(result).toContain('```yaml');
+      expect(result).toContain('## Consistency Checklist');
+      expect(result).toContain('### Primary Sources');
+      expect(result).toContain('### Derived Artifacts');
+      expect(result).toContain('### Verification');
     });
 
     it('contains Release Checklist', () => {

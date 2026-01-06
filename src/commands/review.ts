@@ -200,13 +200,13 @@ export class ReviewCommand {
       } else {
         if (options.json) {
           console.log(
-            JSON.stringify({ error: 'Specify what to review: --change-id, --spec-id, or --task-id' })
+            JSON.stringify({ error: 'Specify what to review: plx review change --id <id>, plx review spec --id <id>, or plx review task --id <id>' })
           );
         } else {
           ora().fail('Specify what to review');
-          console.log(chalk.dim('  Usage: plx review --change-id <id>'));
-          console.log(chalk.dim('         plx review --spec-id <id>'));
-          console.log(chalk.dim('         plx review --task-id <id>'));
+          console.log(chalk.dim('  Usage: plx review change --id <id>'));
+          console.log(chalk.dim('         plx review spec --id <id>'));
+          console.log(chalk.dim('         plx review task --id <id>'));
         }
         process.exitCode = 1;
         return;

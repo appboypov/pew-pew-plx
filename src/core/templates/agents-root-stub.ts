@@ -37,7 +37,7 @@ Use \`@/workspace/AGENTS.md\` to learn:
 | \`plx get task --constraints\` | Show only Constraints | Focus on constraints |
 | \`plx get task --acceptance-criteria\` | Show only AC | Focus on acceptance |
 | \`plx get tasks\` | List all open tasks | See all pending work |
-| \`plx get tasks --id <change-id>\` | List tasks for change | See tasks in a change |
+| \`plx get tasks --parent-id <id> --parent-type change\` | List tasks for change | See tasks in a change |
 | \`plx complete task --id <id>\` | Mark task done | Finish a task |
 | \`plx complete change --id <id>\` | Complete all tasks | Finish entire change |
 | \`plx undo task --id <id>\` | Revert task to to-do | Reopen a task |
@@ -48,6 +48,8 @@ Use \`@/workspace/AGENTS.md\` to learn:
 |---------|-------------|-------------|
 | \`plx get change --id <id>\` | Get change by ID | View specific change |
 | \`plx get spec --id <id>\` | Get spec by ID | View specific spec |
+| \`plx get review --id <id>\` | Get review by ID | View specific review |
+| \`plx get reviews\` | List all reviews | See all active reviews |
 
 ### Display & Inspection
 | Command | Description | When to Use |
@@ -60,12 +62,13 @@ Use \`@/workspace/AGENTS.md\` to learn:
 ### Validation
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| \`plx validate <item>\` | Validate single item | Check for issues |
-| \`plx validate --all\` | Validate everything | Full project check |
-| \`plx validate --changes\` | Validate all changes | Check all changes |
-| \`plx validate --specs\` | Validate all specs | Check all specs |
-| \`plx validate --strict\` | Strict validation | Comprehensive check |
-| \`plx validate --json\` | JSON output | Machine-readable |
+| \`plx validate change --id <id>\` | Validate specific change | Check for issues |
+| \`plx validate spec --id <id>\` | Validate specific spec | Check for issues |
+| \`plx validate all\` | Validate everything | Full project check |
+| \`plx validate changes\` | Validate all changes | Check all changes |
+| \`plx validate specs\` | Validate all specs | Check all specs |
+| \`plx validate change --id <id> --strict\` | Strict validation | Comprehensive check |
+| \`plx validate all --json\` | JSON output | Machine-readable |
 
 ### Archival
 | Command | Description | When to Use |

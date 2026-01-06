@@ -76,13 +76,13 @@ The archive slash command template SHALL support optional change ID arguments fo
 
 #### Scenario: Archive command with change ID argument
 - **WHEN** a user invokes `/plx:archive <change-id>` with a change ID
-- **THEN** the template SHALL instruct the AI to validate the provided change ID against `plx list`
+- **THEN** the template SHALL instruct the AI to validate the provided change ID against `plx get changes`
 - **AND** use the provided change ID for archiving if valid
 - **AND** fail fast if the provided change ID doesn't match an archivable change
 
 #### Scenario: Archive command without argument (backward compatibility)
 - **WHEN** a user invokes `/plx:archive` without providing a change ID
-- **THEN** the template SHALL instruct the AI to identify the change ID from context or by running `plx list`
+- **THEN** the template SHALL instruct the AI to identify the change ID from context or by running `plx get changes`
 - **AND** proceed with the existing behavior (maintaining backward compatibility)
 
 #### Scenario: OpenCode archive template generation

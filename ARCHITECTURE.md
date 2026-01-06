@@ -282,7 +282,7 @@ Write AGENTS.md root stub
 ### Validation Flow
 
 ```
-User runs: plx validate <item>
+User runs: plx validate change --id <id>  (or plx validate spec --id <id>)
     ↓
 ValidateCommand.execute()
     ↓
@@ -712,7 +712,7 @@ The global `--workspace <name>` flag filters operations to a specific workspace:
 
 ```bash
 plx get changes --workspace project-a         # List only project-a changes
-plx validate --all --workspace project-a      # Validate only project-a
+plx validate all --workspace project-a      # Validate only project-a
 plx get task --workspace project-a            # Get task from project-a only
 ```
 
