@@ -1,10 +1,12 @@
-import * as fs from 'fs';
+import { promises as fs } from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
-import { getTaskProgressForChange } from '../utils/task-progress.js';
+import { countTasksFromContent } from '../utils/task-progress.js';
 import { MarkdownParser } from './parsers/markdown-parser.js';
 import { getFilteredWorkspaces } from '../utils/workspace-filter.js';
 import { isMultiWorkspace, DiscoveredWorkspace } from '../utils/workspace-discovery.js';
+import { discoverTasks, filterTasksByParent } from '../utils/centralized-task-discovery.js';
+import { ParentType } from '../core/config.js';
 
 interface ChangeData {
   name: string;
@@ -100,15 +102,38 @@ export class ViewCommand {
     for (const workspace of workspaces) {
       const changesDir = path.join(workspace.path, 'changes');
 
-      if (!fs.existsSync(changesDir)) {
+      try {
+        await fs.access(changesDir);
+      } catch {
         continue;
       }
 
-      const entries = fs.readdirSync(changesDir, { withFileTypes: true });
+      // Discover all tasks for this workspace once
+      const taskResult = await discoverTasks(workspace);
+
+      const entries = await fs.readdir(changesDir, { withFileTypes: true });
 
       for (const entry of entries) {
         if (entry.isDirectory() && entry.name !== 'archive') {
-          const progress = await getTaskProgressForChange(changesDir, entry.name);
+          // Skip directories without proposal.md
+          const proposalPath = path.join(changesDir, entry.name, 'proposal.md');
+          try {
+            await fs.access(proposalPath);
+          } catch {
+            continue; // Skip directories without proposal.md
+          }
+
+          // Filter tasks for this specific change
+          const parentTasks = filterTasksByParent(taskResult.tasks, entry.name, 'change' as ParentType);
+          let total = 0;
+          let completedCount = 0;
+          for (const task of parentTasks) {
+            const taskProgress = countTasksFromContent(task.content);
+            total += taskProgress.total;
+            completedCount += taskProgress.completed;
+          }
+          const progress = { total, completed: completedCount };
+
           const displayName = isMulti && workspace.projectName
             ? `${workspace.projectName}/${entry.name}`
             : entry.name;
@@ -151,11 +176,13 @@ export class ViewCommand {
     for (const workspace of workspaces) {
       const specsDir = path.join(workspace.path, 'specs');
 
-      if (!fs.existsSync(specsDir)) {
+      try {
+        await fs.access(specsDir);
+      } catch {
         continue;
       }
 
-      const entries = fs.readdirSync(specsDir, { withFileTypes: true });
+      const entries = await fs.readdir(specsDir, { withFileTypes: true });
 
       for (const entry of entries) {
         if (entry.isDirectory()) {
@@ -164,25 +191,24 @@ export class ViewCommand {
             ? `${workspace.projectName}/${entry.name}`
             : entry.name;
 
-          if (fs.existsSync(specFile)) {
-            try {
-              const content = fs.readFileSync(specFile, 'utf-8');
-              const parser = new MarkdownParser(content);
-              const spec = parser.parseSpec(entry.name);
-              specs.push({
-                name: entry.name,
-                displayName,
-                requirementCount: spec.requirements.length,
-                projectName: workspace.projectName,
-              });
-            } catch {
-              specs.push({
-                name: entry.name,
-                displayName,
-                requirementCount: 0,
-                projectName: workspace.projectName,
-              });
-            }
+          try {
+            await fs.access(specFile);
+            const content = await fs.readFile(specFile, 'utf-8');
+            const parser = new MarkdownParser(content);
+            const spec = parser.parseSpec(entry.name);
+            specs.push({
+              name: entry.name,
+              displayName,
+              requirementCount: spec.requirements.length,
+              projectName: workspace.projectName,
+            });
+          } catch {
+            specs.push({
+              name: entry.name,
+              displayName,
+              requirementCount: 0,
+              projectName: workspace.projectName,
+            });
           }
         }
       }
@@ -208,11 +234,6 @@ export class ViewCommand {
       completedTasks += change.progress.completed;
     });
     
-    changesData.completed.forEach(() => {
-      // Completed changes count as 100% done (we don't know exact task count)
-      // This is a simplification
-    });
-
     console.log(chalk.bold('Summary:'));
     console.log(`  ${chalk.cyan('●')} Specifications: ${chalk.bold(totalSpecs)} specs, ${chalk.bold(totalRequirements)} requirements`);
     console.log(`  ${chalk.yellow('●')} Active Changes: ${chalk.bold(changesData.active.length)} in progress`);

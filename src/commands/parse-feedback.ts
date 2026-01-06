@@ -18,6 +18,8 @@ interface ParseFeedbackOptions {
   changeId?: string;
   specId?: string;
   taskId?: string;
+  exclude?: string;
+  defaultExcludes?: boolean;
 }
 
 interface ReviewResult {
@@ -196,7 +198,11 @@ export class ParseFeedbackCommand {
     }
 
     // Scan for feedback markers
-    const scanner = new FeedbackScannerService(process.cwd());
+    const additionalExcludes = options.exclude?.split(',').map(p => p.trim()).filter(p => p.length > 0) ?? [];
+    const scanner = new FeedbackScannerService(process.cwd(), {
+      additionalExcludes,
+      disableDefaultExcludes: options.defaultExcludes === false,
+    });
     const markers = await scanner.scanDirectory('.');
 
     // Handle no markers found
