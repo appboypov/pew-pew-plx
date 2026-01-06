@@ -12,6 +12,16 @@ tags: [plx, release, documentation]
 - Execute steps sequentially: changelog → readme → architecture.
 - User confirms or skips each step before proceeding.
 - Preserve existing content when updating files.
+- Never use 'Unreleased' in changelog entries - always determine the concrete next version number based on semantic versioning.
+- Run the `date` command to get the accurate release date in YYYY-MM-DD format.
+
+**Monorepo Awareness**
+- Derive target package from the user's request context (mentioned package name, file paths, or current focus).
+- If target package is unclear in a monorepo, clarify with user before proceeding.
+- Create artifacts in the relevant package's workspace folder (e.g., `packages/foo/workspace/`), not the monorepo root.
+- For root-level changes (not package-specific), use the root workspace.
+- If multiple packages are affected, process each package separately.
+- Follow each package's AGENTS.md instructions if present.
 
 ## Default Configuration
 When RELEASE.md Config section is missing or incomplete, apply these defaults:
@@ -36,7 +46,11 @@ When RELEASE.md Config section is missing or incomplete, apply these defaults:
 2. Execute changelog update:
    - Ask user for change source: git commits, branch diff, or manual entry.
    - If git commits: ask for range (recent N, since date, since tag, tag range).
-   - Analyze commits for version bump type (major/minor/patch).
+   - Analyze commits for version bump type:
+     - Breaking changes or BREAKING footer → suggest major version bump
+     - feat commits → suggest minor version bump
+     - fix commits → suggest patch version bump
+     - Apply AI judgment on overall scope to confirm or adjust suggestion
    - Generate changelog entry using configured format and emoji level.
    - Prepend to CHANGELOG.md (create if not exists).
 

@@ -16,6 +16,14 @@ tags: [plx, change, planning]
 - Use your question tool to present questions (if available).
 - End only when user confirms 100% intent capture.
 
+**Monorepo Awareness**
+- Derive target package from the user's request context (mentioned package name, file paths, or current focus).
+- If target package is unclear in a monorepo, clarify with user before proceeding.
+- Create artifacts in the relevant package's workspace folder (e.g., `packages/foo/workspace/`), not the monorepo root.
+- For root-level changes (not package-specific), use the root workspace.
+- If multiple packages are affected, process each package separately.
+- Follow each package's AGENTS.md instructions if present.
+
 **Steps**
 1. Parse `$ARGUMENTS` to extract the source input (request, wish, idea, etc.).
 2. Choose a unique verb-led `change-id` and create `workspace/changes/<id>/request.md`.
