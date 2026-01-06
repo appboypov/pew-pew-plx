@@ -488,4 +488,92 @@ describe('ReviewCommand', () => {
       );
     });
   });
+
+  describe('subcommand methods', () => {
+    beforeEach(() => {
+      mockIsInteractive.mockReturnValue(false);
+    });
+
+    it('reviewChange produces same output as --change-id', async () => {
+      await createChange('test-change', {
+        proposal: '# Test Change\n\nProposal content',
+      });
+
+      // Test legacy flag
+      await command.execute({ changeId: 'test-change', noInteractive: true });
+      const legacyCalls = [...(console.log as ReturnType<typeof vi.fn>).mock.calls];
+      vi.clearAllMocks();
+
+      // Test new subcommand method
+      await command.reviewChange('test-change', { noInteractive: true });
+      const subcommandCalls = [...(console.log as ReturnType<typeof vi.fn>).mock.calls];
+
+      // Compare outputs
+      expect(subcommandCalls).toEqual(legacyCalls);
+    });
+
+    it('reviewSpec produces same output as --spec-id', async () => {
+      await createSpec('test-spec', '# Test Spec\n\nSpec content');
+
+      // Test legacy flag
+      await command.execute({ specId: 'test-spec', noInteractive: true });
+      const legacyCalls = [...(console.log as ReturnType<typeof vi.fn>).mock.calls];
+      vi.clearAllMocks();
+
+      // Test new subcommand method
+      await command.reviewSpec('test-spec', { noInteractive: true });
+      const subcommandCalls = [...(console.log as ReturnType<typeof vi.fn>).mock.calls];
+
+      // Compare outputs
+      expect(subcommandCalls).toEqual(legacyCalls);
+    });
+
+    it('reviewTask produces same output as --task-id', async () => {
+      await createChange('test-change', {
+        tasks: ['# Task: Implement feature\n\nTask details'],
+      });
+
+      // Test legacy flag
+      await command.execute({ taskId: '001-task', noInteractive: true });
+      const legacyCalls = [...(console.log as ReturnType<typeof vi.fn>).mock.calls];
+      vi.clearAllMocks();
+
+      // Test new subcommand method
+      await command.reviewTask('001-task', { noInteractive: true });
+      const subcommandCalls = [...(console.log as ReturnType<typeof vi.fn>).mock.calls];
+
+      // Compare outputs
+      expect(subcommandCalls).toEqual(legacyCalls);
+    });
+
+    it('reviewChange supports JSON output', async () => {
+      await createChange('test-change', {
+        proposal: '# Test\n\nContent',
+      });
+
+      await command.reviewChange('test-change', { json: true });
+
+      const calls = (console.log as ReturnType<typeof vi.fn>).mock.calls;
+      const jsonCall = calls.find((c) => c[0].includes('"parentType"'));
+      expect(jsonCall).toBeDefined();
+
+      const output = JSON.parse(jsonCall![0]);
+      expect(output.parentType).toBe('change');
+      expect(output.parentId).toBe('test-change');
+    });
+
+    it('reviewSpec supports JSON output', async () => {
+      await createSpec('test-spec', '# Test Spec');
+
+      await command.reviewSpec('test-spec', { json: true });
+
+      const calls = (console.log as ReturnType<typeof vi.fn>).mock.calls;
+      const jsonCall = calls.find((c) => c[0].includes('"parentType"'));
+      expect(jsonCall).toBeDefined();
+
+      const output = JSON.parse(jsonCall![0]);
+      expect(output.parentType).toBe('spec');
+      expect(output.parentId).toBe('test-spec');
+    });
+  });
 });

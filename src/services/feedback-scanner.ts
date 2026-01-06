@@ -124,8 +124,9 @@ export class FeedbackScannerService {
     parentId: string
   ): Promise<void> {
     const reviewDir = path.join(this.reviewsPath, reviewId);
-    const tasksDir = path.join(reviewDir, 'tasks');
+    const tasksDir = path.join(this.root, 'workspace', 'tasks');
 
+    await fs.mkdir(reviewDir, { recursive: true });
     await fs.mkdir(tasksDir, { recursive: true });
 
     const reviewContent = this.generateReviewContent(reviewId, markers, parentType, parentId);
@@ -135,8 +136,8 @@ export class FeedbackScannerService {
       const marker = markers[i];
       const sequence = String(i + 1).padStart(3, '0');
       const taskName = this.generateTaskName(marker.feedback);
-      const filename = `${sequence}-${taskName}.md`;
-      const taskContent = this.generateTaskContent(marker);
+      const filename = `${sequence}-${reviewId}-${taskName}.md`;
+      const taskContent = this.generateTaskContent(marker, reviewId);
       await fs.writeFile(path.join(tasksDir, filename), taskContent);
     }
   }
@@ -301,9 +302,11 @@ ${uniqueFiles.map((f) => `- ${f}`).join('\n')}
 `;
   }
 
-  private generateTaskContent(marker: FeedbackMarker): string {
+  private generateTaskContent(marker: FeedbackMarker, reviewId: string): string {
     return `---
 status: to-do
+parent-type: review
+parent-id: ${reviewId}
 ---
 
 # Task: ${this.truncateFeedback(marker.feedback, 60)}

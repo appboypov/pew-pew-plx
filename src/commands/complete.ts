@@ -15,6 +15,16 @@ interface ChangeOptions {
   json?: boolean;
 }
 
+interface ReviewOptions {
+  id: string;
+  json?: boolean;
+}
+
+interface SpecOptions {
+  id: string;
+  json?: boolean;
+}
+
 interface TaskCompletionResult {
   taskId: string;
   name: string;
@@ -99,7 +109,7 @@ export class CompleteCommand {
       return;
     }
 
-    const tasks = await this.itemRetrievalService!.getTasksForChange(options.id);
+    const tasks = await this.itemRetrievalService!.getTasksForParent(options.id);
     const completedTasks: TaskCompletionResult[] = [];
     const skippedTasks: string[] = [];
 
@@ -144,6 +154,150 @@ export class CompleteCommand {
 
       if (completedTasks.length === 0 && skippedTasks.length > 0) {
         console.log(chalk.yellow('\nAll tasks in this change were already complete.'));
+      }
+
+      console.log();
+    }
+  }
+
+  async review(options: ReviewOptions): Promise<void> {
+    await this.ensureInitialized();
+    const review = await this.itemRetrievalService!.getReviewById(options.id);
+
+    if (!review) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: `Review not found: ${options.id}` }));
+      } else {
+        ora().fail(`Review not found: ${options.id}`);
+      }
+      process.exitCode = 1;
+      return;
+    }
+
+    const tasks = await this.itemRetrievalService!.getTasksForReview(options.id);
+    const completedTasks: TaskCompletionResult[] = [];
+    const skippedTasks: string[] = [];
+
+    for (const task of tasks) {
+      const content = await fs.readFile(task.filepath, 'utf-8');
+      const status = parseStatus(content);
+
+      if (status === 'done') {
+        skippedTasks.push(getTaskId(task));
+        continue;
+      }
+
+      const completedItems = await completeTaskFully(task.filepath);
+      completedTasks.push({
+        taskId: getTaskId(task),
+        name: task.name,
+        previousStatus: status,
+        completedItems,
+      });
+    }
+
+    if (options.json) {
+      console.log(JSON.stringify({
+        reviewId: options.id,
+        completedTasks,
+        skippedTasks,
+      }, null, 2));
+    } else {
+      if (completedTasks.length > 0) {
+        console.log(chalk.green(`\n✓ Completed ${completedTasks.length} task(s) in review: ${options.id}`));
+        for (const task of completedTasks) {
+          console.log(chalk.dim(`    • ${task.taskId}`));
+        }
+      }
+
+      if (skippedTasks.length > 0) {
+        console.log(chalk.yellow(`\n⚠ Skipped ${skippedTasks.length} already-complete task(s):`));
+        for (const taskId of skippedTasks) {
+          console.log(chalk.dim(`    • ${taskId}`));
+        }
+      }
+
+      if (completedTasks.length === 0 && skippedTasks.length > 0) {
+        console.log(chalk.yellow('\nAll tasks in this review were already complete.'));
+      }
+
+      console.log();
+    }
+  }
+
+  async spec(options: SpecOptions): Promise<void> {
+    await this.ensureInitialized();
+    const spec = await this.itemRetrievalService!.getSpecById(options.id);
+
+    if (!spec) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: `Spec not found: ${options.id}` }));
+      } else {
+        ora().fail(`Spec not found: ${options.id}`);
+      }
+      process.exitCode = 1;
+      return;
+    }
+
+    const tasks = await this.itemRetrievalService!.getTasksForSpec(options.id);
+
+    if (tasks.length === 0) {
+      if (options.json) {
+        console.log(JSON.stringify({
+          specId: options.id,
+          completedTasks: [],
+          skippedTasks: [],
+        }, null, 2));
+      } else {
+        ora().info(`No tasks found for spec: ${options.id}`);
+      }
+      return;
+    }
+
+    const completedTasks: TaskCompletionResult[] = [];
+    const skippedTasks: string[] = [];
+
+    for (const task of tasks) {
+      const content = await fs.readFile(task.filepath, 'utf-8');
+      const status = parseStatus(content);
+
+      if (status === 'done') {
+        skippedTasks.push(getTaskId(task));
+        continue;
+      }
+
+      const completedItems = await completeTaskFully(task.filepath);
+      completedTasks.push({
+        taskId: getTaskId(task),
+        name: task.name,
+        previousStatus: status,
+        completedItems,
+      });
+    }
+
+    if (options.json) {
+      console.log(JSON.stringify({
+        specId: options.id,
+        completedTasks,
+        skippedTasks,
+      }, null, 2));
+    } else {
+      if (completedTasks.length > 0) {
+        console.log(chalk.green(`\n✓ Completed ${completedTasks.length} task(s) in spec: ${options.id}`));
+        for (const task of completedTasks) {
+          console.log(chalk.dim(`    • ${task.taskId}`));
+        }
+      }
+
+      if (skippedTasks.length > 0) {
+        console.log(chalk.yellow(`\n⚠ Skipped ${skippedTasks.length} already-complete task(s):`));
+        for (const taskId of skippedTasks) {
+          console.log(chalk.dim(`    • ${taskId}`));
+        }
+      }
+
+      if (completedTasks.length === 0 && skippedTasks.length > 0) {
+        console.log(chalk.yellow('\nAll tasks in this spec were already complete.'));
       }
 
       console.log();

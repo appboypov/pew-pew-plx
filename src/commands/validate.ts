@@ -12,6 +12,7 @@ import { nearestMatches } from '../utils/match.js';
 import { migrateIfNeeded } from '../utils/task-migration.js';
 import { getFilteredWorkspaces } from '../utils/workspace-filter.js';
 import { isMultiWorkspace } from '../utils/workspace-discovery.js';
+import { emitDeprecationWarning } from '../utils/deprecation.js';
 
 type ItemType = 'change' | 'spec';
 
@@ -39,11 +40,33 @@ interface BulkItemResult {
 }
 
 export class ValidateCommand {
+  async validateChange(id: string, options: { strict?: boolean; json?: boolean; concurrency?: string; noInteractive?: boolean } = {}): Promise<void> {
+    await this.validateByTypeWithDiscovery('change', id, { strict: !!options.strict, json: !!options.json });
+  }
+
+  async validateChanges(options: { strict?: boolean; json?: boolean; concurrency?: string; noInteractive?: boolean } = {}): Promise<void> {
+    await this.runBulkValidation({ changes: true, specs: false }, { strict: !!options.strict, json: !!options.json, concurrency: options.concurrency, noInteractive: !!options.noInteractive });
+  }
+
+  async validateSpec(id: string, options: { strict?: boolean; json?: boolean; concurrency?: string; noInteractive?: boolean } = {}): Promise<void> {
+    await this.validateByTypeWithDiscovery('spec', id, { strict: !!options.strict, json: !!options.json });
+  }
+
+  async validateSpecs(options: { strict?: boolean; json?: boolean; concurrency?: string; noInteractive?: boolean } = {}): Promise<void> {
+    await this.runBulkValidation({ changes: false, specs: true }, { strict: !!options.strict, json: !!options.json, concurrency: options.concurrency, noInteractive: !!options.noInteractive });
+  }
+
   async execute(itemName: string | undefined, options: ExecuteOptions = {}): Promise<void> {
     const interactive = isInteractive(options);
 
     // Handle bulk flags first
     if (options.all || options.changes || options.specs) {
+      if (options.changes) {
+        emitDeprecationWarning('plx validate --changes', 'plx validate changes');
+      }
+      if (options.specs) {
+        emitDeprecationWarning('plx validate --specs', 'plx validate specs');
+      }
       await this.runBulkValidation({
         changes: !!options.all || !!options.changes,
         specs: !!options.all || !!options.specs,
@@ -62,9 +85,10 @@ export class ValidateCommand {
       return;
     }
 
-    // Direct item validation with type detection or override
-    const typeOverride = this.normalizeType(options.type);
-    await this.validateDirectItem(itemName, { typeOverride, strict: !!options.strict, json: !!options.json });
+    // Direct item validation with type detection or override (no longer supported)
+    console.error('Error: The plx validate <item> syntax is no longer supported.');
+    console.error('Use: plx validate change --id <id> or plx validate spec --id <id>');
+    process.exitCode = 1;
   }
 
   private normalizeType(value?: string): ItemType | undefined {
@@ -72,6 +96,53 @@ export class ValidateCommand {
     const v = value.toLowerCase();
     if (v === 'change' || v === 'spec') return v;
     return undefined;
+  }
+
+  private async validateByTypeWithDiscovery(type: ItemType, id: string, opts: { strict: boolean; json: boolean }): Promise<void> {
+    const workspaces = await getFilteredWorkspaces();
+    const isMulti = isMultiWorkspace(workspaces);
+
+    const slashIndex = id.indexOf('/');
+    let projectPrefix: string | null = null;
+    let actualId = id;
+
+    if (slashIndex !== -1) {
+      const potentialPrefix = id.substring(0, slashIndex);
+      if (workspaces.some(w => w.projectName.toLowerCase() === potentialPrefix.toLowerCase())) {
+        projectPrefix = potentialPrefix;
+        actualId = id.substring(slashIndex + 1);
+      }
+    }
+
+    const items = type === 'change'
+      ? await getActiveChangeIdsMulti(workspaces)
+      : await getSpecIdsMulti(workspaces);
+
+    const matchingItems = items.filter(item =>
+      item.id === actualId &&
+      (projectPrefix === null || item.projectName.toLowerCase() === projectPrefix.toLowerCase())
+    );
+
+    if (projectPrefix === null && matchingItems.length > 1) {
+      const workspaceNames = matchingItems.map(item => item.displayId).join(', ');
+      console.error(`Ambiguous ${type} '${id}' exists in multiple workspaces: ${workspaceNames}`);
+      console.error(`Specify the workspace prefix, e.g.: plx validate ${type} --id <workspace>/<id>`);
+      process.exitCode = 1;
+      return;
+    }
+
+    const matchedItem = matchingItems[0];
+
+    if (!matchedItem) {
+      console.error(`Unknown ${type} '${id}'`);
+      const allIds = items.map(item => isMulti ? item.displayId : item.id);
+      const suggestions = nearestMatches(id, allIds);
+      if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
+      process.exitCode = 1;
+      return;
+    }
+
+    await this.validateByType(type, actualId, opts, matchedItem.workspacePath, matchedItem.displayId);
   }
 
   private async runInteractiveSelector(opts: { strict: boolean; json: boolean; concurrency?: string }): Promise<void> {
@@ -120,7 +191,8 @@ export class ValidateCommand {
     console.error('  plx validate --all');
     console.error('  plx validate --changes');
     console.error('  plx validate --specs');
-    console.error('  plx validate <item-name>');
+    console.error('  plx validate change --id <id>');
+    console.error('  plx validate spec --id <id>');
     console.error('Or run in an interactive terminal.');
   }
 

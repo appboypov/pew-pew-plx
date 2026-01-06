@@ -20,6 +20,9 @@ import { UndoCommand } from '../commands/undo.js';
 import { ParseFeedbackCommand } from '../commands/parse-feedback.js';
 import { ReviewCommand } from '../commands/review.js';
 import { PasteCommand } from '../commands/paste.js';
+import { CreateCommand } from '../commands/create.js';
+import { MigrateCommand } from '../commands/migrate.js';
+import { emitDeprecationWarning } from '../utils/deprecation.js';
 
 // Import command name detection utility
 import { commandName } from '../utils/command-name.js';
@@ -36,6 +39,7 @@ program
 // Global options
 program.option('--no-color', 'Disable color output');
 program.option('--workspace <name>', 'Filter operations to a specific workspace');
+program.option('--no-deprecation-warnings', 'Suppress deprecation warnings');
 
 // Apply global flags before any command runs
 program.hook('preAction', (thisCommand) => {
@@ -45,6 +49,9 @@ program.hook('preAction', (thisCommand) => {
   }
   if (opts.workspace) {
     process.env.PLX_WORKSPACE_FILTER = opts.workspace;
+  }
+  if (opts.deprecationWarnings === false) {
+    process.env.PLX_NO_DEPRECATION_WARNINGS = '1';
   }
 });
 
@@ -156,6 +163,7 @@ changeCmd
   .option('--no-interactive', 'Disable interactive prompts')
   .action(async (changeName?: string, options?: { json?: boolean; requirementsOnly?: boolean; deltasOnly?: boolean; noInteractive?: boolean }) => {
     try {
+      emitDeprecationWarning('plx change show <id>', 'plx get change --id <id>');
       const changeCommand = new ChangeCommand();
       await changeCommand.show(changeName, options);
     } catch (error) {
@@ -166,12 +174,12 @@ changeCmd
 
 changeCmd
   .command('list')
-  .description('List all active changes (DEPRECATED: use "plx list" instead)')
+  .description('List all active changes (DEPRECATED: use "plx get changes" instead)')
   .option('--json', 'Output as JSON')
   .option('--long', 'Show id and title with counts')
   .action(async (options?: { json?: boolean; long?: boolean }) => {
     try {
-      console.error('Warning: "plx change list" is deprecated. Use "plx list".');
+      emitDeprecationWarning('plx change list', 'plx get changes');
       const changeCommand = new ChangeCommand();
       await changeCommand.list(options);
     } catch (error) {
@@ -188,6 +196,7 @@ changeCmd
   .option('--no-interactive', 'Disable interactive prompts')
   .action(async (changeName?: string, options?: { strict?: boolean; json?: boolean; noInteractive?: boolean }) => {
     try {
+      emitDeprecationWarning('plx change validate <id>', 'plx validate change --id <id>');
       const changeCommand = new ChangeCommand();
       await changeCommand.validate(changeName, options);
       if (typeof process.exitCode === 'number' && process.exitCode !== 0) {
@@ -199,20 +208,63 @@ changeCmd
     }
   });
 
-program
+// Archive command with subcommands
+const archiveCmd = program
   .command('archive [item-name]')
   .description('Archive a completed change or review and update main specs')
   .option('-y, --yes', 'Skip confirmation prompts')
   .option('--skip-specs', 'Skip spec update operations (useful for infrastructure, tooling, or doc-only changes)')
   .option('--no-validate', 'Skip validation (not recommended, requires confirmation)')
-  .option('--type <type>', 'Specify item type when ambiguous: change|review')
+  .option('--type <type>', 'Specify item type when ambiguous: change|review (DEPRECATED)')
   .action(async (itemName?: string, options?: { yes?: boolean; skipSpecs?: boolean; noValidate?: boolean; validate?: boolean; type?: string }) => {
     try {
+      if (itemName) {
+        emitDeprecationWarning('plx archive <id>', 'plx archive change --id <id> or plx archive review --id <id>');
+      }
+      if (options?.type) {
+        emitDeprecationWarning('plx archive --type <type>', 'plx archive change --id <id> or plx archive review --id <id>');
+      }
       const archiveCommand = new ArchiveCommand();
       const entityType = options?.type as 'change' | 'review' | undefined;
       await archiveCommand.execute(itemName, { ...options, type: entityType });
     } catch (error) {
-      console.log(); // Empty line for spacing
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+archiveCmd
+  .command('change')
+  .description('Archive a completed change and update main specs')
+  .requiredOption('--id <id>', 'Change ID to archive')
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .option('--skip-specs', 'Skip spec update operations (useful for infrastructure, tooling, or doc-only changes)')
+  .option('--no-validate', 'Skip validation (not recommended, requires confirmation)')
+  .action(async (options: { id: string; yes?: boolean; skipSpecs?: boolean; noValidate?: boolean; validate?: boolean }) => {
+    try {
+      const archiveCommand = new ArchiveCommand();
+      await archiveCommand.archiveChangeById(options.id, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+archiveCmd
+  .command('review')
+  .description('Archive a completed review and update main specs')
+  .requiredOption('--id <id>', 'Review ID to archive')
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .option('--skip-specs', 'Skip spec update operations (useful for infrastructure, tooling, or doc-only changes)')
+  .option('--no-validate', 'Skip validation (not recommended, requires confirmation)')
+  .action(async (options: { id: string; yes?: boolean; skipSpecs?: boolean; noValidate?: boolean; validate?: boolean }) => {
+    try {
+      const archiveCommand = new ArchiveCommand();
+      await archiveCommand.archiveReviewById(options.id, options);
+    } catch (error) {
+      console.log();
       ora().fail(`Error: ${(error as Error).message}`);
       process.exit(1);
     }
@@ -221,22 +273,96 @@ program
 registerSpecCommand(program);
 registerConfigCommand(program);
 
-// Top-level validate command
-program
-  .command('validate [item-name]')
-  .description('Validate changes and specs')
-  .option('--all', 'Validate all changes and specs')
-  .option('--changes', 'Validate all changes')
-  .option('--specs', 'Validate all specs')
-  .option('--type <type>', 'Specify item type when ambiguous: change|spec')
+// Top-level validate command with subcommands
+const validateCmd = program
+  .command('validate')
+  .description('Validate changes and specs');
+
+validateCmd
+  .command('all')
+  .description('Validate all changes and specs')
   .option('--strict', 'Enable strict validation mode')
   .option('--json', 'Output validation results as JSON')
   .option('--concurrency <n>', 'Max concurrent validations (defaults to env PLX_CONCURRENCY or 6)')
   .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (itemName?: string, options?: { all?: boolean; changes?: boolean; specs?: boolean; type?: string; strict?: boolean; json?: boolean; noInteractive?: boolean; concurrency?: string }) => {
+  .action(async (options?: { strict?: boolean; json?: boolean; concurrency?: string; noInteractive?: boolean }) => {
     try {
       const validateCommand = new ValidateCommand();
-      await validateCommand.execute(itemName, options);
+      await validateCommand.execute(undefined, { ...options, all: true });
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+validateCmd
+  .command('change')
+  .description('Validate a specific change')
+  .requiredOption('--id <id>', 'Change ID to validate')
+  .option('--strict', 'Enable strict validation mode')
+  .option('--json', 'Output validation results as JSON')
+  .option('--concurrency <n>', 'Max concurrent validations (defaults to env PLX_CONCURRENCY or 6)')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (options: { id: string; strict?: boolean; json?: boolean; concurrency?: string; noInteractive?: boolean }) => {
+    try {
+      const validateCommand = new ValidateCommand();
+      await validateCommand.validateChange(options.id, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+validateCmd
+  .command('changes')
+  .description('Validate all changes')
+  .option('--strict', 'Enable strict validation mode')
+  .option('--json', 'Output validation results as JSON')
+  .option('--concurrency <n>', 'Max concurrent validations (defaults to env PLX_CONCURRENCY or 6)')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (options?: { strict?: boolean; json?: boolean; concurrency?: string; noInteractive?: boolean }) => {
+    try {
+      const validateCommand = new ValidateCommand();
+      await validateCommand.validateChanges(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+validateCmd
+  .command('spec')
+  .description('Validate a specific spec')
+  .requiredOption('--id <id>', 'Spec ID to validate')
+  .option('--strict', 'Enable strict validation mode')
+  .option('--json', 'Output validation results as JSON')
+  .option('--concurrency <n>', 'Max concurrent validations (defaults to env PLX_CONCURRENCY or 6)')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (options: { id: string; strict?: boolean; json?: boolean; concurrency?: string; noInteractive?: boolean }) => {
+    try {
+      const validateCommand = new ValidateCommand();
+      await validateCommand.validateSpec(options.id, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+validateCmd
+  .command('specs')
+  .description('Validate all specs')
+  .option('--strict', 'Enable strict validation mode')
+  .option('--json', 'Output validation results as JSON')
+  .option('--concurrency <n>', 'Max concurrent validations (defaults to env PLX_CONCURRENCY or 6)')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (options?: { strict?: boolean; json?: boolean; concurrency?: string; noInteractive?: boolean }) => {
+    try {
+      const validateCommand = new ValidateCommand();
+      await validateCommand.validateSpecs(options);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);
@@ -363,7 +489,8 @@ getCmd
   .description('Retrieve a change proposal by ID')
   .requiredOption('--id <id>', 'Change ID to retrieve')
   .option('--json', 'Output as JSON')
-  .action(async (options: { id: string; json?: boolean }) => {
+  .option('--deltas-only', 'Show only deltas (JSON only)')
+  .action(async (options: { id: string; json?: boolean; deltasOnly?: boolean }) => {
     try {
       const getCommand = new GetCommand();
       await getCommand.change(options);
@@ -379,7 +506,10 @@ getCmd
   .description('Retrieve a spec by ID')
   .requiredOption('--id <id>', 'Spec ID to retrieve')
   .option('--json', 'Output as JSON')
-  .action(async (options: { id: string; json?: boolean }) => {
+  .option('--requirements', 'JSON only: Show only requirements (exclude scenarios)')
+  .option('--no-scenarios', 'JSON only: Exclude scenario content')
+  .option('-r, --requirement <id>', 'JSON only: Show specific requirement by ID (1-based)')
+  .action(async (options: { id: string; json?: boolean; requirements?: boolean; scenarios?: boolean; requirement?: string }) => {
     try {
       const getCommand = new GetCommand();
       await getCommand.spec(options);
@@ -392,13 +522,78 @@ getCmd
 
 getCmd
   .command('tasks')
-  .description('List all open tasks or tasks for a specific change')
-  .option('--id <id>', 'List tasks for a specific change')
+  .description('List all open tasks or tasks for a specific parent')
+  .option('--parent-id <id>', 'List tasks for a specific parent (change/review/spec)')
+  .option('--id <id>', 'List tasks for a specific parent (deprecated, use --parent-id)')
+  .option('--parent-type <type>', 'Filter by parent type: change, review, or spec')
   .option('--json', 'Output as JSON')
-  .action(async (options?: { id?: string; json?: boolean }) => {
+  .action(async (options?: { parentId?: string; id?: string; parentType?: string; json?: boolean }) => {
     try {
       const getCommand = new GetCommand();
-      await getCommand.tasks(options);
+      const parentId = options?.parentId || options?.id;
+      const parentType = options?.parentType as 'change' | 'review' | 'spec' | undefined;
+      await getCommand.tasks({ parentId, parentType, json: options?.json });
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+getCmd
+  .command('changes')
+  .description('List all active changes')
+  .option('--json', 'Output as JSON')
+  .action(async (options?: { json?: boolean }) => {
+    try {
+      const getCommand = new GetCommand();
+      await getCommand.changes(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+getCmd
+  .command('specs')
+  .description('List all specs')
+  .option('--json', 'Output as JSON')
+  .action(async (options?: { json?: boolean }) => {
+    try {
+      const getCommand = new GetCommand();
+      await getCommand.specs(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+getCmd
+  .command('reviews')
+  .description('List all active reviews')
+  .option('--json', 'Output as JSON')
+  .action(async (options?: { json?: boolean }) => {
+    try {
+      const getCommand = new GetCommand();
+      await getCommand.reviews(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+getCmd
+  .command('review')
+  .description('Retrieve a review by ID')
+  .requiredOption('--id <id>', 'Review ID to retrieve')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const getCommand = new GetCommand();
+      await getCommand.review(options);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);
@@ -443,6 +638,38 @@ completeCmd
     }
   });
 
+completeCmd
+  .command('review')
+  .description('Mark all tasks in a review as complete')
+  .requiredOption('--id <id>', 'Review ID to complete')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const completeCommand = new CompleteCommand();
+      await completeCommand.review(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+completeCmd
+  .command('spec')
+  .description('Mark all tasks in a spec as complete')
+  .requiredOption('--id <id>', 'Spec ID to complete')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const completeCommand = new CompleteCommand();
+      await completeCommand.spec(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 // Undo command with subcommands
 const undoCmd = program
   .command('undo')
@@ -480,6 +707,38 @@ undoCmd
     }
   });
 
+undoCmd
+  .command('review')
+  .description('Revert all tasks in a review to to-do status')
+  .requiredOption('--id <id>', 'Review ID to undo')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const undoCommand = new UndoCommand();
+      await undoCommand.review(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+undoCmd
+  .command('spec')
+  .description('Revert all tasks in a spec to to-do status')
+  .requiredOption('--id <id>', 'Spec ID to undo')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { id: string; json?: boolean }) => {
+    try {
+      const undoCommand = new UndoCommand();
+      await undoCommand.spec(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 // Parse command with subcommands
 const parseCmd = program
   .command('parse')
@@ -488,12 +747,14 @@ const parseCmd = program
 parseCmd
   .command('feedback [review-name]')
   .description('Scan codebase for feedback markers and generate review tasks')
-  .option('--change-id <id>', 'Link review to a change')
-  .option('--spec-id <id>', 'Link review to a spec')
-  .option('--task-id <id>', 'Link review to a task')
+  .option('--parent-id <id>', 'Link review to a parent (change/spec/task)')
+  .option('--parent-type <type>', 'Specify parent type: change, spec, or task (optional if ID is unambiguous)')
+  .option('--change-id <id>', 'Link review to a change (DEPRECATED: use --parent-id)')
+  .option('--spec-id <id>', 'Link review to a spec (DEPRECATED: use --parent-id)')
+  .option('--task-id <id>', 'Link review to a task (DEPRECATED: use --parent-id)')
   .option('--json', 'Output as JSON')
   .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (reviewName?: string, options?: { changeId?: string; specId?: string; taskId?: string; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
+  .action(async (reviewName?: string, options?: { parentId?: string; parentType?: string; changeId?: string; specId?: string; taskId?: string; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
     try {
       const command = new ParseFeedbackCommand();
       await command.execute(reviewName, options);
@@ -504,19 +765,81 @@ parseCmd
     }
   });
 
-// Review command (verb-first)
-program
+// Review command with subcommands
+const reviewCmd = program
   .command('review')
   .description('Output review context for a change, spec, or task')
-  .option('--change-id <id>', 'Review a change')
-  .option('--spec-id <id>', 'Review a spec')
-  .option('--task-id <id>', 'Review a task')
+  .option('--change-id <id>', 'Review a change (DEPRECATED: use "plx review change --id <id>")')
+  .option('--spec-id <id>', 'Review a spec (DEPRECATED: use "plx review spec --id <id>")')
+  .option('--task-id <id>', 'Review a task (DEPRECATED: use "plx review task --id <id>")')
   .option('--json', 'Output as JSON')
   .option('--no-interactive', 'Disable interactive prompts')
   .action(async (options?: { changeId?: string; specId?: string; taskId?: string; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
     try {
+      // Emit deprecation warnings for legacy flags
+      if (options?.changeId) {
+        emitDeprecationWarning('plx review --change-id <id>', 'plx review change --id <id>');
+      }
+      if (options?.specId) {
+        emitDeprecationWarning('plx review --spec-id <id>', 'plx review spec --id <id>');
+      }
+      if (options?.taskId) {
+        emitDeprecationWarning('plx review --task-id <id>', 'plx review task --id <id>');
+      }
+
       const command = new ReviewCommand();
       await command.execute(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+reviewCmd
+  .command('change')
+  .description('Review a change proposal')
+  .requiredOption('--id <id>', 'Change ID to review')
+  .option('--json', 'Output as JSON')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (options: { id: string; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
+    try {
+      const command = new ReviewCommand();
+      await command.reviewChange(options.id, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+reviewCmd
+  .command('spec')
+  .description('Review a specification')
+  .requiredOption('--id <id>', 'Spec ID to review')
+  .option('--json', 'Output as JSON')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (options: { id: string; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
+    try {
+      const command = new ReviewCommand();
+      await command.reviewSpec(options.id, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+reviewCmd
+  .command('task')
+  .description('Review a task')
+  .requiredOption('--id <id>', 'Task ID to review')
+  .option('--json', 'Output as JSON')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (options: { id: string; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
+    try {
+      const command = new ReviewCommand();
+      await command.reviewTask(options.id, options);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);
@@ -537,6 +860,153 @@ pasteCmd
     try {
       const pasteCommand = new PasteCommand();
       await pasteCommand.request(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+pasteCmd
+  .command('task')
+  .description('Paste clipboard content as a new task')
+  .option('--parent-id <id>', 'Link task to a parent (change or review)')
+  .option('--parent-type <type>', 'Specify parent type: change or review')
+  .option('--skill-level <level>', 'Task skill level: junior, medior, or senior')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { parentId?: string; parentType?: string; skillLevel?: string; json?: boolean }) => {
+    try {
+      const pasteCommand = new PasteCommand();
+      await pasteCommand.task({
+        parentId: options.parentId,
+        parentType: options.parentType as 'change' | 'review' | 'spec' | undefined,
+        skillLevel: options.skillLevel as 'junior' | 'medior' | 'senior' | undefined,
+        json: options.json,
+      });
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+pasteCmd
+  .command('change')
+  .description('Paste clipboard content as a new change proposal')
+  .option('--json', 'Output as JSON')
+  .action(async (options?: { json?: boolean }) => {
+    try {
+      const pasteCommand = new PasteCommand();
+      await pasteCommand.change(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+pasteCmd
+  .command('spec')
+  .description('Paste clipboard content as a new specification')
+  .option('--json', 'Output as JSON')
+  .action(async (options?: { json?: boolean }) => {
+    try {
+      const pasteCommand = new PasteCommand();
+      await pasteCommand.spec(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Create command with subcommands
+const createCmd = program
+  .command('create')
+  .description('Create new project artifacts');
+
+createCmd
+  .command('task <title>')
+  .description('Create a new task')
+  .option('--parent-id <id>', 'Link task to a parent (change or review)')
+  .option('--parent-type <type>', 'Specify parent type: change or review')
+  .option('--skill-level <level>', 'Task skill level: junior, medior, or senior')
+  .option('--json', 'Output as JSON')
+  .action(async (title: string, options: { parentId?: string; parentType?: string; skillLevel?: string; json?: boolean }) => {
+    try {
+      const createCommand = new CreateCommand();
+      await createCommand.createTask(title, {
+        parentId: options.parentId,
+        parentType: options.parentType as 'change' | 'review' | 'spec' | undefined,
+        skillLevel: options.skillLevel as 'junior' | 'medior' | 'senior' | undefined,
+        json: options.json,
+      });
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+createCmd
+  .command('change <name>')
+  .description('Create a new change proposal')
+  .option('--json', 'Output as JSON')
+  .action(async (name: string, options: { json?: boolean }) => {
+    try {
+      const createCommand = new CreateCommand();
+      await createCommand.createChange(name, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+createCmd
+  .command('spec <name>')
+  .description('Create a new specification')
+  .option('--json', 'Output as JSON')
+  .action(async (name: string, options: { json?: boolean }) => {
+    try {
+      const createCommand = new CreateCommand();
+      await createCommand.createSpec(name, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+createCmd
+  .command('request <description>')
+  .description('Create a new request')
+  .option('--json', 'Output as JSON')
+  .action(async (description: string, options: { json?: boolean }) => {
+    try {
+      const createCommand = new CreateCommand();
+      await createCommand.createRequest(description, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Migrate command with subcommands
+const migrateCmd = program
+  .command('migrate')
+  .description('Migration commands');
+
+migrateCmd
+  .command('tasks')
+  .description('Migrate nested tasks to centralized storage')
+  .option('--dry-run', 'Preview changes without executing')
+  .option('--json', 'Output results as JSON')
+  .action(async (options?: { dryRun?: boolean; json?: boolean }) => {
+    try {
+      const migrateCommand = new MigrateCommand();
+      await migrateCommand.tasks(options);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);

@@ -209,7 +209,7 @@ describe('InitCommand', () => {
       expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
       expect(archiveContent).toContain('auto_execution_mode: 3');
       expect(archiveContent).toContain('<!-- PLX:START -->');
-      expect(archiveContent).toContain('Run `plx archive <id> --yes`');
+      expect(archiveContent).toContain('Run `plx archive change --id <id> --yes`');
     });
 
     it('should create Antigravity workflows when Antigravity is selected', async () => {
@@ -251,7 +251,7 @@ describe('InitCommand', () => {
       expect(archiveContent).toContain('---');
       expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
       expect(archiveContent).toContain('<!-- PLX:START -->');
-      expect(archiveContent).toContain('Run `plx archive <id> --yes`');
+      expect(archiveContent).toContain('Run `plx archive change --id <id> --yes`');
       expect(archiveContent).not.toContain('auto_execution_mode');
     });
 
@@ -308,7 +308,7 @@ describe('InitCommand', () => {
 
       const archiveContent = await fs.readFile(claudeArchive, 'utf-8');
       expect(archiveContent).toContain('name: Pew Pew Plx: Archive');
-      expect(archiveContent).toContain('plx archive <id>');
+      expect(archiveContent).toContain('plx archive change --id <id>');
       expect(archiveContent).toContain(
         '`--skip-specs` only for tooling-only work'
       );
@@ -373,7 +373,7 @@ describe('InitCommand', () => {
 
       const archiveContent = await fs.readFile(cursorArchive, 'utf-8');
       expect(archiveContent).toContain('name: /plx-archive');
-      expect(archiveContent).toContain('plx list --specs');
+      expect(archiveContent).toContain('plx get specs');
     });
 
     it('should create Gemini CLI TOML files when selected', async () => {
@@ -464,7 +464,7 @@ describe('InitCommand', () => {
 
       const archiveContent = await fs.readFile(iflowArchive, 'utf-8');
       expect(archiveContent).toContain('description: Archive a deployed Pew Pew Plx change and update specs.');
-      expect(archiveContent).toContain('plx archive <id>');
+      expect(archiveContent).toContain('plx archive change --id <id>');
     });
 
     it('should update existing IFLOW.md with markers', async () => {
@@ -524,7 +524,7 @@ describe('InitCommand', () => {
       expect(archiveContent).toContain(
         'description: Archive a deployed PLX change and update specs.'
       );
-      expect(archiveContent).toContain('plx list --specs');
+      expect(archiveContent).toContain('plx get specs');
     });
 
     it('should create Qwen configuration and slash command files with templates', async () => {
@@ -612,7 +612,7 @@ describe('InitCommand', () => {
       const archiveContent = await fs.readFile(clineArchive, 'utf-8');
       expect(archiveContent).toContain('# PLX: Archive');
       expect(archiveContent).toContain('Archive a deployed PLX change and update specs.');
-      expect(archiveContent).toContain('plx archive <id>');
+      expect(archiveContent).toContain('plx archive change --id <id>');
     });
 
     it('should create Factory slash command files with templates', async () => {
@@ -659,7 +659,7 @@ describe('InitCommand', () => {
       const archiveContent = await fs.readFile(factoryArchive, 'utf-8');
       expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
       expect(archiveContent).toContain('argument-hint: change-id');
-      expect(archiveContent).toContain('plx archive <id> --yes');
+      expect(archiveContent).toContain('plx archive change --id <id> --yes');
       expect(
         /<!-- PLX:START -->([\s\S]*?)<!-- PLX:END -->/u.exec(
           archiveContent
@@ -705,7 +705,7 @@ describe('InitCommand', () => {
       expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
       expect(archiveContent).toContain('argument-hint: change-id');
       expect(archiveContent).toContain('$ARGUMENTS');
-      expect(archiveContent).toContain('plx archive <id> --yes');
+      expect(archiveContent).toContain('plx archive change --id <id> --yes');
     });
 
     it('should create Kilo Code workflows with templates', async () => {
@@ -739,7 +739,7 @@ describe('InitCommand', () => {
       expect(implementContent).not.toContain('---\n');
 
       const archiveContent = await fs.readFile(archivePath, 'utf-8');
-      expect(archiveContent).toContain('plx list --specs');
+      expect(archiveContent).toContain('plx get specs');
       expect(archiveContent).not.toContain('---\n');
     });
 
@@ -781,7 +781,7 @@ describe('InitCommand', () => {
       expect(archiveContent).toContain('---');
       expect(archiveContent).toContain('description: Archive a deployed PLX change and update specs.');
       expect(archiveContent).toContain('$ARGUMENTS');
-      expect(archiveContent).toContain('plx archive <id> --yes');
+      expect(archiveContent).toContain('plx archive change --id <id> --yes');
     });
 
     it('should add new tool when PLX already exists', async () => {
@@ -1079,7 +1079,7 @@ describe('InitCommand', () => {
       expect(archiveContent).toContain('---');
       expect(archiveContent).toContain('description: Archive a deployed Pew Pew Plx change and update specs.');
       expect(archiveContent).toContain('argument-hint: change-id');
-      expect(archiveContent).toContain('plx archive <id> --yes');
+      expect(archiveContent).toContain('plx archive change --id <id> --yes');
     });
 
     it('should mark Auggie as already configured during extend mode', async () => {
@@ -1133,7 +1133,7 @@ describe('InitCommand', () => {
       expect(archiveContent).toContain('---');
       expect(archiveContent).toContain('name: Pew Pew Plx: Archive');
       expect(archiveContent).toContain('description: Archive a deployed Pew Pew Plx change and update specs.');
-      expect(archiveContent).toContain('plx archive <id> --yes');
+      expect(archiveContent).toContain('plx archive change --id <id> --yes');
     });
 
     it('should mark CodeBuddy as already configured during extend mode', async () => {
@@ -1225,7 +1225,7 @@ describe('InitCommand', () => {
       expect(archiveContent).toContain('description: Archive a deployed Pew Pew Plx change and update specs.');
       expect(archiveContent).toContain('category: Pew Pew Plx');
       expect(archiveContent).toContain('tags: [plx, archive]');
-      expect(archiveContent).toContain('plx archive <id> --yes');
+      expect(archiveContent).toContain('plx archive change --id <id> --yes');
     });
 
     it('should mark Crush as already configured during extend mode', async () => {
@@ -1310,7 +1310,7 @@ describe('InitCommand', () => {
 
       const archiveContent = await fs.readFile(rooArchive, 'utf-8');
       expect(archiveContent).toContain('# PLX: Archive');
-      expect(archiveContent).toContain('plx archive <id> --yes');
+      expect(archiveContent).toContain('plx archive change --id <id> --yes');
     });
 
     it('should mark RooCode as already configured during extend mode', async () => {
@@ -1364,7 +1364,7 @@ describe('InitCommand', () => {
       expect(archiveContent).toContain('---');
       expect(archiveContent).toContain('name: Pew Pew Plx: Archive');
       expect(archiveContent).toContain('description: Archive a deployed Pew Pew Plx change and update specs.');
-      expect(archiveContent).toContain('plx archive <id> --yes');
+      expect(archiveContent).toContain('plx archive change --id <id> --yes');
     });
 
     it('should mark Qoder as already configured during extend mode', async () => {

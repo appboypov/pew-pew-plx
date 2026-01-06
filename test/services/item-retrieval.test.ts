@@ -3,30 +3,50 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { ItemRetrievalService } from '../../src/services/item-retrieval.js';
+import { DiscoveredWorkspace } from '../../src/utils/workspace-discovery.js';
 
 describe('ItemRetrievalService', () => {
   let tempDir: string;
+  let workspacePath: string;
+  let workspace: DiscoveredWorkspace;
   let service: ItemRetrievalService;
 
   beforeEach(async () => {
     tempDir = path.join(os.tmpdir(), `plx-item-retrieval-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
 
-    // Create workspace structure
-    const changesDir = path.join(tempDir, 'workspace', 'changes');
-    const specsDir = path.join(tempDir, 'workspace', 'specs');
+    // Create workspace structure with centralized tasks directory
+    workspacePath = path.join(tempDir, 'workspace');
+    const changesDir = path.join(workspacePath, 'changes');
+    const specsDir = path.join(workspacePath, 'specs');
+    const tasksDir = path.join(workspacePath, 'tasks');
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(specsDir, { recursive: true });
+    await fs.mkdir(tasksDir, { recursive: true });
 
-    service = new ItemRetrievalService(tempDir);
+    // Create AGENTS.md to make it a valid workspace
+    await fs.writeFile(path.join(workspacePath, 'AGENTS.md'), '# Agents');
+
+    workspace = {
+      path: workspacePath,
+      relativePath: '.',
+      projectName: '',
+      isRoot: true,
+    };
+
+    service = await ItemRetrievalService.create(tempDir, [workspace]);
   });
 
   afterEach(async () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  async function createChange(changeId: string, proposal: string, design?: string) {
-    const changeDir = path.join(tempDir, 'workspace', 'changes', changeId);
+  async function createChange(
+    changeId: string,
+    proposal: string,
+    design?: string
+  ) {
+    const changeDir = path.join(workspacePath, 'changes', changeId);
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'proposal.md'), proposal);
     if (design) {
@@ -34,67 +54,83 @@ describe('ItemRetrievalService', () => {
     }
   }
 
-  async function createTask(changeId: string, filename: string, content: string) {
-    const tasksDir = path.join(tempDir, 'workspace', 'changes', changeId, 'tasks');
-    await fs.mkdir(tasksDir, { recursive: true });
+  async function createCentralizedTask(
+    filename: string,
+    content: string
+  ): Promise<void> {
+    const tasksDir = path.join(workspacePath, 'tasks');
     await fs.writeFile(path.join(tasksDir, filename), content);
   }
 
   async function createSpec(specId: string, content: string) {
-    const specDir = path.join(tempDir, 'workspace', 'specs', specId);
+    const specDir = path.join(workspacePath, 'specs', specId);
     await fs.mkdir(specDir, { recursive: true });
     await fs.writeFile(path.join(specDir, 'spec.md'), content);
   }
 
+  async function createReview(reviewId: string, content: string) {
+    const reviewDir = path.join(workspacePath, 'reviews', reviewId);
+    await fs.mkdir(reviewDir, { recursive: true });
+    await fs.writeFile(path.join(reviewDir, 'review.md'), content);
+  }
+
   describe('getTaskById', () => {
-    it('should find task by full ID (changeId/taskFilename)', async () => {
-      await createChange('my-change', '# Proposal');
-      await createTask('my-change', '001-implement.md', `---
+    it('should find task by filename in centralized tasks directory', async () => {
+      await createCentralizedTask(
+        '001-implement.md',
+        `---
 status: to-do
 ---
 
-# Task: Implement`);
+# Task: Implement`
+      );
 
-      const result = await service.getTaskById('my-change/001-implement');
+      const result = await service.getTaskById('001-implement');
       expect(result).not.toBeNull();
-      expect(result!.changeId).toBe('my-change');
       expect(result!.task.sequence).toBe(1);
       expect(result!.task.name).toBe('implement');
       expect(result!.content).toContain('# Task: Implement');
     });
 
-    it('should find task by short ID (searches all changes)', async () => {
-      await createChange('first-change', '# First');
-      await createChange('second-change', '# Second');
-      await createTask('second-change', '002-review.md', `---
+    it('should find parented task and include parent info', async () => {
+      await createChange('my-change', '# Proposal');
+      await createCentralizedTask(
+        '001-my-change-implement.md',
+        `---
 status: in-progress
+parent-type: change
+parent-id: my-change
 ---
 
-# Task: Review`);
+# Task: Implement for my-change`
+      );
 
-      const result = await service.getTaskById('002-review');
+      const result = await service.getTaskById('001-my-change-implement');
       expect(result).not.toBeNull();
-      expect(result!.changeId).toBe('second-change');
-      expect(result!.task.name).toBe('review');
+      expect(result!.changeId).toBe('my-change');
+      expect(result!.task.name).toBe('implement');
     });
 
     it('should return null for non-existent task', async () => {
-      await createChange('my-change', '# Proposal');
-
-      const result = await service.getTaskById('my-change/999-missing');
+      const result = await service.getTaskById('999-missing');
       expect(result).toBeNull();
     });
 
     it('should handle task filename with .md extension', async () => {
-      await createChange('my-change', '# Proposal');
-      await createTask('my-change', '001-test.md', '# Task');
+      await createCentralizedTask(
+        '001-test.md',
+        `---
+status: to-do
+---
+# Task`
+      );
 
-      const result = await service.getTaskById('my-change/001-test.md');
+      const result = await service.getTaskById('001-test.md');
       expect(result).not.toBeNull();
       expect(result!.task.name).toBe('test');
     });
 
-    it('should return null when no active changes exist', async () => {
+    it('should return null when no tasks exist', async () => {
       const result = await service.getTaskById('001-anything');
       expect(result).toBeNull();
     });
@@ -120,18 +156,6 @@ status: in-progress
       expect(result!.design).toContain('# Design Document');
     });
 
-    it('should retrieve change with tasks', async () => {
-      await createChange('with-tasks', '# Proposal');
-      await createTask('with-tasks', '001-first.md', '---\nstatus: to-do\n---\n# First');
-      await createTask('with-tasks', '002-second.md', '---\nstatus: to-do\n---\n# Second');
-
-      const result = await service.getChangeById('with-tasks');
-      expect(result).not.toBeNull();
-      expect(result!.tasks).toHaveLength(2);
-      expect(result!.tasks[0].sequence).toBe(1);
-      expect(result!.tasks[1].sequence).toBe(2);
-    });
-
     it('should return null for non-existent change', async () => {
       const result = await service.getChangeById('non-existent');
       expect(result).toBeNull();
@@ -154,67 +178,196 @@ status: in-progress
     });
   });
 
-  describe('getTasksForChange', () => {
-    it('should return all tasks for a change', async () => {
-      await createChange('my-change', '# Proposal');
-      await createTask('my-change', '001-first.md', '---\nstatus: done\n---\n# First');
-      await createTask('my-change', '002-second.md', '---\nstatus: to-do\n---\n# Second');
-      await createTask('my-change', '003-third.md', '---\nstatus: to-do\n---\n# Third');
+  describe('getReviewById', () => {
+    it('should retrieve review content', async () => {
+      await createReview(
+        'my-review',
+        '# Review\n\n## Findings\n\nNeeds improvement.'
+      );
 
-      const result = await service.getTasksForChange('my-change');
+      const result = await service.getReviewById('my-review');
+      expect(result).not.toBeNull();
+      expect(result!.content).toContain('# Review');
+      expect(result!.content).toContain('## Findings');
+    });
+
+    it('should return null for non-existent review', async () => {
+      const result = await service.getReviewById('missing-review');
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getTasksForParent', () => {
+    it('should return all tasks for a change from centralized directory', async () => {
+      await createChange('my-change', '# Proposal');
+      await createCentralizedTask(
+        '001-my-change-first.md',
+        `---
+status: done
+parent-type: change
+parent-id: my-change
+---
+# First`
+      );
+      await createCentralizedTask(
+        '002-my-change-second.md',
+        `---
+status: to-do
+parent-type: change
+parent-id: my-change
+---
+# Second`
+      );
+      await createCentralizedTask(
+        '003-my-change-third.md',
+        `---
+status: to-do
+parent-type: change
+parent-id: my-change
+---
+# Third`
+      );
+
+      const result = await service.getTasksForParent('my-change');
       expect(result).toHaveLength(3);
       expect(result[0].name).toBe('first');
       expect(result[1].name).toBe('second');
       expect(result[2].name).toBe('third');
     });
 
-    it('should return empty array for change without tasks', async () => {
+    it('should return empty array when no tasks match parent', async () => {
       await createChange('no-tasks', '# Proposal');
 
-      const result = await service.getTasksForChange('no-tasks');
+      const result = await service.getTasksForParent('no-tasks');
       expect(result).toEqual([]);
     });
 
-    it('should return empty array for non-existent change', async () => {
-      const result = await service.getTasksForChange('non-existent');
-      expect(result).toEqual([]);
+    it('should filter by parent type when specified', async () => {
+      await createCentralizedTask(
+        '001-shared-id-implement.md',
+        `---
+status: to-do
+parent-type: change
+parent-id: shared-id
+---
+# Change Task`
+      );
+      await createCentralizedTask(
+        '002-shared-id-review.md',
+        `---
+status: to-do
+parent-type: review
+parent-id: shared-id
+---
+# Review Task`
+      );
+
+      const changeResult = await service.getTasksForParent(
+        'shared-id',
+        'change'
+      );
+      expect(changeResult).toHaveLength(1);
+      expect(changeResult[0].name).toBe('implement');
+
+      const reviewResult = await service.getTasksForParent(
+        'shared-id',
+        'review'
+      );
+      expect(reviewResult).toHaveLength(1);
+      expect(reviewResult[0].name).toBe('review');
+    });
+
+    it('should throw error when parent ID has conflicts and no type specified', async () => {
+      await createCentralizedTask(
+        '001-shared-id-change.md',
+        `---
+status: to-do
+parent-type: change
+parent-id: shared-id
+---
+# Change Task`
+      );
+      await createCentralizedTask(
+        '002-shared-id-spec.md',
+        `---
+status: to-do
+parent-type: spec
+parent-id: shared-id
+---
+# Spec Task`
+      );
+
+      await expect(service.getTasksForParent('shared-id')).rejects.toThrow(
+        'Parent ID "shared-id" matches multiple parent types'
+      );
     });
   });
 
   describe('getAllOpenTasks', () => {
-    it('should return all to-do and in-progress tasks', async () => {
-      await createChange('change-a', '# A');
-      await createTask('change-a', '001-done.md', '---\nstatus: done\n---\n# Done');
-      await createTask('change-a', '002-todo.md', '---\nstatus: to-do\n---\n# Todo');
-
-      await createChange('change-b', '# B');
-      await createTask('change-b', '001-wip.md', '---\nstatus: in-progress\n---\n# WIP');
+    it('should return all to-do and in-progress tasks from centralized directory', async () => {
+      await createCentralizedTask(
+        '001-done.md',
+        `---
+status: done
+---
+# Done`
+      );
+      await createCentralizedTask(
+        '002-todo.md',
+        `---
+status: to-do
+---
+# Todo`
+      );
+      await createCentralizedTask(
+        '003-wip.md',
+        `---
+status: in-progress
+---
+# WIP`
+      );
 
       const result = await service.getAllOpenTasks();
       expect(result).toHaveLength(2);
 
       const taskIds = result.map((t) => t.taskId);
       expect(taskIds).toContain('002-todo');
-      expect(taskIds).toContain('001-wip');
+      expect(taskIds).toContain('003-wip');
     });
 
     it('should return empty array when no open tasks exist', async () => {
-      await createChange('all-done', '# Done');
-      await createTask('all-done', '001-complete.md', '---\nstatus: done\n---\n# Complete');
+      await createCentralizedTask(
+        '001-complete.md',
+        `---
+status: done
+---
+# Complete`
+      );
 
       const result = await service.getAllOpenTasks();
       expect(result).toEqual([]);
     });
 
-    it('should return empty array when no changes exist', async () => {
+    it('should return empty array when no tasks exist', async () => {
       const result = await service.getAllOpenTasks();
       expect(result).toEqual([]);
     });
 
     it('should include correct status for each task', async () => {
-      await createChange('mixed', '# Mixed');
-      await createTask('mixed', '001-a.md', '---\nstatus: to-do\n---\n# A');
-      await createTask('mixed', '002-b.md', '---\nstatus: in-progress\n---\n# B');
+      await createCentralizedTask(
+        '001-a.md',
+        `---
+status: to-do
+---
+# A`
+      );
+      await createCentralizedTask(
+        '002-b.md',
+        `---
+status: in-progress
+---
+# B`
+      );
 
       const result = await service.getAllOpenTasks();
       expect(result).toHaveLength(2);
@@ -225,82 +378,278 @@ status: in-progress
       expect(todoTask!.status).toBe('to-do');
       expect(wipTask!.status).toBe('in-progress');
     });
+
+    it('should filter by parent type when specified', async () => {
+      await createCentralizedTask(
+        '001-change-task.md',
+        `---
+status: to-do
+parent-type: change
+parent-id: my-change
+---
+# Change Task`
+      );
+      await createCentralizedTask(
+        '002-review-task.md',
+        `---
+status: to-do
+parent-type: review
+parent-id: my-review
+---
+# Review Task`
+      );
+
+      const changeResult = await service.getAllOpenTasks('change');
+      expect(changeResult).toHaveLength(1);
+      expect(changeResult[0].parentType).toBe('change');
+
+      const reviewResult = await service.getAllOpenTasks('review');
+      expect(reviewResult).toHaveLength(1);
+      expect(reviewResult[0].parentType).toBe('review');
+    });
+
+    it('should include skill level when present', async () => {
+      await createCentralizedTask(
+        '001-senior-task.md',
+        `---
+status: to-do
+skill-level: senior
+---
+# Senior Task`
+      );
+      await createCentralizedTask(
+        '002-no-level.md',
+        `---
+status: to-do
+---
+# No Level`
+      );
+
+      const result = await service.getAllOpenTasks();
+      expect(result).toHaveLength(2);
+
+      const seniorTask = result.find((t) => t.task.name === 'senior-task');
+      const noLevelTask = result.find((t) => t.task.name === 'no-level');
+
+      expect(seniorTask!.skillLevel).toBe('senior');
+      expect(noLevelTask!.skillLevel).toBeUndefined();
+    });
   });
 
-  describe('review task retrieval', () => {
-    async function createReview(reviewId: string) {
-      const reviewDir = path.join(tempDir, 'workspace', 'reviews', reviewId);
-      await fs.mkdir(reviewDir, { recursive: true });
+  describe('archived tasks exclusion', () => {
+    it('should exclude archived tasks from getTaskById', async () => {
+      const archiveDir = path.join(workspacePath, 'tasks', 'archive');
+      await fs.mkdir(archiveDir, { recursive: true });
       await fs.writeFile(
-        path.join(reviewDir, 'review.md'),
-        '---\nparent-type: change\nparent-id: test\n---\n# Review'
+        path.join(archiveDir, '001-archived.md'),
+        `---
+status: done
+---
+# Archived`
       );
-    }
 
-    async function createReviewTask(reviewId: string, filename: string, content: string) {
-      const tasksDir = path.join(tempDir, 'workspace', 'reviews', reviewId, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
-      await fs.writeFile(path.join(tasksDir, filename), content);
-    }
-
-    beforeEach(async () => {
-      const reviewsDir = path.join(tempDir, 'workspace', 'reviews');
-      await fs.mkdir(reviewsDir, { recursive: true });
+      const result = await service.getTaskById('001-archived');
+      expect(result).toBeNull();
     });
 
-    it('should find review task by full ID (reviewId/taskFilename)', async () => {
-      await createReview('my-review');
-      await createReviewTask('my-review', '001-fix.md', '---\nstatus: to-do\n---\n# Fix');
+    it('should exclude archived tasks from getAllOpenTasks', async () => {
+      await createCentralizedTask(
+        '001-active.md',
+        `---
+status: to-do
+---
+# Active`
+      );
 
-      const result = await service.getTaskById('my-review/001-fix');
+      const archiveDir = path.join(workspacePath, 'tasks', 'archive');
+      await fs.mkdir(archiveDir, { recursive: true });
+      await fs.writeFile(
+        path.join(archiveDir, '002-archived.md'),
+        `---
+status: to-do
+---
+# Archived but should not appear`
+      );
+
+      const result = await service.getAllOpenTasks();
+      expect(result).toHaveLength(1);
+      expect(result[0].taskId).toBe('001-active');
+    });
+  });
+
+  describe('standalone tasks', () => {
+    it('should support standalone tasks without parent info', async () => {
+      await createCentralizedTask(
+        '001-standalone.md',
+        `---
+status: to-do
+---
+# Standalone Task`
+      );
+
+      const result = await service.getTaskById('001-standalone');
       expect(result).not.toBeNull();
-      expect(result!.changeId).toBe('my-review');
-      expect(result!.task.name).toBe('fix');
+      expect(result!.changeId).toBe('');
     });
 
-    it('should find review task by short ID (searches reviews after changes)', async () => {
-      await createReview('my-review');
-      await createReviewTask('my-review', '001-fix.md', '---\nstatus: to-do\n---\n# Fix');
+    it('should include standalone tasks in getAllOpenTasks', async () => {
+      await createCentralizedTask(
+        '001-standalone.md',
+        `---
+status: to-do
+---
+# Standalone`
+      );
+      await createCentralizedTask(
+        '002-parented.md',
+        `---
+status: to-do
+parent-type: change
+parent-id: my-change
+---
+# Parented`
+      );
 
-      const result = await service.getTaskById('001-fix');
-      expect(result).not.toBeNull();
-      expect(result!.changeId).toBe('my-review');
-      expect(result!.task.name).toBe('fix');
-    });
-
-    it('should return tasks for review via getTasksForChange', async () => {
-      await createReview('my-review');
-      await createReviewTask('my-review', '001-first.md', '---\nstatus: to-do\n---\n# First');
-      await createReviewTask('my-review', '002-second.md', '---\nstatus: to-do\n---\n# Second');
-
-      const result = await service.getTasksForChange('my-review');
+      const result = await service.getAllOpenTasks();
       expect(result).toHaveLength(2);
     });
 
+    it('should exclude standalone tasks from parent type filtering', async () => {
+      await createCentralizedTask(
+        '001-standalone.md',
+        `---
+status: to-do
+---
+# Standalone`
+      );
+      await createCentralizedTask(
+        '002-change-task.md',
+        `---
+status: to-do
+parent-type: change
+parent-id: my-change
+---
+# Change Task`
+      );
+
+      const result = await service.getAllOpenTasks('change');
+      expect(result).toHaveLength(1);
+      expect(result[0].taskId).toBe('002-change-task');
+    });
+  });
+
+  describe('review and spec task retrieval', () => {
+    it('should return tasks for review parent type', async () => {
+      await createCentralizedTask(
+        '001-my-review-fix.md',
+        `---
+status: to-do
+parent-type: review
+parent-id: my-review
+---
+# Fix`
+      );
+
+      const result = await service.getTasksForParent('my-review', 'review');
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('fix');
+    });
+
+    it('should return tasks for spec parent type', async () => {
+      await createCentralizedTask(
+        '001-my-spec-update.md',
+        `---
+status: to-do
+parent-type: spec
+parent-id: my-spec
+---
+# Update`
+      );
+
+      const result = await service.getTasksForParent('my-spec', 'spec');
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('update');
+    });
+
     it('should include review tasks in getAllOpenTasks', async () => {
-      await createReview('my-review');
-      await createReviewTask('my-review', '001-wip.md', '---\nstatus: in-progress\n---\n# WIP');
+      await createCentralizedTask(
+        '001-review-task.md',
+        `---
+status: in-progress
+parent-type: review
+parent-id: my-review
+---
+# Review Task`
+      );
 
       const result = await service.getAllOpenTasks();
-      expect(result.some((t) => t.changeId === 'my-review')).toBe(true);
+      expect(result.some((t) => t.parentId === 'my-review')).toBe(true);
+      expect(result.some((t) => t.parentType === 'review')).toBe(true);
+    });
+  });
+
+  describe('getTasksForReview', () => {
+    it('should return tasks for review using convenience method', async () => {
+      await createCentralizedTask(
+        '001-my-review-fix-bug.md',
+        `---
+status: to-do
+parent-type: review
+parent-id: my-review
+---
+# Fix Bug`
+      );
+      await createCentralizedTask(
+        '002-my-review-update-docs.md',
+        `---
+status: to-do
+parent-type: review
+parent-id: my-review
+---
+# Update Docs`
+      );
+
+      const result = await service.getTasksForReview('my-review');
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toBe('bug');
+      expect(result[1].name).toBe('docs');
     });
 
-    it('should prioritize change tasks over review tasks with same ID', async () => {
-      await createChange('shared-id', '# Proposal');
-      await createTask('shared-id', '001-task.md', '---\nstatus: to-do\n---\n# Change Task');
+    it('should return empty array when no review tasks exist', async () => {
+      const result = await service.getTasksForReview('non-existent-review');
+      expect(result).toEqual([]);
+    });
+  });
 
-      await createReview('shared-id');
-      await createReviewTask('shared-id', '001-task.md', '---\nstatus: to-do\n---\n# Review Task');
+  describe('getTasksForSpec', () => {
+    it('should return tasks for spec using convenience method', async () => {
+      await createCentralizedTask(
+        '001-my-spec-implement.md',
+        `---
+status: to-do
+parent-type: spec
+parent-id: my-spec
+---
+# Implement`
+      );
+      await createCentralizedTask(
+        '002-my-spec-test.md',
+        `---
+status: in-progress
+parent-type: spec
+parent-id: my-spec
+---
+# Test`
+      );
 
-      const result = await service.getTaskById('shared-id/001-task');
-      expect(result).not.toBeNull();
-      expect(result!.content).toContain('# Change Task');
+      const result = await service.getTasksForSpec('my-spec');
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toBe('implement');
+      expect(result[1].name).toBe('test');
     });
 
-    it('should return empty array for review without tasks', async () => {
-      await createReview('empty-review');
-
-      const result = await service.getTasksForChange('empty-review');
+    it('should return empty array when no spec tasks exist', async () => {
+      const result = await service.getTasksForSpec('non-existent-spec');
       expect(result).toEqual([]);
     });
   });

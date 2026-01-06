@@ -8,6 +8,10 @@ import { architectureTemplate, ArchitectureContext } from './architecture-templa
 import { reviewTemplate } from './review-template.js';
 import { releaseTemplate } from './release-template.js';
 import { testingTemplate } from './testing-template.js';
+import { taskTemplate, TaskContext } from './task-template.js';
+import { changeTemplate, ChangeContext } from './change-template.js';
+import { specTemplate, SpecContext } from './spec-template.js';
+import { requestTemplate, RequestContext } from './request-template.js';
 
 export interface Template {
   path: string;
@@ -59,7 +63,27 @@ export class TemplateManager {
   static getTestingTemplate(): string {
     return testingTemplate();
   }
+
+  static getTaskTemplate(context: TaskContext): string {
+    return taskTemplate(context);
+  }
+
+  static getChangeTemplate(context: ChangeContext): string {
+    return changeTemplate(context);
+  }
+
+  static getSpecTemplate(context: SpecContext): string {
+    return specTemplate(context);
+  }
+
+  static getRequestTemplate(context: RequestContext): string {
+    return requestTemplate(context);
+  }
 }
 
 export type { SlashCommandId } from './slash-command-templates.js';
 export type { ArchitectureContext } from './architecture-template.js';
+export type { TaskContext } from './task-template.js';
+export type { ChangeContext } from './change-template.js';
+export type { SpecContext } from './spec-template.js';
+export type { RequestContext } from './request-template.js';

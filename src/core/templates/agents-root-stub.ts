@@ -24,8 +24,8 @@ Use \`@/workspace/AGENTS.md\` to learn:
 ### Navigation & Listing
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| \`plx list\` | List active changes | Check what's in progress |
-| \`plx list --specs\` | List specifications | Find existing specs |
+| \`plx get changes\` | List active changes | Check what's in progress |
+| \`plx get specs\` | List specifications | Find existing specs |
 | \`plx view\` | Interactive dashboard | Visual overview |
 
 ### Task Management
@@ -52,10 +52,10 @@ Use \`@/workspace/AGENTS.md\` to learn:
 ### Display & Inspection
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| \`plx show <item>\` | Display change or spec | View details |
-| \`plx show <item> --json\` | JSON output | Machine-readable |
-| \`plx show <item> --type change\\|spec\` | Disambiguate item type | When names collide |
-| \`plx show <change> --deltas-only\` | Show only deltas | Focus on changes |
+| \`plx get change --id <id>\` | Display change | View change details |
+| \`plx get spec --id <id>\` | Display spec | View spec details |
+| \`plx get change --id <id> --json\` | JSON output | Machine-readable |
+| \`plx get change --id <id> --deltas-only\` | Show only deltas | Focus on changes |
 
 ### Validation
 | Command | Description | When to Use |
@@ -70,9 +70,9 @@ Use \`@/workspace/AGENTS.md\` to learn:
 ### Archival
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| \`plx archive <change-id>\` | Archive completed change | After deployment |
-| \`plx archive <id> --yes\` | Archive without prompts | Non-interactive |
-| \`plx archive <id> --skip-specs\` | Archive, skip spec updates | Tooling-only changes |
+| \`plx archive change --id <change-id>\` | Archive completed change | After deployment |
+| \`plx archive change --id <id> --yes\` | Archive without prompts | Non-interactive |
+| \`plx archive change --id <id> --skip-specs\` | Archive, skip spec updates | Tooling-only changes |
 
 ### Configuration
 | Command | Description | When to Use |

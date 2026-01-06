@@ -11,7 +11,7 @@ tags: [plx, review, workflow]
 - Markers with parent linkage are grouped automatically.
 
 **Steps**
-1. Run `plx parse feedback <name>` (CLI flags --change-id, --spec-id, --task-id are optional fallbacks for unassigned markers).
+1. Run `plx parse feedback <name>` (CLI flags --parent-id and --parent-type are optional fallbacks for unassigned markers).
 2. Review generated tasks.
 3. Address feedback.
 4. Archive when complete.

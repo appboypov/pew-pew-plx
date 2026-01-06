@@ -157,6 +157,17 @@ export class ZshGenerator implements CompletionGenerator {
     lines.push('}');
     lines.push('');
 
+    // Helper function for completing review IDs
+    lines.push(`# Use ${commandName} __complete to get available reviews`);
+    lines.push(`_${commandName}_complete_reviews() {`);
+    lines.push('  local -a reviews');
+    lines.push('  while IFS=$\'\\t\' read -r id desc; do');
+    lines.push('    reviews+=("$id:$desc")');
+    lines.push(`  done < <(${commandName} __complete reviews 2>/dev/null)`);
+    lines.push('  _describe "review" reviews');
+    lines.push('}');
+    lines.push('');
+
     // Helper function for completing both changes and specs
     lines.push('# Get both changes and specs');
     lines.push(`_${commandName}_complete_items() {`);
@@ -337,6 +348,8 @@ export class ZshGenerator implements CompletionGenerator {
         return `_${commandName}_complete_changes`;
       case 'spec-id':
         return `_${commandName}_complete_specs`;
+      case 'review-id':
+        return `_${commandName}_complete_reviews`;
       case 'change-or-spec-id':
         return `_${commandName}_complete_items`;
       default:

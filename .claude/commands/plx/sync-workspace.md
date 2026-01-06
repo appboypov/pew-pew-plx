@@ -22,7 +22,7 @@ tags: [plx, workspace, maintenance]
    - If task-id provided: focus on that task's parent change.
    - If no arguments: scan entire workspace.
 2. Scan workspace state:
-   - Run `plx list` to see all active changes.
+   - Run `plx get changes` to see all active changes.
    - Run `plx get tasks` to see all open tasks.
    - Run `plx validate --all --strict` to identify validation issues.
 3. Assess and categorize issues:
@@ -37,20 +37,20 @@ tags: [plx, workspace, maintenance]
    - Group suggestions by category (archive, create, update, validate, delete).
 5. Wait for user selection—do not proceed without explicit confirmation.
 6. Execute selected actions sequentially:
-   - Archive: `plx archive <id> --yes`
+   - Archive: `plx archive change --id <id> --yes`
    - Create tasks: scaffold task files in `workspace/changes/<id>/tasks/`
    - Update proposals: edit `proposal.md` or `design.md`
    - Validate: `plx validate <id> --strict`
 7. Report summary:
    - List all actions taken with outcomes.
-   - Show current workspace state with `plx list`.
+   - Show current workspace state with `plx get changes`.
    - Highlight any remaining issues.
 
 **Reference**
-- Use `plx list` to see all active changes.
+- Use `plx get changes` to see all active changes.
 - Use `plx get tasks` to see all open tasks across changes.
 - Use `plx get tasks --id <change-id>` to see tasks for a specific change.
 - Use `plx validate --all --strict` for comprehensive validation.
-- Use `plx archive <id> --yes` to archive without prompts.
-- Use `plx show <id>` to inspect change or spec details.
+- Use `plx archive change --id <id> --yes` to archive without prompts.
+- Use `plx get change --id <id>` or `plx get spec --id <id>` to inspect details.
 <!-- PLX:END -->

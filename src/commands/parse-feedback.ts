@@ -1,14 +1,20 @@
 import chalk from 'chalk';
 import ora from 'ora';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { FeedbackScannerService } from '../services/feedback-scanner.js';
 import { getActiveReviewIds, getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
 import { isInteractive } from '../utils/interactive.js';
 import { ReviewParent } from '../core/schemas/index.js';
+import { emitDeprecationWarning } from '../utils/deprecation.js';
+import { getFilteredWorkspaces } from '../utils/workspace-filter.js';
 
 interface ParseFeedbackOptions {
   json?: boolean;
   noInteractive?: boolean;
   interactive?: boolean;
+  parentId?: string;
+  parentType?: string;
   changeId?: string;
   specId?: string;
   taskId?: string;
@@ -30,17 +36,108 @@ interface ParseFeedbackJsonOutput {
 }
 
 export class ParseFeedbackCommand {
+  private async checkChangeExists(id: string): Promise<boolean> {
+    const workspaces = await getFilteredWorkspaces(process.cwd());
+    for (const workspace of workspaces) {
+      const changesPath = path.join(workspace.path, 'changes', id);
+      const proposalPath = path.join(changesPath, 'proposal.md');
+      try {
+        await fs.access(proposalPath);
+        return true;
+      } catch {
+        // Continue to next workspace
+      }
+    }
+    return false;
+  }
+
+  private async checkSpecExists(id: string): Promise<boolean> {
+    const workspaces = await getFilteredWorkspaces(process.cwd());
+    for (const workspace of workspaces) {
+      const specsPath = path.join(workspace.path, 'specs', id);
+      const specPath = path.join(specsPath, 'spec.md');
+      try {
+        await fs.access(specPath);
+        return true;
+      } catch {
+        // Continue to next workspace
+      }
+    }
+    return false;
+  }
+
   async execute(
     reviewName?: string,
     options: ParseFeedbackOptions = {}
   ): Promise<void> {
     const interactive = isInteractive(options);
 
+    // Emit deprecation warnings for legacy flags
+    if (options.changeId) {
+      emitDeprecationWarning(
+        'plx parse feedback --change-id <id>',
+        'plx parse feedback --parent-id <id> --parent-type change'
+      );
+    }
+    if (options.specId) {
+      emitDeprecationWarning(
+        'plx parse feedback --spec-id <id>',
+        'plx parse feedback --parent-id <id> --parent-type spec'
+      );
+    }
+    if (options.taskId) {
+      emitDeprecationWarning(
+        'plx parse feedback --task-id <id>',
+        'plx parse feedback --parent-id <id> --parent-type task'
+      );
+    }
+
     // Determine CLI-provided parent type and id (used as fallback for unassigned markers)
     let cliParentType: ReviewParent | undefined;
     let cliParentId: string | undefined;
 
-    if (options.changeId) {
+    if (options.parentId) {
+      if (options.parentType) {
+        // Use explicitly provided type
+        cliParentType = options.parentType as ReviewParent;
+        cliParentId = options.parentId;
+      } else {
+        // Auto-detect type by searching for matching ID
+        const [changeExists, specExists] = await Promise.all([
+          this.checkChangeExists(options.parentId),
+          this.checkSpecExists(options.parentId),
+        ]);
+        const matchCount = [changeExists, specExists].filter(Boolean).length;
+
+        if (matchCount > 1) {
+          // Error: ambiguous ID
+          if (options.json) {
+            console.log(
+              JSON.stringify({
+                error: `Ambiguous ID '${options.parentId}' matches multiple types. Use --parent-type to disambiguate.`,
+              })
+            );
+          } else {
+            ora().fail(`Ambiguous ID '${options.parentId}' matches multiple types`);
+            console.log(chalk.dim('  Use --parent-type to specify: change, spec, or task'));
+          }
+          process.exitCode = 1;
+          return;
+        }
+
+        if (changeExists) {
+          cliParentType = 'change';
+          cliParentId = options.parentId;
+        } else if (specExists) {
+          cliParentType = 'spec';
+          cliParentId = options.parentId;
+        } else {
+          // Default to task (tasks are harder to check existence)
+          cliParentType = 'task';
+          cliParentId = options.parentId;
+        }
+      }
+    } else if (options.changeId) {
       cliParentType = 'change';
       cliParentId = options.changeId;
     } else if (options.specId) {
@@ -203,7 +300,7 @@ export class ParseFeedbackCommand {
         if (options.json) {
           console.log(
             JSON.stringify({
-              error: 'Unassigned markers found. Use --change-id, --spec-id, or --task-id to assign them.',
+              error: 'Unassigned markers found. Use --parent-id and optionally --parent-type to assign them.',
               unassignedMarkers: unassignedFiles,
             })
           );
@@ -217,10 +314,10 @@ export class ParseFeedbackCommand {
             console.log(chalk.dim(`    ... and ${unassignedFiles.length - 10} more`));
           }
           console.log();
-          console.log(chalk.dim('  To assign these markers, use one of:'));
-          console.log(chalk.dim('    plx parse feedback <review-name> --change-id <id>'));
-          console.log(chalk.dim('    plx parse feedback <review-name> --spec-id <id>'));
-          console.log(chalk.dim('    plx parse feedback <review-name> --task-id <id>'));
+          console.log(chalk.dim('  To assign these markers, use:'));
+          console.log(chalk.dim('    plx parse feedback <review-name> --parent-id <id> --parent-type <type>'));
+          console.log(chalk.dim('  Or with auto-detection:'));
+          console.log(chalk.dim('    plx parse feedback <review-name> --parent-id <id>'));
         }
         process.exitCode = 1;
         return;

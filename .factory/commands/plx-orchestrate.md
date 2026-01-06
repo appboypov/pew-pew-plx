@@ -18,6 +18,11 @@ argument-hint: (optional context)
   - No clarifications about previous states or deprecated behavior.
 - Verify scope adherence: confirm no unnecessary additions.
 - Verify project convention alignment before accepting work.
+- Select sub-agent model based on task skill-level:
+  - junior → haiku (simple tasks)
+  - medior → sonnet (moderate complexity)
+  - senior → opus (architectural/complex tasks)
+  - For non-Claude models, determine equivalent or use default.
 
 **Steps**
 1. Understand the work scope:
@@ -26,7 +31,7 @@ argument-hint: (optional context)
    - For other work: enumerate the discrete units of work.
 2. For each unit of work:
    a. Get detailed context (`plx get task --id <id>` or equivalent).
-   b. Spawn a sub-agent with clear, scoped instructions.
+   b. Spawn a sub-agent with clear, scoped instructions; select model based on task skill-level (junior→haiku, medior→sonnet, senior→opus).
    c. Wait for sub-agent to complete work.
 3. Review sub-agent output:
    - Scope adherence: no unrequested features or changes.

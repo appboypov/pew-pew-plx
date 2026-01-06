@@ -1,6 +1,7 @@
 import path from 'path';
 import { isInteractive } from '../utils/interactive.js';
 import { getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
+import { emitDeprecationWarning } from '../utils/deprecation.js';
 import { ChangeCommand } from './change.js';
 import { SpecCommand } from './spec.js';
 import { nearestMatches } from '../utils/match.js';
@@ -12,6 +13,9 @@ const SPEC_FLAG_KEYS = new Set(['requirements', 'scenarios', 'requirement']);
 
 export class ShowCommand {
   async execute(itemName?: string, options: { json?: boolean; type?: string; noInteractive?: boolean; [k: string]: any } = {}): Promise<void> {
+    if (itemName) {
+      emitDeprecationWarning('plx show', 'plx get change --id <item> or plx get spec --id <item>');
+    }
     const interactive = isInteractive(options);
     const typeOverride = this.normalizeType(options.type);
 

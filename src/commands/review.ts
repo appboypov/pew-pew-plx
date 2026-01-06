@@ -17,6 +17,7 @@ interface ReviewOptions {
   changeId?: string;
   specId?: string;
   taskId?: string;
+  id?: string;
   json?: boolean;
   noInteractive?: boolean;
   interactive?: boolean;
@@ -85,6 +86,18 @@ export class ReviewCommand {
       throw new Error(`Ambiguous spec '${itemId}' exists in multiple workspaces: ${workspaceNames}. Specify the workspace prefix.`);
     }
     return matches[0];
+  }
+
+  async reviewChange(id: string, options: ReviewOptions = {}): Promise<void> {
+    return this.execute({ ...options, changeId: id });
+  }
+
+  async reviewSpec(id: string, options: ReviewOptions = {}): Promise<void> {
+    return this.execute({ ...options, specId: id });
+  }
+
+  async reviewTask(id: string, options: ReviewOptions = {}): Promise<void> {
+    return this.execute({ ...options, taskId: id });
   }
 
   async execute(options: ReviewOptions = {}): Promise<void> {

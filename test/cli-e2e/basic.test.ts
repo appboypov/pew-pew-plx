@@ -60,9 +60,9 @@ describe('plx CLI e2e basics', () => {
     expect(result.stdout.trim()).toBe(pkg.version);
   });
 
-  it('validates the tmp-init fixture with --all --json', async () => {
+  it('validates the tmp-init fixture with validate all --json', async () => {
     const projectDir = await prepareFixture('tmp-init');
-    const result = await runCLI(['validate', '--all', '--json'], { cwd: projectDir });
+    const result = await runCLI(['validate', 'all', '--json'], { cwd: projectDir });
     expect(result.exitCode).toBe(0);
     const output = result.stdout.trim();
     expect(output).not.toBe('');
@@ -71,11 +71,11 @@ describe('plx CLI e2e basics', () => {
     expect(json.items.some((item: any) => item.id === 'c1' && item.type === 'change')).toBe(true);
   });
 
-  it('returns an error for unknown items in the fixture', async () => {
+  it('returns an error for unknown change IDs in the fixture', async () => {
     const projectDir = await prepareFixture('tmp-init');
-    const result = await runCLI(['validate', 'does-not-exist'], { cwd: projectDir });
+    const result = await runCLI(['validate', 'change', '--id', 'does-not-exist'], { cwd: projectDir });
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Unknown item 'does-not-exist'");
+    expect(result.stderr).toContain("Unknown change 'does-not-exist'");
   });
 
   describe('init command non-interactive options', () => {

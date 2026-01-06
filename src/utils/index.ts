@@ -9,10 +9,12 @@ export {
 
 export {
   PrioritizedChange,
+  PrioritizedParent,
   getCompletionPercentage,
   getChangeCreatedAt,
   getPrioritizedChange,
-} from './change-prioritization.js';
+  getPrioritizedParent,
+} from './parent-prioritization.js';
 
 export {
   CommentStyle,

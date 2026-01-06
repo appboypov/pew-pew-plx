@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
@@ -120,6 +120,63 @@ describe('top-level show command', () => {
       process.chdir(originalCwd);
     }
   });
-});
 
+  it('emits deprecation warning when showing a change', () => {
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(`node ${plxBin} show demo --json 2>&1`, { encoding: 'utf-8' });
+      expect(output).toContain("Deprecation: 'plx show' is deprecated");
+      expect(output).toContain('plx get change --id <item> or plx get spec --id <item>');
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('emits deprecation warning when showing a spec', () => {
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(`node ${plxBin} show auth --json 2>&1`, { encoding: 'utf-8' });
+      expect(output).toContain("Deprecation: 'plx show' is deprecated");
+      expect(output).toContain('plx get change --id <item> or plx get spec --id <item>');
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('suppresses deprecation warning with --no-deprecation-warnings flag', () => {
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const output = execSync(`node ${plxBin} show demo --json --no-deprecation-warnings 2>&1`, { encoding: 'utf-8' });
+      expect(output).not.toContain("Deprecation: 'plx show' is deprecated");
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('ensures JSON output is unaffected by deprecation warnings', () => {
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(testDir);
+      const fullOutput = execSync(`node ${plxBin} show demo --json 2>&1`, { encoding: 'utf-8' });
+      const lines = fullOutput.split('\n');
+
+      // Find and extract just the JSON part (starts with {)
+      const jsonStartIdx = lines.findIndex(line => line.trim().startsWith('{'));
+      expect(jsonStartIdx).toBeGreaterThan(-1);
+
+      const jsonLines = lines.slice(jsonStartIdx);
+      const jsonStr = jsonLines.join('\n');
+
+      // Should be valid JSON
+      const json = JSON.parse(jsonStr);
+      expect(json.id).toBe('demo');
+      expect(Array.isArray(json.deltas)).toBe(true);
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+});
 

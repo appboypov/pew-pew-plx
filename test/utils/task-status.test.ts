@@ -15,6 +15,10 @@ import {
   CheckboxUncompleteResult,
   parseSkillLevel,
   getTaskSkillLevel,
+  parseParentType,
+  parseParentId,
+  parseTaskParentInfo,
+  TaskParentInfo,
 } from '../../src/utils/task-status.js';
 
 describe('task-status', () => {
@@ -685,6 +689,225 @@ skill-level: invalid
 
       const skillLevel = await getTaskSkillLevel(filePath);
       expect(skillLevel).toBeUndefined();
+    });
+  });
+
+  describe('parseParentType', () => {
+    it('should return change for parent-type: change', () => {
+      const content = `---
+status: to-do
+parent-type: change
+parent-id: add-feature-x
+---
+
+# Task: Example`;
+      expect(parseParentType(content)).toBe('change');
+    });
+
+    it('should return review for parent-type: review', () => {
+      const content = `---
+status: to-do
+parent-type: review
+parent-id: review-123
+---
+
+# Task: Example`;
+      expect(parseParentType(content)).toBe('review');
+    });
+
+    it('should return spec for parent-type: spec', () => {
+      const content = `---
+status: to-do
+parent-type: spec
+parent-id: my-spec
+---
+
+# Task: Example`;
+      expect(parseParentType(content)).toBe('spec');
+    });
+
+    it('should return undefined for missing frontmatter', () => {
+      const content = `# Task: Example
+
+Some content without frontmatter`;
+      expect(parseParentType(content)).toBeUndefined();
+    });
+
+    it('should return undefined for frontmatter without parent-type', () => {
+      const content = `---
+status: to-do
+---
+
+# Task: Example`;
+      expect(parseParentType(content)).toBeUndefined();
+    });
+
+    it('should return undefined for invalid parent-type value', () => {
+      const content = `---
+status: to-do
+parent-type: invalid
+---
+
+# Task: Example`;
+      expect(parseParentType(content)).toBeUndefined();
+    });
+
+    it('should handle parent-type with extra whitespace', () => {
+      const content = `---
+parent-type:   change
+---
+
+# Task`;
+      expect(parseParentType(content)).toBe('change');
+    });
+  });
+
+  describe('parseParentId', () => {
+    it('should return parent-id value', () => {
+      const content = `---
+status: to-do
+parent-type: change
+parent-id: add-feature-x
+---
+
+# Task: Example`;
+      expect(parseParentId(content)).toBe('add-feature-x');
+    });
+
+    it('should handle kebab-case parent IDs', () => {
+      const content = `---
+parent-id: my-awesome-change-name
+---
+
+# Task`;
+      expect(parseParentId(content)).toBe('my-awesome-change-name');
+    });
+
+    it('should return undefined for missing frontmatter', () => {
+      const content = `# Task: Example
+
+Some content without frontmatter`;
+      expect(parseParentId(content)).toBeUndefined();
+    });
+
+    it('should return undefined for frontmatter without parent-id', () => {
+      const content = `---
+status: to-do
+parent-type: change
+---
+
+# Task: Example`;
+      expect(parseParentId(content)).toBeUndefined();
+    });
+
+    it('should handle parent-id with extra whitespace', () => {
+      const content = `---
+parent-id:   my-change
+---
+
+# Task`;
+      expect(parseParentId(content)).toBe('my-change');
+    });
+  });
+
+  describe('parseTaskParentInfo', () => {
+    it('should return TaskParentInfo when both fields present', () => {
+      const content = `---
+status: to-do
+parent-type: change
+parent-id: add-feature-x
+---
+
+# Task: Example`;
+      const result = parseTaskParentInfo(content);
+      expect(result).toEqual({
+        parentType: 'change',
+        parentId: 'add-feature-x',
+      });
+    });
+
+    it('should return TaskParentInfo for review parent type', () => {
+      const content = `---
+status: to-do
+parent-type: review
+parent-id: code-review-123
+---
+
+# Task`;
+      const result = parseTaskParentInfo(content);
+      expect(result).toEqual({
+        parentType: 'review',
+        parentId: 'code-review-123',
+      });
+    });
+
+    it('should return TaskParentInfo for spec parent type', () => {
+      const content = `---
+status: to-do
+parent-type: spec
+parent-id: api-spec
+---
+
+# Task`;
+      const result = parseTaskParentInfo(content);
+      expect(result).toEqual({
+        parentType: 'spec',
+        parentId: 'api-spec',
+      });
+    });
+
+    it('should return null when both fields absent', () => {
+      const content = `---
+status: to-do
+---
+
+# Task: Example`;
+      expect(parseTaskParentInfo(content)).toBeNull();
+    });
+
+    it('should return null for missing frontmatter', () => {
+      const content = `# Task: Example
+
+Some content without frontmatter`;
+      expect(parseTaskParentInfo(content)).toBeNull();
+    });
+
+    it('should throw error when only parent-type present', () => {
+      const content = `---
+status: to-do
+parent-type: change
+---
+
+# Task: Example`;
+      expect(() => parseTaskParentInfo(content)).toThrow(
+        'Task has parent-type but missing parent-id in frontmatter'
+      );
+    });
+
+    it('should throw error when only parent-id present', () => {
+      const content = `---
+status: to-do
+parent-id: add-feature-x
+---
+
+# Task: Example`;
+      expect(() => parseTaskParentInfo(content)).toThrow(
+        'Task has parent-id but missing parent-type in frontmatter'
+      );
+    });
+
+    it('should throw error for invalid parent-type with valid parent-id', () => {
+      const content = `---
+status: to-do
+parent-type: invalid
+parent-id: add-feature-x
+---
+
+# Task: Example`;
+      // Invalid parent-type returns undefined, so this is "parent-id without parent-type"
+      expect(() => parseTaskParentInfo(content)).toThrow(
+        'Task has parent-id but missing parent-type in frontmatter'
+      );
     });
   });
 });

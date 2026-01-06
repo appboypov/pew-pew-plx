@@ -6,15 +6,16 @@ import { Validator } from '../core/validation/validator.js';
 import type { Spec } from '../core/schemas/index.js';
 import { isInteractive } from '../utils/interactive.js';
 import { getSpecIds } from '../utils/item-discovery.js';
+import { SpecFilterService } from '../services/spec-filter.js';
+import { emitDeprecationWarning } from '../utils/deprecation.js';
 
 const SPECS_DIR = 'workspace/specs';
 
 interface ShowOptions {
   json?: boolean;
-  // JSON-only filters (raw-first text has no filters)
   requirements?: boolean;
-  scenarios?: boolean; // --no-scenarios sets this to false (JSON only)
-  requirement?: string; // JSON only
+  scenarios?: boolean;
+  requirement?: string;
   noInteractive?: boolean;
 }
 
@@ -22,37 +23,6 @@ function parseSpecFromFile(specPath: string, specId: string): Spec {
   const content = readFileSync(specPath, 'utf-8');
   const parser = new MarkdownParser(content);
   return parser.parseSpec(specId);
-}
-
-function validateRequirementIndex(spec: Spec, requirementOpt?: string): number | undefined {
-  if (!requirementOpt) return undefined;
-  const index = Number.parseInt(requirementOpt, 10);
-  if (!Number.isInteger(index) || index < 1 || index > spec.requirements.length) {
-    throw new Error(`Requirement ${requirementOpt} not found`);
-  }
-  return index - 1; // convert to 0-based
-}
-
-function filterSpec(spec: Spec, options: ShowOptions): Spec {
-  const requirementIndex = validateRequirementIndex(spec, options.requirement);
-  const includeScenarios = options.scenarios !== false && !options.requirements;
-
-  const filteredRequirements = (requirementIndex !== undefined
-    ? [spec.requirements[requirementIndex]]
-    : spec.requirements
-  ).map(req => ({
-    text: req.text,
-    scenarios: includeScenarios ? req.scenarios : [],
-  }));
-
-  const metadata = spec.metadata ?? { version: '1.0.0', format: 'plx' as const };
-
-  return {
-    name: spec.name,
-    overview: spec.overview,
-    requirements: filteredRequirements,
-    metadata,
-  };
 }
 
 /**
@@ -66,6 +36,11 @@ function printSpecTextRaw(specPath: string): void {
 
 export class SpecCommand {
   private SPECS_DIR = 'workspace/specs';
+  private specFilterService: SpecFilterService;
+
+  constructor() {
+    this.specFilterService = new SpecFilterService();
+  }
 
   async show(specId?: string, options: ShowOptions = {}): Promise<void> {
     if (!specId) {
@@ -92,7 +67,7 @@ export class SpecCommand {
         throw new Error('Options --requirements and --requirement cannot be used together');
       }
       const parsed = parseSpecFromFile(specPath, specId);
-      const filtered = filterSpec(parsed, options);
+      const filtered = this.specFilterService.filterSpec(parsed, options);
       const output = {
         id: specId,
         title: parsed.name,
@@ -128,6 +103,7 @@ export function registerSpecCommand(rootProgram: typeof program) {
     .option('--no-interactive', 'Disable interactive prompts')
     .action(async (specId: string | undefined, options: ShowOptions & { noInteractive?: boolean }) => {
       try {
+        emitDeprecationWarning('plx spec show <id>', 'plx get spec --id <id>');
         const cmd = new SpecCommand();
         await cmd.show(specId, options as any);
       } catch (error) {
@@ -143,6 +119,7 @@ export function registerSpecCommand(rootProgram: typeof program) {
     .option('--long', 'Show id and title with counts')
     .action((options: { json?: boolean; long?: boolean }) => {
       try {
+        emitDeprecationWarning('plx spec list', 'plx get specs');
         if (!existsSync(SPECS_DIR)) {
           console.log('No items found');
           return;
@@ -155,7 +132,7 @@ export function registerSpecCommand(rootProgram: typeof program) {
             if (existsSync(specPath)) {
               try {
                 const spec = parseSpecFromFile(specPath, dirent.name);
-                
+
                 return {
                   id: dirent.name,
                   title: spec.name,
@@ -203,6 +180,7 @@ export function registerSpecCommand(rootProgram: typeof program) {
     .option('--no-interactive', 'Disable interactive prompts')
     .action(async (specId: string | undefined, options: { strict?: boolean; json?: boolean; noInteractive?: boolean }) => {
       try {
+        emitDeprecationWarning('plx spec validate <id>', 'plx validate spec --id <id>');
         if (!specId) {
           const canPrompt = isInteractive(options);
           const specIds = await getSpecIds();
@@ -218,7 +196,7 @@ export function registerSpecCommand(rootProgram: typeof program) {
         }
 
         const specPath = join(SPECS_DIR, specId, 'spec.md');
-        
+
         if (!existsSync(specPath)) {
           throw new Error(`Spec '${specId}' not found at workspace/specs/${specId}/spec.md`);
         }

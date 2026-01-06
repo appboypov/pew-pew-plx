@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -8,24 +8,42 @@ import { createValidPlxWorkspace } from '../test-utils.js';
 describe('ListCommand', () => {
   let tempDir: string;
   let originalLog: typeof console.log;
+  let originalError: typeof console.error;
   let logOutput: string[] = [];
+  let errorOutput: string[] = [];
+  let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
     // Create temp directory
     tempDir = path.join(os.tmpdir(), `plx-list-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
 
+    // Store original env
+    originalEnv = { ...process.env };
+    delete process.env.PLX_NO_DEPRECATION_WARNINGS;
+
     // Mock console.log to capture output
     originalLog = console.log;
     console.log = (...args: any[]) => {
       logOutput.push(args.join(' '));
     };
+
+    // Mock console.error to capture stderr output
+    originalError = console.error;
+    console.error = (...args: any[]) => {
+      errorOutput.push(args.join(' '));
+    };
     logOutput = [];
+    errorOutput = [];
   });
 
   afterEach(async () => {
-    // Restore console.log
+    // Restore console.log and console.error
     console.log = originalLog;
+    console.error = originalError;
+
+    // Restore environment
+    process.env = originalEnv;
 
     // Clean up temp directory
     await fs.rm(tempDir, { recursive: true, force: true });
@@ -83,7 +101,9 @@ describe('ListCommand', () => {
     it('should count tasks correctly', async () => {
       await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
+      const tasksDir = path.join(tempDir, 'workspace', 'tasks');
       await fs.mkdir(path.join(changesDir, 'test-change'), { recursive: true });
+      await fs.mkdir(tasksDir, { recursive: true });
 
       // Create proposal.md (required for change detection)
       await fs.writeFile(
@@ -91,9 +111,16 @@ describe('ListCommand', () => {
         '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\nTest'
       );
 
+      // Tasks in centralized storage with parent frontmatter
       await fs.writeFile(
-        path.join(changesDir, 'test-change', 'tasks.md'),
-        `# Tasks
+        path.join(tasksDir, '001-test-change-task.md'),
+        `---
+status: in-progress
+parent-type: change
+parent-id: test-change
+---
+# Tasks
+## Implementation Checklist
 - [x] Completed task 1
 - [x] Completed task 2
 - [ ] Incomplete task 1
@@ -112,7 +139,9 @@ Regular text that should be ignored
     it('should show complete status for fully completed changes', async () => {
       await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
+      const tasksDir = path.join(tempDir, 'workspace', 'tasks');
       await fs.mkdir(path.join(changesDir, 'completed-change'), { recursive: true });
+      await fs.mkdir(tasksDir, { recursive: true });
 
       // Create proposal.md (required for change detection)
       await fs.writeFile(
@@ -120,9 +149,10 @@ Regular text that should be ignored
         '# Change: Completed Change\n\n## Why\nTest\n\n## What Changes\nTest'
       );
 
+      // Tasks in centralized storage with parent frontmatter
       await fs.writeFile(
-        path.join(changesDir, 'completed-change', 'tasks.md'),
-        '- [x] Task 1\n- [x] Task 2\n- [x] Task 3\n'
+        path.join(tasksDir, '001-completed-change-task.md'),
+        '---\nstatus: done\nparent-type: change\nparent-id: completed-change\n---\n# Task\n## Implementation Checklist\n- [x] Task 1\n- [x] Task 2\n- [x] Task 3\n'
       );
 
       const listCommand = new ListCommand();
@@ -184,6 +214,8 @@ Regular text that should be ignored
     it('should handle multiple changes with various states', async () => {
       await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
+      const tasksDir = path.join(tempDir, 'workspace', 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
 
       // Complete change
       await fs.mkdir(path.join(changesDir, 'completed'), { recursive: true });
@@ -191,9 +223,10 @@ Regular text that should be ignored
         path.join(changesDir, 'completed', 'proposal.md'),
         '# Change: Completed\n\n## Why\nTest\n\n## What Changes\nTest'
       );
+      // Tasks in centralized storage with parent frontmatter
       await fs.writeFile(
-        path.join(changesDir, 'completed', 'tasks.md'),
-        '- [x] Task 1\n- [x] Task 2\n'
+        path.join(tasksDir, '001-completed-task.md'),
+        '---\nstatus: done\nparent-type: change\nparent-id: completed\n---\n# Task\n## Implementation Checklist\n- [x] Task 1\n- [x] Task 2\n'
       );
 
       // Partial change
@@ -203,8 +236,8 @@ Regular text that should be ignored
         '# Change: Partial\n\n## Why\nTest\n\n## What Changes\nTest'
       );
       await fs.writeFile(
-        path.join(changesDir, 'partial', 'tasks.md'),
-        '- [x] Done\n- [ ] Not done\n- [ ] Also not done\n'
+        path.join(tasksDir, '001-partial-task.md'),
+        '---\nstatus: in-progress\nparent-type: change\nparent-id: partial\n---\n# Task\n## Implementation Checklist\n- [x] Done\n- [ ] Not done\n- [ ] Also not done\n'
       );
 
       // No tasks
@@ -253,6 +286,8 @@ Test`;
     it('should align columns correctly when changes have different issue ID lengths', async () => {
       await createValidPlxWorkspace(tempDir);
       const changesDir = path.join(tempDir, 'workspace', 'changes');
+      const tasksDir = path.join(tempDir, 'workspace', 'tasks');
+      await fs.mkdir(tasksDir, { recursive: true });
 
       // Change with short issue ID
       await fs.mkdir(path.join(changesDir, 'short'), { recursive: true });
@@ -264,7 +299,11 @@ tracked-issues:
 ---
 # Change: Short`;
       await fs.writeFile(path.join(changesDir, 'short', 'proposal.md'), shortProposal);
-      await fs.writeFile(path.join(changesDir, 'short', 'tasks.md'), '- [x] Done\n');
+      // Tasks in centralized storage
+      await fs.writeFile(
+        path.join(tasksDir, '001-short-task.md'),
+        '---\nstatus: done\nparent-type: change\nparent-id: short\n---\n# Task\n## Implementation Checklist\n- [x] Done\n'
+      );
 
       // Change with long issue ID
       await fs.mkdir(path.join(changesDir, 'long'), { recursive: true });
@@ -276,12 +315,18 @@ tracked-issues:
 ---
 # Change: Long`;
       await fs.writeFile(path.join(changesDir, 'long', 'proposal.md'), longProposal);
-      await fs.writeFile(path.join(changesDir, 'long', 'tasks.md'), '- [x] Done\n');
+      await fs.writeFile(
+        path.join(tasksDir, '001-long-task.md'),
+        '---\nstatus: done\nparent-type: change\nparent-id: long\n---\n# Task\n## Implementation Checklist\n- [x] Done\n'
+      );
 
       // Change without issue
       await fs.mkdir(path.join(changesDir, 'no-issue'), { recursive: true });
       await fs.writeFile(path.join(changesDir, 'no-issue', 'proposal.md'), '# Change: No Issue');
-      await fs.writeFile(path.join(changesDir, 'no-issue', 'tasks.md'), '- [x] Done\n');
+      await fs.writeFile(
+        path.join(tasksDir, '001-no-issue-task.md'),
+        '---\nstatus: done\nparent-type: change\nparent-id: no-issue\n---\n# Task\n## Implementation Checklist\n- [x] Done\n'
+      );
 
       const listCommand = new ListCommand();
       await listCommand.execute(tempDir, 'changes');
@@ -322,6 +367,62 @@ tracked-issues:
       expect(logOutput.some(line => line.includes('alpha-with-issue') && line.includes('(GH-999)'))).toBe(true);
       expect(logOutput.some(line => line.includes('beta-no-issue'))).toBe(true);
       expect(logOutput.some(line => line.includes('beta-no-issue') && line.includes('('))).toBe(false);
+    });
+  });
+
+  describe('deprecation warnings', () => {
+    it('should emit deprecation warning for plx list (changes)', async () => {
+      await createValidPlxWorkspace(tempDir);
+      const changesDir = path.join(tempDir, 'workspace', 'changes');
+      await fs.mkdir(changesDir, { recursive: true });
+
+      const listCommand = new ListCommand();
+      await listCommand.execute(tempDir, 'changes');
+
+      expect(errorOutput.some(line =>
+        line.includes("Deprecation: 'plx list' is deprecated") &&
+        line.includes('plx get changes')
+      )).toBe(true);
+    });
+
+    it('should emit deprecation warning for plx list --specs', async () => {
+      await createValidPlxWorkspace(tempDir);
+      const specsDir = path.join(tempDir, 'workspace', 'specs');
+      await fs.mkdir(specsDir, { recursive: true });
+
+      const listCommand = new ListCommand();
+      await listCommand.execute(tempDir, 'specs');
+
+      expect(errorOutput.some(line =>
+        line.includes("Deprecation: 'plx list --specs' is deprecated") &&
+        line.includes('plx get specs')
+      )).toBe(true);
+    });
+
+    it('should emit deprecation warning for plx list --reviews', async () => {
+      await createValidPlxWorkspace(tempDir);
+      const reviewsDir = path.join(tempDir, 'workspace', 'reviews');
+      await fs.mkdir(reviewsDir, { recursive: true });
+
+      const listCommand = new ListCommand();
+      await listCommand.execute(tempDir, 'reviews');
+
+      expect(errorOutput.some(line =>
+        line.includes("Deprecation: 'plx list --reviews' is deprecated") &&
+        line.includes('plx get reviews')
+      )).toBe(true);
+    });
+
+    it('should suppress deprecation warning when PLX_NO_DEPRECATION_WARNINGS is set', async () => {
+      process.env.PLX_NO_DEPRECATION_WARNINGS = '1';
+      await createValidPlxWorkspace(tempDir);
+      const changesDir = path.join(tempDir, 'workspace', 'changes');
+      await fs.mkdir(changesDir, { recursive: true });
+
+      const listCommand = new ListCommand();
+      await listCommand.execute(tempDir, 'changes');
+
+      expect(errorOutput.some(line => line.includes('Deprecation'))).toBe(false);
     });
   });
 });

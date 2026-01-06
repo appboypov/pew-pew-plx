@@ -86,6 +86,15 @@ pew-pew-plx/
 │       └── workspace-filter.ts # Workspace filtering
 ├── test/                   # Test files (mirrors src structure)
 ├── workspace/              # PLX workspace directory (dogfooding)
+│   ├── tasks/              # Centralized task storage
+│   │   ├── NNN-<parent-id>-<name>.md  # Linked task
+│   │   ├── NNN-<name>.md              # Standalone task
+│   │   └── archive/                   # Archived tasks
+│   ├── changes/            # Change proposals
+│   ├── specs/              # Specifications
+│   ├── reviews/            # Review entities
+│   ├── requests/           # Feature requests
+│   └── AGENTS.md           # AI agent instructions
 ├── .claude/commands/       # Claude Code slash commands
 └── dist/                   # Compiled output
 ```
@@ -107,20 +116,23 @@ Command Classes (src/commands/*.ts, src/core/*.ts)
 Each command class encapsulates its own logic:
 - `InitCommand` - Interactive project initialization
 - `UpdateCommand` - Refresh PLX files
-- `ListCommand` - Display changes/specs
 - `ViewCommand` - Interactive dashboard
-- `ArchiveCommand` - Archive completed changes
-- `ValidateCommand` - Validate specs and changes
-- `ShowCommand` - Display item details
-- `ChangeCommand` - Change management
+- `ChangeCommand` - Change entity management with subcommands
+- `SpecCommand` - Spec entity management with subcommands
+- `TaskCommand` - Task entity management with subcommands
+- `ReviewCommand` - Review entity management with subcommands
+- `RequestCommand` - Request entity management with subcommands
 - `CompletionCommand` - Shell completions
 - `ConfigCommand` - Global configuration
-- `GetCommand` - Retrieve project artifacts (tasks, changes, specs)
+- `CreateCommand` - Create entities (tasks, changes, specs, requests, reviews)
+- `GetCommand` - Retrieve project artifacts (tasks, changes, specs, reviews)
 - `CompleteCommand` - Mark tasks/changes as done
 - `UndoCommand` - Revert tasks/changes to to-do status
-- `ReviewCommand` - Review implementations against specs/changes/tasks
+- `ValidateCommand` - Validate specs and changes
+- `ArchiveCommand` - Archive completed entities
 - `ParseFeedbackCommand` - Parse feedback markers from code and generate review tasks
-- `PasteCommand` - Paste clipboard content as draft request
+- `PasteCommand` - Paste clipboard content as entities (tasks, changes, specs, requests)
+- `MigrateCommand` - Migrate legacy task storage to centralized format
 
 ### Registry Pattern
 
@@ -188,8 +200,8 @@ tracked-issues:
 ```
 
 Tracked issues are:
-- Displayed in `plx list` output alongside change names
-- Included in `plx show --json` output
+- Displayed in `plx get changes` output alongside change names
+- Included in `plx get change --id <id> --json` output
 - Reported when archiving changes
 
 ### Service Layer
@@ -197,11 +209,12 @@ Tracked issues are:
 Domain services encapsulate business logic for reuse across commands:
 
 - **ItemRetrievalService** - Retrieves tasks, changes, specs, and reviews by ID
-  - `getTaskById(id)` - Find task across all changes and reviews
-  - `getChangeById(id)` - Get change proposal with tasks
+  - `getTaskById(id)` - Find task in centralized storage
+  - `getChangeById(id)` - Get change proposal with linked tasks
   - `getSpecById(id)` - Get spec content
-  - `getTasksForChange(id)` - List tasks for a change or review
-  - `getAllOpenTasks()` - List all non-done tasks from changes and reviews
+  - `getReviewById(id)` - Get review entity with linked tasks
+  - `getTasksForParent(parentId, parentType)` - List tasks for a parent entity
+  - `getAllOpenTasks()` - List all non-done tasks from centralized storage
 
 - **ContentFilterService** - Extracts markdown sections
   - `filterSections(content, sections)` - Extract named sections
@@ -290,13 +303,13 @@ For each item:
 ### Archive Flow
 
 ```
-User runs: plx archive <change>
+User runs: plx archive change --id <id>
     ↓
 ArchiveCommand.execute()
     ↓
 Validate change (proposal.md, delta specs)
     ↓
-Check task progress (tasks.md)
+Check task progress (linked tasks in workspace/tasks/)
     ↓
 Find spec updates (change/specs/* → main/specs/*)
     ↓
@@ -307,6 +320,8 @@ For each spec:
     writeUpdatedSpec()
     ↓
 Move change to archive/YYYY-MM-DD-<name>/
+    ↓
+Archive linked tasks to workspace/tasks/archive/
 ```
 
 ## Configuration
@@ -464,35 +479,50 @@ Build output goes to `dist/` with:
 
 ## Task Management System
 
-Pew Pew Plx includes a task management system for tracking implementation progress within changes.
+Pew Pew Plx includes a task management system for tracking implementation progress across all entities.
 
 ### Task File Structure
 
-Tasks are stored in `workspace/changes/<change-name>/tasks/` as individual markdown files:
+Tasks are stored centrally in `workspace/tasks/` as individual markdown files:
 
 ```
-tasks/
-├── 001-design.md       # First task
-├── 002-implement.md    # Second task
-└── 003-test.md         # Third task
+workspace/tasks/
+├── 001-add-feature-design.md           # Standalone task
+├── 002-PLX-44-implement-api.md         # Linked to change PLX-44
+├── 003-PLX-44-add-tests.md             # Linked to change PLX-44
+├── 004-user-auth-update-docs.md        # Linked to spec user-auth
+└── archive/                            # Archived tasks
+    └── 001-completed-task.md
 ```
 
-Task filenames follow the pattern `NNN-<kebab-case-name>.md` where NNN is a zero-padded sequence number.
+**Task Filename Patterns:**
+
+- **Standalone**: `NNN-<kebab-case-name>.md`
+- **Linked to parent**: `NNN-<parent-id>-<kebab-case-name>.md`
+
+Where NNN is a zero-padded sequence number that increments across all tasks.
 
 ### Task Status
 
-Each task file has YAML frontmatter with status and optional skill-level fields:
+Each task file has YAML frontmatter with status, optional skill-level, and parent linking fields:
 
 ```yaml
 ---
-status: to-do    # or 'in-progress' or 'done'
-skill-level: medior  # or 'junior' or 'senior' (optional)
+status: to-do           # or 'in-progress' or 'done'
+skill-level: medior     # or 'junior' or 'senior' (optional)
+parent-type: change     # or 'spec' or 'review' (optional)
+parent-id: PLX-44       # ID of parent entity (optional)
 ---
 ```
 
 Status transitions:
 - `to-do` → `in-progress` (when starting work)
 - `in-progress` → `done` (when completing)
+
+Parent linking:
+- `parent-type` and `parent-id` establish relationship with parent entity
+- Tasks without parent fields are standalone
+- Filename includes parent-id for linked tasks: `NNN-<parent-id>-<name>.md`
 
 ### Task Skill Level
 
@@ -538,9 +568,16 @@ The `get` command provides subcommands for retrieving project artifacts:
 | Subcommand | Description |
 |------------|-------------|
 | `get task` | Get next prioritized task or specific task by ID |
+| `get task --id <id>` | Retrieve specific task by ID |
+| `get task --parent-id <id> --parent-type <type>` | Get next task for parent entity |
 | `get change --id <id>` | Retrieve change proposal by ID |
 | `get spec --id <id>` | Retrieve spec by ID |
-| `get tasks` | List all open tasks or tasks for specific change |
+| `get review --id <id>` | Retrieve review entity by ID |
+| `get tasks` | List all open tasks |
+| `get tasks --parent-id <id> --parent-type <type>` | List tasks for parent entity |
+| `get changes` | List all active changes |
+| `get specs` | List all specs |
+| `get reviews` | List all reviews |
 
 **Get Task Flow:**
 ```
@@ -548,7 +585,7 @@ User runs: plx get task
     ↓
 getPrioritizedChange() → find highest-priority change
     ↓
-Find next task (in-progress or first to-do)
+Find next task (in-progress or first to-do) in workspace/tasks/
     ↓
 Auto-transition to-do → in-progress (if needed)
     ↓
@@ -591,20 +628,22 @@ These use `ContentFilterService` which extracts sections via `markdown-sections.
 
 ### Complete and Undo Commands
 
-The CLI provides explicit commands for task/change completion and undo:
+The CLI provides explicit commands for task/entity completion and undo:
 
 | Command | Description |
 |---------|-------------|
 | `complete task --id <id>` | Mark task as done, check all Implementation Checklist items |
-| `complete change --id <id>` | Complete all tasks in a change |
+| `complete change --id <id>` | Complete all linked tasks in a change |
+| `complete review --id <id>` | Complete all linked tasks in a review |
 | `undo task --id <id>` | Revert task to to-do, uncheck Implementation Checklist items |
-| `undo change --id <id>` | Revert all tasks in a change to to-do |
+| `undo change --id <id>` | Revert all linked tasks in a change to to-do |
+| `undo review --id <id>` | Revert all linked tasks in a review to to-do |
 
 **Complete Task Flow:**
 ```
 User runs: plx complete task --id <task-id>
     ↓
-ItemRetrievalService.getTaskById() → find task
+ItemRetrievalService.getTaskById() → find task in workspace/tasks/
     ↓
 Check status (if 'done' → warn and exit)
     ↓
@@ -617,7 +656,7 @@ Output result (JSON includes completedItems array)
 ```
 User runs: plx undo task --id <task-id>
     ↓
-ItemRetrievalService.getTaskById() → find task
+ItemRetrievalService.getTaskById() → find task in workspace/tasks/
     ↓
 Check status (if 'to-do' → warn and exit)
     ↓
@@ -672,9 +711,9 @@ interface DiscoveredWorkspace {
 The global `--workspace <name>` flag filters operations to a specific workspace:
 
 ```bash
-plx list --workspace project-a          # List only project-a items
-plx validate --all --workspace project-a # Validate only project-a
-plx get task --workspace project-a       # Get task from project-a only
+plx get changes --workspace project-a         # List only project-a changes
+plx validate --all --workspace project-a      # Validate only project-a
+plx get task --workspace project-a            # Get task from project-a only
 ```
 
 ### Item Prefixing
@@ -688,7 +727,7 @@ Commands accept both prefixed and unprefixed IDs. When unprefixed and multiple m
 ### Workspace Discovery Flow
 
 ```
-User runs: plx list (from any subdirectory)
+User runs: plx get changes (from any subdirectory)
     ↓
 findProjectRoot(cwd) → scan upward for workspace/AGENTS.md
     ↓
@@ -720,27 +759,30 @@ Pew Pew Plx provides a structured review workflow for validating implementations
 The `plx review` command generates review context for changes, specs, or tasks:
 
 ```bash
-plx review --change-id <id>    # Review a change
-plx review --spec-id <id>       # Review a spec
-plx review --task-id <id>       # Review a task
+plx review create --parent-id <id> --parent-type <type>   # Create review entity
+plx review get --id <id>                                   # Get review by ID
+plx review complete --id <id>                              # Complete review tasks
+plx review archive --id <id>                               # Archive completed review
 ```
 
-**Review Flow:**
+**Review Creation Flow:**
 ```
-User runs: plx review --change-id <id>
+User runs: plx review create --parent-id <id> --parent-type change
     ↓
 ReviewCommand.execute()
     ↓
 Load REVIEW.md template (if exists)
     ↓
-Load parent documents (proposal.md, design.md, tasks, spec.md)
+Load parent documents (proposal.md, design.md, spec.md)
+    ↓
+Create review entity in workspace/reviews/<review-name>/
     ↓
 Display review context with next steps
 ```
 
 **Output includes:**
 - `REVIEW.md` template (if exists at project root)
-- Parent documents (proposal, design, tasks, or spec)
+- Parent documents (proposal, design, or spec)
 - Next steps for adding feedback markers
 
 #### Parse Feedback Command
@@ -748,14 +790,12 @@ Display review context with next steps
 The `plx parse feedback` command scans the codebase for feedback markers and generates review tasks:
 
 ```bash
-plx parse feedback <review-name> --change-id <id>
-plx parse feedback <review-name> --spec-id <id>
-plx parse feedback <review-name> --task-id <id>
+plx parse feedback <review-name> --parent-id <id> --parent-type <type>
 ```
 
 **Parse Feedback Flow:**
 ```
-User runs: plx parse feedback <name> --change-id <id>
+User runs: plx parse feedback <name> --parent-id <id> --parent-type change
     ↓
 ParseFeedbackCommand.execute()
     ↓
@@ -766,7 +806,7 @@ For each marker:
     ↓
 FeedbackScannerService.generateReview() → create review entity
     ↓
-Create tasks/ directory with numbered task files
+Create tasks in workspace/tasks/ with parent linking
     ↓
 Output summary (markers found, tasks created, files scanned)
 ```
@@ -794,10 +834,14 @@ Reviews are stored in `workspace/reviews/<review-name>/`:
 ```
 reviews/
 └── <review-name>/
-    ├── review.md          # Review summary and metadata
-    └── tasks/
-        ├── 001-<task>.md   # Generated task from feedback marker
-        └── 002-<task>.md
+    └── review.md          # Review summary and metadata
+```
+
+Linked tasks are stored in `workspace/tasks/`:
+```
+workspace/tasks/
+├── 005-<review-name>-fix-validation.md
+└── 006-<review-name>-update-tests.md
 ```
 
 **Review Metadata:**
@@ -811,12 +855,23 @@ reviewed-at: <ISO timestamp>
 ---
 ```
 
+**Task Linking to Reviews:**
+
+Tasks generated from feedback markers include:
+```yaml
+---
+parent-type: review
+parent-id: <review-name>
+status: to-do
+---
+```
+
 **Integration with Change/Spec/Task System:**
 
 - Reviews are linked to their parent (change, spec, or task) via metadata
-- Generated tasks follow the same structure as change tasks
+- Generated tasks are stored centrally with parent linking
 - Tasks can be retrieved via `plx get task` and managed with complete/undo commands
-- Reviews can be archived like changes: `plx archive <review-name> --type review`
+- Reviews can be archived: `plx archive review --id <review-name>`
 
 ## Fork-Specific Features (Pew Pew Plx)
 
@@ -824,7 +879,11 @@ Pew Pew Plx provides:
 
 1. **PLX Command**: The CLI uses `plx` as the command name
 2. **Dynamic Command Name**: CLI detects invocation name and uses it in output messages, help text, and shell completions via `src/utils/command-name.ts`
-3. **Slash Commands**: Commands in `.claude/commands/plx/`
+3. **Centralized Task Storage**: Tasks stored in `workspace/tasks/` with parent linking via frontmatter and filenames
+4. **Parent Linking System**: Tasks link to parent entities (changes, specs, reviews) via `parent-type` and `parent-id` fields
+5. **Task Migration**: `plx migrate tasks` migrates legacy `tasks/` directories to centralized storage
+6. **Entity-Based Commands**: Unified command structure (`plx <entity> <action>`) for changes, specs, tasks, reviews, requests
+7. **Slash Commands**: Commands in `.claude/commands/plx/`
    - `/plx/plan-request` - Clarify intent via iterative yes/no questions before proposal
    - `/plx/plan-proposal` - Scaffold change proposal (auto-consumes request.md)
    - `/plx/get-task` - Get next prioritized task and execute workflow
@@ -841,14 +900,15 @@ Pew Pew Plx provides:
    - `/plx/refine-testing` - Create or update TESTING.md template
    - `/plx/test` - Run tests based on scope (change, task, or spec)
    - `/plx/prepare-compact` - Preserve session progress in PROGRESS.md
-4. **Extended Templates**: Architecture template generation
-5. **Get Command**: Extended with subcommands for item retrieval (`get task`, `get change`, `get spec`, `get tasks`) and content filtering (`--constraints`, `--acceptance-criteria`)
-6. **Automatic Task Completion**: Detects when in-progress task has all Implementation Checklist items checked and auto-advances to next task
-7. **Auto-Transition**: `get task` auto-transitions to-do tasks to in-progress when retrieved
-8. **Complete/Undo Commands**: Explicit commands for task/change completion and undo (`complete task`, `complete change`, `undo task`, `undo change`)
-9. **Services Layer**: Domain services for item retrieval and content filtering
-10. **Review System**: Structured review workflow with feedback markers (`plx review`, `plx parse feedback`)
-11. **Paste Command**: Capture clipboard content as draft request (`plx paste request`) with cross-platform clipboard support (macOS, Windows, Linux)
+8. **Extended Templates**: Architecture template generation
+9. **Get Command**: Extended with subcommands for all entities (`get task`, `get change`, `get spec`, `get review`, `get tasks`, `get changes`, `get specs`, `get reviews`) and content filtering (`--constraints`, `--acceptance-criteria`)
+10. **Automatic Task Completion**: Detects when in-progress task has all Implementation Checklist items checked and auto-advances to next task
+11. **Auto-Transition**: `get task` auto-transitions to-do tasks to in-progress when retrieved
+12. **Complete/Undo Commands**: Explicit commands for task/entity completion and undo with `--id`, `--parent-id`, and `--parent-type` flags
+13. **Services Layer**: Domain services for item retrieval, content filtering, and feedback scanning
+14. **Review System**: Structured review workflow with feedback markers and centralized task storage
+15. **Paste Command**: Create entities from clipboard (`plx paste task/change/spec/request`) with cross-platform clipboard support (macOS, Windows, Linux)
+16. **Create Command**: Unified entity creation (`plx create task/change/spec/request/review`) with parent linking support
 
 ## Extending the System
 

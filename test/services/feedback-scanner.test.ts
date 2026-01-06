@@ -508,30 +508,10 @@ const z = 3;`
       expect(content).toContain('src/utils.ts');
     });
 
-    it('creates tasks directory', async () => {
-      await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
-
-      const tasksDir = path.join(
-        tempDir,
-        'workspace',
-        'reviews',
-        'my-review',
-        'tasks'
-      );
-      const stat = await fs.stat(tasksDir);
-      expect(stat.isDirectory()).toBe(true);
-    });
-
     it('creates numbered task files', async () => {
       await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
 
-      const tasksDir = path.join(
-        tempDir,
-        'workspace',
-        'reviews',
-        'my-review',
-        'tasks'
-      );
+      const tasksDir = path.join(tempDir, 'workspace', 'tasks');
       const files = await fs.readdir(tasksDir);
 
       expect(files).toHaveLength(2);
@@ -542,13 +522,7 @@ const z = 3;`
     it('task files contain frontmatter with status', async () => {
       await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
 
-      const tasksDir = path.join(
-        tempDir,
-        'workspace',
-        'reviews',
-        'my-review',
-        'tasks'
-      );
+      const tasksDir = path.join(tempDir, 'workspace', 'tasks');
       const files = await fs.readdir(tasksDir);
       const taskContent = await fs.readFile(
         path.join(tasksDir, files[0]),
@@ -561,13 +535,7 @@ const z = 3;`
     it('task files include file:line reference', async () => {
       await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
 
-      const tasksDir = path.join(
-        tempDir,
-        'workspace',
-        'reviews',
-        'my-review',
-        'tasks'
-      );
+      const tasksDir = path.join(tempDir, 'workspace', 'tasks');
       const files = await fs.readdir(tasksDir);
       const taskContent = await fs.readFile(
         path.join(tasksDir, files[0]),
@@ -612,6 +580,43 @@ const z = 3;`
 
       expect(content).toContain('parent-type: task');
       expect(content).toContain('parent-id: 001-implement-feature');
+    });
+
+    it('creates tasks in centralized workspace/tasks directory', async () => {
+      await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
+
+      // Tasks should be in workspace/tasks, not workspace/reviews/my-review/tasks
+      const centralTasksDir = path.join(tempDir, 'workspace', 'tasks');
+      const stat = await fs.stat(centralTasksDir);
+      expect(stat.isDirectory()).toBe(true);
+
+      const files = await fs.readdir(centralTasksDir);
+      expect(files.length).toBe(2);
+    });
+
+    it('task filenames include reviewId for parented tasks', async () => {
+      await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
+
+      const centralTasksDir = path.join(tempDir, 'workspace', 'tasks');
+      const files = await fs.readdir(centralTasksDir);
+
+      // Filenames should be NNN-{reviewId}-{taskName}.md
+      expect(files.some((f) => f.startsWith('001-my-review-'))).toBe(true);
+      expect(files.some((f) => f.startsWith('002-my-review-'))).toBe(true);
+    });
+
+    it('task frontmatter includes parent-type and parent-id for review', async () => {
+      await scanner.generateReview('my-review', markers as any, 'change', 'test-change');
+
+      const centralTasksDir = path.join(tempDir, 'workspace', 'tasks');
+      const files = await fs.readdir(centralTasksDir);
+      const taskContent = await fs.readFile(
+        path.join(centralTasksDir, files[0]),
+        'utf-8'
+      );
+
+      expect(taskContent).toContain('parent-type: review');
+      expect(taskContent).toContain('parent-id: my-review');
     });
   });
 

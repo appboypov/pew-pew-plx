@@ -1,18 +1,13 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import {
-  getActiveChangeIdsMulti,
-  getActiveReviewIdsMulti,
-} from '../utils/item-discovery.js';
+import { ParentType } from '../core/config.js';
 import {
   parseTaskFilename,
-  sortTaskFilesBySequence,
 } from '../utils/task-file-parser.js';
-import { parseStatus, parseSkillLevel, TaskStatus, SkillLevel } from '../utils/task-status.js';
+import { TaskStatus, SkillLevel } from '../utils/task-status.js';
 import {
   getTaskStructureForChange,
   TaskFileInfo,
-  TASKS_DIRECTORY_NAME,
 } from '../utils/task-progress.js';
 import { getTaskIdFromFilename } from './task-id.js';
 import {
@@ -20,6 +15,12 @@ import {
   discoverWorkspaces,
   isMultiWorkspace,
 } from '../utils/workspace-discovery.js';
+import {
+  discoverTasks,
+  filterTasksByParent,
+  checkParentIdConflicts,
+  DiscoveredTask,
+} from '../utils/centralized-task-discovery.js';
 
 export interface TaskWithContext {
   task: TaskFileInfo;
@@ -52,9 +53,17 @@ export interface SpecWithWorkspace {
   displayId: string;
 }
 
+export interface ReviewWithWorkspace {
+  content: string;
+  workspacePath: string;
+  projectName: string;
+  displayId: string;
+}
+
 export interface OpenTaskInfo {
   taskId: string;
-  changeId: string;
+  parentId: string;
+  parentType: ParentType;
   task: TaskFileInfo;
   status: TaskStatus;
   skillLevel?: SkillLevel;
@@ -186,223 +195,57 @@ export class ItemRetrievalService {
   }
 
   /**
+   * Converts a DiscoveredTask to TaskWithWorkspace format.
+   */
+  private discoveredTaskToTaskWithWorkspace(
+    task: DiscoveredTask,
+    workspace: DiscoveredWorkspace
+  ): TaskWithWorkspace {
+    const taskId = getTaskIdFromFilename(task.filename);
+
+    return {
+      task: {
+        filename: task.filename,
+        filepath: task.filepath,
+        sequence: task.sequence,
+        name: task.name,
+        progress: { total: 0, completed: 0 },
+      },
+      content: task.content,
+      changeId: task.parentId || '',
+      workspacePath: workspace.path,
+      projectName: workspace.projectName,
+      displayId: this.getDisplayId(workspace.projectName, taskId),
+    };
+  }
+
+  /**
    * Retrieves a task by ID with its content and change context.
    * Supports formats:
-   * - Full with project: {projectName}/{changeId}/{taskFilename}
-   * - Full: {changeId}/{taskFilename}
-   * - Short: {taskFilename} (searches all active changes)
+   * - Full with project: {projectName}/{taskFilename}
+   * - Short: {taskFilename} (searches all workspaces)
    * @param taskId The task identifier
    * @returns Task with workspace context or null if not found
    */
   async getTaskById(taskId: string): Promise<TaskWithWorkspace | null> {
     const parsed = this.parsePrefixedId(taskId);
+    const workspacePaths = this.getWorkspacePaths(parsed.projectName);
 
-    if (parsed.projectName) {
-      // Has valid project prefix: projectName/changeId/taskName or projectName/taskName
-      const remainingParts = parsed.itemId.split('/');
+    // The task ID is the filename without .md
+    const taskFilename = parsed.itemId.endsWith('.md')
+      ? parsed.itemId
+      : `${parsed.itemId}.md`;
 
-      if (remainingParts.length === 2) {
-        // projectName/changeId/taskName
-        const [changeId, taskName] = remainingParts;
-        return this.findTaskWithWorkspace(
-          parsed.projectName,
-          changeId,
-          taskName
-        );
-      } else {
-        // projectName/taskName - search all changes in that project
-        const taskName = parsed.itemId;
-        return this.searchTaskInProject(parsed.projectName, taskName);
-      }
-    }
+    for (const { workspace } of workspacePaths) {
+      const result = await discoverTasks(workspace);
+      const task = result.tasks.find((t) => t.filename === taskFilename);
 
-    // No project prefix
-    const parts = taskId.split('/');
-
-    if (parts.length === 2) {
-      // changeId/taskFilename
-      const [changeId, taskName] = parts;
-      return this.searchTaskInAllWorkspaces(changeId, taskName);
-    }
-
-    // Just taskFilename - search everywhere
-    return this.searchTaskByNameInAllWorkspaces(taskId);
-  }
-
-  private async findTaskWithWorkspace(
-    projectName: string,
-    changeId: string,
-    taskName: string
-  ): Promise<TaskWithWorkspace | null> {
-    const workspacePaths = this.getWorkspacePaths(projectName);
-    if (workspacePaths.length === 0) return null;
-
-    const { changesPath, reviewsPath, workspace } = workspacePaths[0];
-
-    // Ensure .md extension
-    const taskFilename = taskName.endsWith('.md') ? taskName : `${taskName}.md`;
-
-    // Try changes first
-    const changeResult = await this.findTaskInPath(
-      changesPath,
-      changeId,
-      taskFilename,
-      workspace
-    );
-    if (changeResult) return changeResult;
-
-    // Try reviews
-    return this.findTaskInPath(reviewsPath, changeId, taskFilename, workspace);
-  }
-
-  private async searchTaskInProject(
-    projectName: string,
-    taskName: string
-  ): Promise<TaskWithWorkspace | null> {
-    const workspacePaths = this.getWorkspacePaths(projectName);
-    if (workspacePaths.length === 0) return null;
-
-    const { changesPath, reviewsPath, workspace } = workspacePaths[0];
-
-    const taskFilename = taskName.endsWith('.md') ? taskName : `${taskName}.md`;
-
-    // Get all active changes in this workspace
-    const activeChanges = await getActiveChangeIdsMulti([workspace]);
-    for (const change of activeChanges) {
-      const result = await this.findTaskInPath(
-        changesPath,
-        change.id,
-        taskFilename,
-        workspace
-      );
-      if (result) return result;
-    }
-
-    // Try reviews
-    const activeReviews = await getActiveReviewIdsMulti([workspace]);
-    for (const review of activeReviews) {
-      const result = await this.findTaskInPath(
-        reviewsPath,
-        review.id,
-        taskFilename,
-        workspace
-      );
-      if (result) return result;
-    }
-
-    return null;
-  }
-
-  private async searchTaskInAllWorkspaces(
-    changeId: string,
-    taskName: string
-  ): Promise<TaskWithWorkspace | null> {
-    const taskFilename = taskName.endsWith('.md') ? taskName : `${taskName}.md`;
-
-    for (const workspacePath of this.getWorkspacePaths(null)) {
-      const { changesPath, reviewsPath, workspace } = workspacePath;
-
-      // Try changes
-      const changeResult = await this.findTaskInPath(
-        changesPath,
-        changeId,
-        taskFilename,
-        workspace
-      );
-      if (changeResult) return changeResult;
-
-      // Try reviews
-      const reviewResult = await this.findTaskInPath(
-        reviewsPath,
-        changeId,
-        taskFilename,
-        workspace
-      );
-      if (reviewResult) return reviewResult;
-    }
-
-    return null;
-  }
-
-  private async searchTaskByNameInAllWorkspaces(
-    taskName: string
-  ): Promise<TaskWithWorkspace | null> {
-    const taskFilename = taskName.endsWith('.md') ? taskName : `${taskName}.md`;
-
-    for (const workspacePath of this.getWorkspacePaths(null)) {
-      const { changesPath, reviewsPath, workspace } = workspacePath;
-
-      // Get all active changes
-      const activeChanges = await getActiveChangeIdsMulti([workspace]);
-      for (const change of activeChanges) {
-        const result = await this.findTaskInPath(
-          changesPath,
-          change.id,
-          taskFilename,
-          workspace
-        );
-        if (result) return result;
-      }
-
-      // Try reviews
-      const activeReviews = await getActiveReviewIdsMulti([workspace]);
-      for (const review of activeReviews) {
-        const result = await this.findTaskInPath(
-          reviewsPath,
-          review.id,
-          taskFilename,
-          workspace
-        );
-        if (result) return result;
+      if (task) {
+        return this.discoveredTaskToTaskWithWorkspace(task, workspace);
       }
     }
 
     return null;
-  }
-
-  private async findTaskInPath(
-    basePath: string,
-    itemId: string,
-    taskFilename: string,
-    workspace: DiscoveredWorkspace
-  ): Promise<TaskWithWorkspace | null> {
-    const tasksDir = path.join(basePath, itemId, TASKS_DIRECTORY_NAME);
-    const taskPath = path.join(tasksDir, taskFilename);
-
-    try {
-      const content = await fs.readFile(taskPath, 'utf-8');
-      const parsed = parseTaskFilename(taskFilename);
-
-      if (!parsed) {
-        return null;
-      }
-
-      const progress = { total: 0, completed: 0 };
-
-      const task: TaskFileInfo = {
-        filename: taskFilename,
-        filepath: taskPath,
-        sequence: parsed.sequence,
-        name: parsed.name,
-        progress,
-      };
-
-      const taskId = getTaskIdFromFilename(taskFilename);
-
-      return {
-        task,
-        content,
-        changeId: itemId,
-        workspacePath: workspace.path,
-        projectName: workspace.projectName,
-        displayId: this.getDisplayId(
-          workspace.projectName,
-          `${itemId}/${taskId}`
-        ),
-      };
-    } catch {
-      return null;
-    }
   }
 
   /**
@@ -487,34 +330,80 @@ export class ItemRetrievalService {
   }
 
   /**
-   * Retrieves all tasks for a specific change or review.
+   * Retrieves a review by ID.
+   * Supports formats:
+   * - With project: {projectName}/{reviewId}
+   * - Without: {reviewId}
+   * @param reviewId The review identifier
+   * @returns Review with workspace context or null if not found
+   */
+  async getReviewById(reviewId: string): Promise<ReviewWithWorkspace | null> {
+    const parsed = this.parsePrefixedId(reviewId);
+    const workspacePaths = this.getWorkspacePaths(parsed.projectName);
+
+    for (const { reviewsPath, workspace } of workspacePaths) {
+      const reviewPath = path.join(reviewsPath, parsed.itemId, 'review.md');
+
+      try {
+        const content = await fs.readFile(reviewPath, 'utf-8');
+        return {
+          content,
+          workspacePath: workspace.path,
+          projectName: workspace.projectName,
+          displayId: this.getDisplayId(workspace.projectName, parsed.itemId),
+        };
+      } catch {
+        // Continue to next workspace
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Retrieves all tasks for a specific parent entity (change, review, or spec).
    * Supports formats:
    * - With project: {projectName}/{itemId}
    * - Without: {itemId}
-   * @param itemId The change or review identifier
-   * @returns Array of task file info, or empty array if item not found
+   * @param itemId The parent identifier
+   * @param parentType Optional parent type filter
+   * @returns Array of task file info, or empty array if no tasks found
+   * @throws Error if parent ID matches multiple parent types and parentType not specified
    */
-  async getTasksForChange(itemId: string): Promise<TaskFileInfo[]> {
+  async getTasksForParent(
+    itemId: string,
+    parentType?: ParentType
+  ): Promise<TaskFileInfo[]> {
     const parsed = this.parsePrefixedId(itemId);
     const workspacePaths = this.getWorkspacePaths(parsed.projectName);
 
-    for (const { changesPath, reviewsPath } of workspacePaths) {
-      // Try changes first
-      const changeStructure = await getTaskStructureForChange(
-        changesPath,
-        parsed.itemId
-      );
-      if (changeStructure.files.length > 0) {
-        return changeStructure.files;
+    for (const { workspace } of workspacePaths) {
+      const result = await discoverTasks(workspace);
+
+      // If parentType not specified, check for conflicts
+      if (!parentType) {
+        const conflicts = checkParentIdConflicts(result.tasks, parsed.itemId);
+        if (conflicts.length > 1) {
+          throw new Error(
+            `Parent ID "${parsed.itemId}" matches multiple parent types: ${conflicts.join(', ')}. Please specify --parent-type.`
+          );
+        }
       }
 
-      // Try reviews if not found in changes
-      const reviewStructure = await getTaskStructureForChange(
-        reviewsPath,
-        parsed.itemId
+      const filtered = filterTasksByParent(
+        result.tasks,
+        parsed.itemId,
+        parentType
       );
-      if (reviewStructure.files.length > 0) {
-        return reviewStructure.files;
+
+      if (filtered.length > 0) {
+        return filtered.map((t) => ({
+          filename: t.filename,
+          filepath: t.filepath,
+          sequence: t.sequence,
+          name: t.name,
+          progress: { total: 0, completed: 0 },
+        }));
       }
     }
 
@@ -522,126 +411,65 @@ export class ItemRetrievalService {
   }
 
   /**
-   * Retrieves all open tasks (status: to-do or in-progress) across all active changes and reviews.
+   * Retrieves all open tasks (status: to-do or in-progress) across all workspaces.
+   * @param parentType Optional filter by parent type
    * @returns Array of open task info with workspace context
    */
-  async getAllOpenTasks(): Promise<OpenTaskInfo[]> {
+  async getAllOpenTasks(parentType?: ParentType): Promise<OpenTaskInfo[]> {
     const openTasks: OpenTaskInfo[] = [];
 
-    for (const workspacePath of this.getWorkspacePaths(null)) {
-      const { changesPath, reviewsPath, workspace } = workspacePath;
+    for (const { workspace } of this.getWorkspacePaths(null)) {
+      const result = await discoverTasks(workspace);
 
-      // Get active changes for this workspace
-      const activeChanges = await getActiveChangeIdsMulti([workspace]);
+      for (const task of result.tasks) {
+        // Filter by status
+        if (task.status !== 'to-do' && task.status !== 'in-progress') continue;
 
-      for (const change of activeChanges) {
-        const tasksDir = path.join(changesPath, change.id, TASKS_DIRECTORY_NAME);
+        // Filter by parent type if specified
+        if (parentType && task.parentType !== parentType) continue;
 
-        try {
-          const entries = await fs.readdir(tasksDir);
-          const sortedFiles = sortTaskFilesBySequence(entries);
+        const taskId = getTaskIdFromFilename(task.filename);
 
-          for (const filename of sortedFiles) {
-            const parsed = parseTaskFilename(filename);
-            if (!parsed) continue;
-
-            const filepath = path.join(tasksDir, filename);
-
-            try {
-              const content = await fs.readFile(filepath, 'utf-8');
-              const status = parseStatus(content);
-
-              if (status === 'to-do' || status === 'in-progress') {
-                const skillLevel = parseSkillLevel(content);
-                const task: TaskFileInfo = {
-                  filename,
-                  filepath,
-                  sequence: parsed.sequence,
-                  name: parsed.name,
-                  progress: { total: 0, completed: 0 },
-                };
-
-                const taskId = getTaskIdFromFilename(filename);
-
-                openTasks.push({
-                  taskId,
-                  changeId: change.id,
-                  task,
-                  status,
-                  skillLevel,
-                  workspacePath: workspace.path,
-                  projectName: workspace.projectName,
-                  displayId: this.getDisplayId(
-                    workspace.projectName,
-                    `${change.id}/${taskId}`
-                  ),
-                });
-              }
-            } catch {
-              // Skip files that can't be read
-            }
-          }
-        } catch {
-          // Skip changes without tasks directory
-        }
-      }
-
-      // Get active reviews for this workspace
-      const activeReviews = await getActiveReviewIdsMulti([workspace]);
-
-      for (const review of activeReviews) {
-        const tasksDir = path.join(reviewsPath, review.id, TASKS_DIRECTORY_NAME);
-
-        try {
-          const entries = await fs.readdir(tasksDir);
-          const sortedFiles = sortTaskFilesBySequence(entries);
-
-          for (const filename of sortedFiles) {
-            const parsed = parseTaskFilename(filename);
-            if (!parsed) continue;
-
-            const filepath = path.join(tasksDir, filename);
-
-            try {
-              const content = await fs.readFile(filepath, 'utf-8');
-              const status = parseStatus(content);
-
-              if (status === 'to-do' || status === 'in-progress') {
-                const skillLevel = parseSkillLevel(content);
-                const task: TaskFileInfo = {
-                  filename,
-                  filepath,
-                  sequence: parsed.sequence,
-                  name: parsed.name,
-                  progress: { total: 0, completed: 0 },
-                };
-
-                const taskId = getTaskIdFromFilename(filename);
-
-                openTasks.push({
-                  taskId,
-                  changeId: review.id,
-                  task,
-                  status,
-                  skillLevel,
-                  workspacePath: workspace.path,
-                  projectName: workspace.projectName,
-                  displayId: this.getDisplayId(
-                    workspace.projectName,
-                    `${review.id}/${taskId}`
-                  ),
-                });
-              }
-            } catch {
-              // Skip files that can't be read
-            }
-          }
-        } catch {
-          // Skip reviews without tasks directory
-        }
+        openTasks.push({
+          taskId,
+          parentId: task.parentId || '',
+          parentType: task.parentType || 'change',
+          task: {
+            filename: task.filename,
+            filepath: task.filepath,
+            sequence: task.sequence,
+            name: task.name,
+            progress: { total: 0, completed: 0 },
+          },
+          status: task.status,
+          skillLevel: task.skillLevel,
+          workspacePath: workspace.path,
+          projectName: workspace.projectName,
+          displayId: this.getDisplayId(workspace.projectName, taskId),
+        });
       }
     }
 
     return openTasks;
+  }
+
+  /**
+   * Retrieves all tasks for a specific review.
+   * Convenience wrapper around getTasksForParent.
+   * @param reviewId The review identifier
+   * @returns Array of task file info, or empty array if no tasks found
+   */
+  async getTasksForReview(reviewId: string): Promise<TaskFileInfo[]> {
+    return this.getTasksForParent(reviewId, 'review');
+  }
+
+  /**
+   * Retrieves all tasks for a specific spec.
+   * Convenience wrapper around getTasksForParent.
+   * @param specId The spec identifier
+   * @returns Array of task file info, or empty array if no tasks found
+   */
+  async getTasksForSpec(specId: string): Promise<TaskFileInfo[]> {
+    return this.getTasksForParent(specId, 'spec');
   }
 }

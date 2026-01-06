@@ -169,12 +169,79 @@ describe('CompletionProvider', () => {
     });
   });
 
+  describe('getReviewIds', () => {
+    it('should return empty array when no reviews exist', async () => {
+      const reviewIds = await provider.getReviewIds();
+      expect(reviewIds).toEqual([]);
+    });
+
+    it('should return active review IDs', async () => {
+      const reviewsDir = path.join(testDir, 'workspace', 'reviews');
+      await fs.mkdir(reviewsDir, { recursive: true });
+
+      // Create some reviews
+      await fs.mkdir(path.join(reviewsDir, 'review-1'), { recursive: true });
+      await fs.writeFile(path.join(reviewsDir, 'review-1', 'review.md'), '# Review 1');
+
+      await fs.mkdir(path.join(reviewsDir, 'review-2'), { recursive: true });
+      await fs.writeFile(path.join(reviewsDir, 'review-2', 'review.md'), '# Review 2');
+
+      const reviewIds = await provider.getReviewIds();
+      expect(reviewIds).toEqual(['review-1', 'review-2']);
+    });
+
+    it('should cache results for the TTL duration', async () => {
+      const reviewsDir = path.join(testDir, 'workspace', 'reviews');
+      await fs.mkdir(reviewsDir, { recursive: true });
+
+      await fs.mkdir(path.join(reviewsDir, 'review-1'), { recursive: true });
+      await fs.writeFile(path.join(reviewsDir, 'review-1', 'review.md'), '# Review 1');
+
+      // First call
+      const firstResult = await provider.getReviewIds();
+      expect(firstResult).toEqual(['review-1']);
+
+      // Add another review
+      await fs.mkdir(path.join(reviewsDir, 'review-2'), { recursive: true });
+      await fs.writeFile(path.join(reviewsDir, 'review-2', 'review.md'), '# Review 2');
+
+      // Second call should return cached result
+      const secondResult = await provider.getReviewIds();
+      expect(secondResult).toEqual(['review-1']);
+    });
+
+    it('should refresh cache after TTL expires', async () => {
+      const shortTTLProvider = new CompletionProvider(50, testDir);
+
+      const reviewsDir = path.join(testDir, 'workspace', 'reviews');
+      await fs.mkdir(reviewsDir, { recursive: true });
+
+      await fs.mkdir(path.join(reviewsDir, 'review-1'), { recursive: true });
+      await fs.writeFile(path.join(reviewsDir, 'review-1', 'review.md'), '# Review 1');
+
+      const firstResult = await shortTTLProvider.getReviewIds();
+      expect(firstResult).toEqual(['review-1']);
+
+      // Add another review
+      await fs.mkdir(path.join(reviewsDir, 'review-2'), { recursive: true });
+      await fs.writeFile(path.join(reviewsDir, 'review-2', 'review.md'), '# Review 2');
+
+      // Wait for cache to expire
+      await new Promise(resolve => setTimeout(resolve, 60));
+
+      const secondResult = await shortTTLProvider.getReviewIds();
+      expect(secondResult).toEqual(['review-1', 'review-2']);
+    });
+  });
+
   describe('getAllIds', () => {
-    it('should return both change and spec IDs', async () => {
+    it('should return change, spec, and review IDs', async () => {
       const changesDir = path.join(testDir, 'workspace', 'changes');
       const specsDir = path.join(testDir, 'workspace', 'specs');
+      const reviewsDir = path.join(testDir, 'workspace', 'reviews');
       await fs.mkdir(changesDir, { recursive: true });
       await fs.mkdir(specsDir, { recursive: true });
+      await fs.mkdir(reviewsDir, { recursive: true });
 
       // Create a change
       await fs.mkdir(path.join(changesDir, 'my-change'), { recursive: true });
@@ -184,10 +251,15 @@ describe('CompletionProvider', () => {
       await fs.mkdir(path.join(specsDir, 'my-spec'), { recursive: true });
       await fs.writeFile(path.join(specsDir, 'my-spec', 'spec.md'), '# Spec');
 
+      // Create a review
+      await fs.mkdir(path.join(reviewsDir, 'my-review'), { recursive: true });
+      await fs.writeFile(path.join(reviewsDir, 'my-review', 'review.md'), '# Review');
+
       const result = await provider.getAllIds();
       expect(result).toEqual({
         changeIds: ['my-change'],
         specIds: ['my-spec'],
+        reviewIds: ['my-review'],
       });
     });
 
@@ -196,6 +268,7 @@ describe('CompletionProvider', () => {
       expect(result).toEqual({
         changeIds: [],
         specIds: [],
+        reviewIds: [],
       });
     });
   });
@@ -229,8 +302,10 @@ describe('CompletionProvider', () => {
       const stats = provider.getCacheStats();
       expect(stats.changeCache.valid).toBe(false);
       expect(stats.specCache.valid).toBe(false);
+      expect(stats.reviewCache.valid).toBe(false);
       expect(stats.changeCache.age).toBeUndefined();
       expect(stats.specCache.age).toBeUndefined();
+      expect(stats.reviewCache.age).toBeUndefined();
     });
 
     it('should report valid cache after data is fetched', async () => {

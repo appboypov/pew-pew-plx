@@ -1,5 +1,10 @@
 export const PLX_DIR_NAME = 'workspace';
 
+export const TASKS_DIR_NAME = 'tasks';
+export const TASKS_ARCHIVE_DIR_NAME = 'archive';
+export const PARENT_TYPES = ['change', 'review', 'spec'] as const;
+export type ParentType = (typeof PARENT_TYPES)[number];
+
 export const PLX_MARKERS = {
   start: '<!-- PLX:START -->',
   end: '<!-- PLX:END -->'

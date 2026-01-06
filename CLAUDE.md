@@ -25,55 +25,66 @@ Use `@/workspace/AGENTS.md` to learn:
 ### Navigation & Listing
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `plx list` | List active changes | Check what's in progress |
-| `plx list --specs` | List specifications | Find existing specs |
-| `plx view` | Interactive dashboard | Visual overview |
+| `plx get changes` | List active changes | Check what's in progress |
+| `plx get specs` | List specifications | Find existing specs |
+| `plx get specs --long` | List with additional details | See more details |
+
+### Create Items
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `plx create task "Title" --parent-id <id> --parent-type <change\|review>` | Create task | New task for change/review |
+| `plx create change "Name"` | Create change proposal | New change proposal |
+| `plx create spec "Name"` | Create specification | New specification |
+| `plx create request "Description"` | Create request | New request |
 
 ### Task Management
 | Command | Description | When to Use |
 |---------|-------------|-------------|
 | `plx get task` | Get next prioritized task | Start work |
-| `plx get task --id <id>` | Get specific task | Resume specific task |
+| `plx get task --id <task-id>` | Get specific task | Resume specific task |
 | `plx get task --did-complete-previous` | Complete current, get next | Advance workflow |
 | `plx get task --constraints` | Show only Constraints | Focus on constraints |
 | `plx get task --acceptance-criteria` | Show only AC | Focus on acceptance |
 | `plx get tasks` | List all open tasks | See all pending work |
 | `plx get tasks --id <change-id>` | List tasks for change | See tasks in a change |
-| `plx complete task --id <id>` | Mark task done | Finish a task |
-| `plx complete change --id <id>` | Complete all tasks | Finish entire change |
-| `plx undo task --id <id>` | Revert task to to-do | Reopen a task |
-| `plx undo change --id <id>` | Revert all tasks | Reopen entire change |
+| `plx complete task --id <task-id>` | Mark task done | Finish a task |
+| `plx complete change --id <change-id>` | Complete all tasks | Finish entire change |
+| `plx undo task --id <task-id>` | Revert task to to-do | Reopen a task |
+| `plx undo change --id <change-id>` | Revert all tasks | Reopen entire change |
 
 ### Item Retrieval
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `plx get change --id <id>` | Get change by ID | View specific change |
-| `plx get spec --id <id>` | Get spec by ID | View specific spec |
-
-### Display & Inspection
-| Command | Description | When to Use |
-|---------|-------------|-------------|
-| `plx show <item>` | Display change or spec | View details |
-| `plx show <item> --json` | JSON output | Machine-readable |
-| `plx show <item> --type change\|spec` | Disambiguate item type | When names collide |
-| `plx show <change> --deltas-only` | Show only deltas | Focus on changes |
+| `plx get change --id <change-id>` | Get change by ID | View specific change |
+| `plx get change --id <id> --json --deltas-only` | Get change deltas | Debugging change deltas |
+| `plx get spec --id <spec-id>` | Get spec by ID | View specific spec |
 
 ### Validation
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `plx validate <item>` | Validate single item | Check for issues |
-| `plx validate --all` | Validate everything | Full project check |
-| `plx validate --changes` | Validate all changes | Check all changes |
-| `plx validate --specs` | Validate all specs | Check all specs |
-| `plx validate --strict` | Strict validation | Comprehensive check |
-| `plx validate --json` | JSON output | Machine-readable |
+| `plx validate change --id <change-id>` | Validate specific change | Check for issues |
+| `plx validate spec --id <spec-id>` | Validate specific spec | Check spec for issues |
+| `plx validate change --id <id> --strict` | Comprehensive validation | Thorough change check |
+| `plx validate all` | Validate everything | Full project check |
+| `plx validate changes` | Validate all changes | Check all changes |
+| `plx validate specs` | Validate all specs | Check all specs |
 
 ### Archival
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `plx archive <change-id>` | Archive completed change | After deployment |
-| `plx archive <id> --yes` | Archive without prompts | Non-interactive |
-| `plx archive <id> --skip-specs` | Archive, skip spec updates | Tooling-only changes |
+| `plx archive change --id <change-id>` | Archive after deployment | After deployment |
+| `plx archive change --id <id> --yes` | Archive without prompts | Non-interactive |
+| `plx archive change --id <id> --skip-specs --yes` | Archive, skip spec updates | Tooling-only changes |
+
+### Review
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `plx review change --id <change-id>` | Review a change proposal | Review changes |
+
+### Feedback
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `plx parse feedback <name> --parent-id <id> --parent-type <change\|review>` | Parse feedback into tasks | Convert feedback to tasks |
 
 ### Configuration
 | Command | Description | When to Use |
@@ -90,12 +101,22 @@ Use `@/workspace/AGENTS.md` to learn:
 | `plx completion uninstall [shell]` | Remove completions | Remove tab completion |
 | `plx completion generate [shell]` | Generate script | Manual setup |
 
-### Global Flags
+### Command Flags
 | Flag | Description |
 |------|-------------|
-| `--json` | Machine-readable JSON output |
+| `--id <id>` | Specify entity ID (change, spec, task) |
+| `--parent-id <id>` | Specify parent ID when creating tasks |
+| `--parent-type <change\|review>` | Specify parent type when creating tasks |
+| `--json` | Machine-readable output |
+| `--strict` | Comprehensive validation |
+| `--long` | Show additional details |
+| `--deltas-only` | Show only spec deltas (get change) |
 | `--no-interactive` | Disable prompts |
-| `--no-color` | Disable color output |
+| `--skip-specs` | Archive without spec updates |
+| `--yes`/`-y` | Skip confirmation prompts |
+| `--did-complete-previous` | Complete current task and advance to next |
+| `--constraints` | Show only Constraints section (get task) |
+| `--acceptance-criteria` | Show only Acceptance Criteria section (get task) |
 
 Keep this managed block so 'plx update' can refresh the instructions.
 

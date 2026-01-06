@@ -6,10 +6,12 @@ import {
   getCompletionPercentage,
   getChangeCreatedAt,
   getPrioritizedChange,
-} from '../../src/utils/change-prioritization.js';
+  getPrioritizedParent,
+} from '../../src/utils/parent-prioritization.js';
 import { TASKS_DIRECTORY_NAME } from '../../src/utils/task-progress.js';
+import { DiscoveredTask } from '../../src/utils/centralized-task-discovery.js';
 
-describe('change-prioritization', () => {
+describe('parent-prioritization', () => {
   let tempDir: string;
 
   beforeEach(async () => {
@@ -548,6 +550,446 @@ status: done
       expect(result).not.toBeNull();
       expect(result!.id).toBe('high-progress-change');
       expect(result!.completionPercentage).toBe(75);
+    });
+  });
+
+  describe('getPrioritizedParent', () => {
+    it('should return null for empty task array', () => {
+      const result = getPrioritizedParent([]);
+      expect(result).toBeNull();
+    });
+
+    it('should return null when all tasks are standalone (no parentId)', () => {
+      const tasks: DiscoveredTask[] = [
+        {
+          filename: '001-task.md',
+          filepath: '/path/001-task.md',
+          sequence: 1,
+          name: 'task',
+          content: '',
+          status: 'to-do',
+        },
+        {
+          filename: '002-task.md',
+          filepath: '/path/002-task.md',
+          sequence: 2,
+          name: 'task',
+          content: '',
+          status: 'to-do',
+        },
+      ];
+
+      const result = getPrioritizedParent(tasks);
+      expect(result).toBeNull();
+    });
+
+    it('should group tasks by parentId and calculate completion', () => {
+      const tasks: DiscoveredTask[] = [
+        {
+          filename: '001-task.md',
+          filepath: '/path/001-task.md',
+          sequence: 1,
+          name: 'task-1',
+          content: '',
+          status: 'done',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '002-task.md',
+          filepath: '/path/002-task.md',
+          sequence: 2,
+          name: 'task-2',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+      ];
+
+      const result = getPrioritizedParent(tasks);
+      expect(result).not.toBeNull();
+      expect(result!.parentId).toBe('change-a');
+      expect(result!.parentType).toBe('change');
+      expect(result!.totalCount).toBe(2);
+      expect(result!.completedCount).toBe(1);
+      expect(result!.completionPercentage).toBe(50);
+    });
+
+    it('should select parent with highest completion percentage', () => {
+      const tasks: DiscoveredTask[] = [
+        // change-a: 25% (1/4)
+        {
+          filename: '001-a.md',
+          filepath: '/path/001-a.md',
+          sequence: 1,
+          name: 'task-a1',
+          content: '',
+          status: 'done',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '002-a.md',
+          filepath: '/path/002-a.md',
+          sequence: 2,
+          name: 'task-a2',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '003-a.md',
+          filepath: '/path/003-a.md',
+          sequence: 3,
+          name: 'task-a3',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '004-a.md',
+          filepath: '/path/004-a.md',
+          sequence: 4,
+          name: 'task-a4',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        // change-b: 75% (3/4)
+        {
+          filename: '001-b.md',
+          filepath: '/path/001-b.md',
+          sequence: 5,
+          name: 'task-b1',
+          content: '',
+          status: 'done',
+          parentId: 'change-b',
+          parentType: 'change',
+        },
+        {
+          filename: '002-b.md',
+          filepath: '/path/002-b.md',
+          sequence: 6,
+          name: 'task-b2',
+          content: '',
+          status: 'done',
+          parentId: 'change-b',
+          parentType: 'change',
+        },
+        {
+          filename: '003-b.md',
+          filepath: '/path/003-b.md',
+          sequence: 7,
+          name: 'task-b3',
+          content: '',
+          status: 'done',
+          parentId: 'change-b',
+          parentType: 'change',
+        },
+        {
+          filename: '004-b.md',
+          filepath: '/path/004-b.md',
+          sequence: 8,
+          name: 'task-b4',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-b',
+          parentType: 'change',
+        },
+      ];
+
+      const result = getPrioritizedParent(tasks);
+      expect(result).not.toBeNull();
+      expect(result!.parentId).toBe('change-b');
+      expect(result!.completionPercentage).toBe(75);
+    });
+
+    it('should use oldest sequence as tiebreaker when completion percentages are equal', () => {
+      const tasks: DiscoveredTask[] = [
+        // change-a: 50% (1/2) - older (sequence 10)
+        {
+          filename: '010-a.md',
+          filepath: '/path/010-a.md',
+          sequence: 10,
+          name: 'task-a1',
+          content: '',
+          status: 'done',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '011-a.md',
+          filepath: '/path/011-a.md',
+          sequence: 11,
+          name: 'task-a2',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        // change-b: 50% (1/2) - newer (sequence 20)
+        {
+          filename: '020-b.md',
+          filepath: '/path/020-b.md',
+          sequence: 20,
+          name: 'task-b1',
+          content: '',
+          status: 'done',
+          parentId: 'change-b',
+          parentType: 'change',
+        },
+        {
+          filename: '021-b.md',
+          filepath: '/path/021-b.md',
+          sequence: 21,
+          name: 'task-b2',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-b',
+          parentType: 'change',
+        },
+      ];
+
+      const result = getPrioritizedParent(tasks);
+      expect(result).not.toBeNull();
+      expect(result!.parentId).toBe('change-a'); // Older (lower sequence)
+    });
+
+    it('should identify in-progress and next tasks correctly', () => {
+      const tasks: DiscoveredTask[] = [
+        {
+          filename: '001-task.md',
+          filepath: '/path/001-task.md',
+          sequence: 1,
+          name: 'task-1',
+          content: '',
+          status: 'done',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '002-task.md',
+          filepath: '/path/002-task.md',
+          sequence: 2,
+          name: 'task-2',
+          content: '',
+          status: 'in-progress',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '003-task.md',
+          filepath: '/path/003-task.md',
+          sequence: 3,
+          name: 'task-3',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+      ];
+
+      const result = getPrioritizedParent(tasks);
+      expect(result).not.toBeNull();
+      expect(result!.inProgressTask).not.toBeNull();
+      expect(result!.inProgressTask!.filename).toBe('002-task.md');
+      expect(result!.nextTask!.filename).toBe('002-task.md'); // Prefer in-progress
+    });
+
+    it('should fall back to first to-do when no in-progress task', () => {
+      const tasks: DiscoveredTask[] = [
+        {
+          filename: '001-task.md',
+          filepath: '/path/001-task.md',
+          sequence: 1,
+          name: 'task-1',
+          content: '',
+          status: 'done',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '002-task.md',
+          filepath: '/path/002-task.md',
+          sequence: 2,
+          name: 'task-2',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '003-task.md',
+          filepath: '/path/003-task.md',
+          sequence: 3,
+          name: 'task-3',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+      ];
+
+      const result = getPrioritizedParent(tasks);
+      expect(result).not.toBeNull();
+      expect(result!.inProgressTask).toBeNull();
+      expect(result!.nextTask).not.toBeNull();
+      expect(result!.nextTask!.filename).toBe('002-task.md'); // First to-do
+    });
+
+    it('should skip parents with all tasks done', () => {
+      const tasks: DiscoveredTask[] = [
+        // change-a: all done
+        {
+          filename: '001-a.md',
+          filepath: '/path/001-a.md',
+          sequence: 1,
+          name: 'task-a1',
+          content: '',
+          status: 'done',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '002-a.md',
+          filepath: '/path/002-a.md',
+          sequence: 2,
+          name: 'task-a2',
+          content: '',
+          status: 'done',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        // change-b: has actionable tasks
+        {
+          filename: '001-b.md',
+          filepath: '/path/001-b.md',
+          sequence: 3,
+          name: 'task-b1',
+          content: '',
+          status: 'done',
+          parentId: 'change-b',
+          parentType: 'change',
+        },
+        {
+          filename: '002-b.md',
+          filepath: '/path/002-b.md',
+          sequence: 4,
+          name: 'task-b2',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-b',
+          parentType: 'change',
+        },
+      ];
+
+      const result = getPrioritizedParent(tasks);
+      expect(result).not.toBeNull();
+      expect(result!.parentId).toBe('change-b'); // Skip change-a (all done)
+    });
+
+    it('should return null when all parents have no actionable tasks', () => {
+      const tasks: DiscoveredTask[] = [
+        {
+          filename: '001-task.md',
+          filepath: '/path/001-task.md',
+          sequence: 1,
+          name: 'task-1',
+          content: '',
+          status: 'done',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '002-task.md',
+          filepath: '/path/002-task.md',
+          sequence: 2,
+          name: 'task-2',
+          content: '',
+          status: 'done',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+      ];
+
+      const result = getPrioritizedParent(tasks);
+      expect(result).toBeNull();
+    });
+
+    it('should handle different parent types', () => {
+      const tasks: DiscoveredTask[] = [
+        {
+          filename: '001-task.md',
+          filepath: '/path/001-task.md',
+          sequence: 1,
+          name: 'task-1',
+          content: '',
+          status: 'done',
+          parentId: 'spec-a',
+          parentType: 'spec',
+        },
+        {
+          filename: '002-task.md',
+          filepath: '/path/002-task.md',
+          sequence: 2,
+          name: 'task-2',
+          content: '',
+          status: 'to-do',
+          parentId: 'spec-a',
+          parentType: 'spec',
+        },
+      ];
+
+      const result = getPrioritizedParent(tasks);
+      expect(result).not.toBeNull();
+      expect(result!.parentId).toBe('spec-a');
+      expect(result!.parentType).toBe('spec');
+    });
+
+    it('should sort tasks by sequence within a parent', () => {
+      const tasks: DiscoveredTask[] = [
+        {
+          filename: '003-task.md',
+          filepath: '/path/003-task.md',
+          sequence: 3,
+          name: 'task-3',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '001-task.md',
+          filepath: '/path/001-task.md',
+          sequence: 1,
+          name: 'task-1',
+          content: '',
+          status: 'done',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+        {
+          filename: '002-task.md',
+          filepath: '/path/002-task.md',
+          sequence: 2,
+          name: 'task-2',
+          content: '',
+          status: 'to-do',
+          parentId: 'change-a',
+          parentType: 'change',
+        },
+      ];
+
+      const result = getPrioritizedParent(tasks);
+      expect(result).not.toBeNull();
+      expect(result!.tasks.length).toBe(3);
+      expect(result!.tasks[0].sequence).toBe(1);
+      expect(result!.tasks[1].sequence).toBe(2);
+      expect(result!.tasks[2].sequence).toBe(3);
     });
   });
 });

@@ -28,13 +28,36 @@ describe('ArchiveCommand', () => {
     const workspaceDir = path.join(tempDir, 'workspace');
     await fs.mkdir(path.join(workspaceDir, 'changes'), { recursive: true });
     await fs.mkdir(path.join(workspaceDir, 'specs'), { recursive: true });
+    await fs.mkdir(path.join(workspaceDir, 'tasks'), { recursive: true });
     await fs.mkdir(path.join(workspaceDir, 'changes', 'archive'), { recursive: true });
-    
+
     // Suppress console.log during tests
     console.log = vi.fn();
-    
+
     archiveCommand = new ArchiveCommand();
   });
+
+  // Helper to create a centralized task
+  async function createCentralizedTask(
+    parentId: string,
+    parentType: 'change' | 'review',
+    taskNumber: number = 1,
+    status: 'to-do' | 'in-progress' | 'done' = 'to-do'
+  ): Promise<void> {
+    const workspaceDir = path.join(tempDir, 'workspace');
+    const tasksDir = path.join(workspaceDir, 'tasks');
+    const filename = `${String(taskNumber).padStart(3, '0')}-${parentId}-task.md`;
+    const content = `---
+status: ${status}
+parent-type: ${parentType}
+parent-id: ${parentId}
+---
+
+# Task for ${parentId}
+
+This is a test task.`;
+    await fs.writeFile(path.join(tasksDir, filename), content);
+  }
 
   afterEach(async () => {
     // Restore console.log
@@ -51,27 +74,141 @@ describe('ArchiveCommand', () => {
     }
   });
 
+  describe('archiveChangeById', () => {
+    it('should archive a change successfully', async () => {
+      // Create a test change
+      const changeName = 'test-feature';
+      const changeDir = path.join(tempDir, 'workspace', 'changes', changeName);
+      await fs.mkdir(changeDir, { recursive: true });
+
+      // Create tasks.md with completed tasks
+      const tasksContent = '- [x] Task 1\n- [x] Task 2';
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
+
+      // Execute archive with --yes flag
+      await archiveCommand.archiveChangeById(changeName, { yes: true });
+
+      // Check that change was moved to archive
+      const archiveDir = path.join(tempDir, 'workspace', 'changes', 'archive');
+      const archives = await fs.readdir(archiveDir);
+
+      expect(archives.length).toBe(1);
+      expect(archives[0]).toMatch(new RegExp(`\\d{4}-\\d{2}-\\d{2}-${changeName}`));
+
+      // Verify original change directory no longer exists
+      await expect(fs.access(changeDir)).rejects.toThrow();
+    });
+
+    it('should throw error if change does not exist', async () => {
+      await expect(
+        archiveCommand.archiveChangeById('non-existent-change', { yes: true })
+      ).rejects.toThrow("Change 'non-existent-change' not found.");
+    });
+  });
+
+  describe('archiveReviewById', () => {
+    it('should archive a review successfully', async () => {
+      // Create a test review
+      const reviewName = 'test-review';
+      const reviewDir = path.join(tempDir, 'workspace', 'reviews', reviewName);
+      await fs.mkdir(reviewDir, { recursive: true });
+
+      // Create review.md
+      const reviewContent = '---\nstatus: open\n---\n# Review';
+      await fs.writeFile(path.join(reviewDir, 'review.md'), reviewContent);
+
+      // Execute archive with --yes flag and skip validation
+      await archiveCommand.archiveReviewById(reviewName, { yes: true, noValidate: true });
+
+      // Check that review was moved to archive
+      const archiveDir = path.join(tempDir, 'workspace', 'reviews', 'archive');
+      const archives = await fs.readdir(archiveDir);
+
+      expect(archives.length).toBe(1);
+      expect(archives[0]).toMatch(new RegExp(`\\d{4}-\\d{2}-\\d{2}-${reviewName}`));
+
+      // Verify original review directory no longer exists
+      await expect(fs.access(reviewDir)).rejects.toThrow();
+    });
+
+    it('should throw error if review does not exist', async () => {
+      // Create reviews directory first
+      await fs.mkdir(path.join(tempDir, 'workspace', 'reviews'), { recursive: true });
+
+      await expect(
+        archiveCommand.archiveReviewById('non-existent-review', { yes: true })
+      ).rejects.toThrow("Review 'non-existent-review' not found.");
+    });
+
+    it('should archive review tasks and show task count', async () => {
+      const reviewName = 'test-review-with-tasks';
+      const reviewDir = path.join(tempDir, 'workspace', 'reviews', reviewName);
+      await fs.mkdir(reviewDir, { recursive: true });
+
+      // Create review.md
+      const reviewContent = '---\nstatus: open\n---\n# Review';
+      await fs.writeFile(path.join(reviewDir, 'review.md'), reviewContent);
+
+      // Create review tasks
+      await createCentralizedTask(reviewName, 'review', 1, 'done');
+      await createCentralizedTask(reviewName, 'review', 2, 'done');
+
+      // Execute archive with --yes flag and skip validation
+      await archiveCommand.archiveReviewById(reviewName, { yes: true, noValidate: true });
+
+      // Verify task count was displayed in output
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringMatching(/archived as '.*' \(2 tasks archived\)/)
+      );
+    });
+
+    it('should check review task completion using frontmatter status', async () => {
+      const reviewName = 'review-incomplete-tasks';
+      const reviewDir = path.join(tempDir, 'workspace', 'reviews', reviewName);
+      await fs.mkdir(reviewDir, { recursive: true });
+
+      // Create review.md
+      const reviewContent = '---\nstatus: open\n---\n# Review';
+      await fs.writeFile(path.join(reviewDir, 'review.md'), reviewContent);
+
+      // Create review tasks with different statuses
+      await createCentralizedTask(reviewName, 'review', 1, 'done');
+      await createCentralizedTask(reviewName, 'review', 2, 'to-do');
+
+      // Execute archive with --yes flag and skip validation
+      await archiveCommand.archiveReviewById(reviewName, { yes: true, noValidate: true });
+
+      // Verify status was checked correctly
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Warning: 1 incomplete task(s) found')
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Task status: 1/2 tasks complete')
+      );
+    });
+  });
+
   describe('execute', () => {
     it('should archive a change successfully', async () => {
       // Create a test change
       const changeName = 'test-feature';
       const changeDir = path.join(tempDir, 'workspace', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
-      
+
       // Create tasks.md with completed tasks
       const tasksContent = '- [x] Task 1\n- [x] Task 2';
       await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
-      
+
       // Execute archive with --yes flag
       await archiveCommand.execute(changeName, { yes: true });
-      
+
       // Check that change was moved to archive
       const archiveDir = path.join(tempDir, 'workspace', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
-      
+
       expect(archives.length).toBe(1);
       expect(archives[0]).toMatch(new RegExp(`\\d{4}-\\d{2}-\\d{2}-${changeName}`));
-      
+
       // Verify original change directory no longer exists
       await expect(fs.access(changeDir)).rejects.toThrow();
     });
@@ -80,17 +217,148 @@ describe('ArchiveCommand', () => {
       const changeName = 'incomplete-feature';
       const changeDir = path.join(tempDir, 'workspace', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
-      
-      // Create tasks.md with incomplete tasks
-      const tasksContent = '- [x] Task 1\n- [ ] Task 2\n- [ ] Task 3';
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
-      
+
+      // Create centralized tasks: 1 done, 2 to-do
+      await createCentralizedTask(changeName, 'change', 1, 'done');
+      await createCentralizedTask(changeName, 'change', 2, 'to-do');
+      await createCentralizedTask(changeName, 'change', 3, 'to-do');
+
       // Execute archive with --yes flag
       await archiveCommand.execute(changeName, { yes: true });
-      
+
       // Verify warning was logged
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('Warning: 2 incomplete task(s) found')
+      );
+    });
+
+    it('should check task completion using frontmatter status', async () => {
+      const changeName = 'status-check-feature';
+      const changeDir = path.join(tempDir, 'workspace', 'changes', changeName);
+      await fs.mkdir(changeDir, { recursive: true });
+
+      // Create tasks with different statuses in frontmatter
+      await createCentralizedTask(changeName, 'change', 1, 'done');
+      await createCentralizedTask(changeName, 'change', 2, 'in-progress');
+      await createCentralizedTask(changeName, 'change', 3, 'to-do');
+
+      // Execute archive with --yes flag
+      await archiveCommand.execute(changeName, { yes: true });
+
+      // Verify status was checked correctly (2 incomplete tasks)
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Warning: 2 incomplete task(s) found')
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Task status: 1/3 tasks complete')
+      );
+    });
+
+    it('should show task count in archive output', async () => {
+      const changeName = 'task-count-feature';
+      const changeDir = path.join(tempDir, 'workspace', 'changes', changeName);
+      await fs.mkdir(changeDir, { recursive: true });
+
+      // Create tasks for this change
+      await createCentralizedTask(changeName, 'change', 1, 'done');
+      await createCentralizedTask(changeName, 'change', 2, 'done');
+      await createCentralizedTask(changeName, 'change', 3, 'done');
+
+      // Execute archive with --yes flag
+      await archiveCommand.execute(changeName, { yes: true });
+
+      // Verify task count was displayed in output
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringMatching(/archived as '.*' \(3 tasks archived\)/)
+      );
+    });
+
+    it('should not show task count when no tasks archived', async () => {
+      const changeName = 'no-tasks-feature';
+      const changeDir = path.join(tempDir, 'workspace', 'changes', changeName);
+      await fs.mkdir(changeDir, { recursive: true });
+
+      // Execute archive without any tasks
+      await archiveCommand.execute(changeName, { yes: true });
+
+      // Verify output does not mention tasks
+      const calls = (console.log as any).mock.calls;
+      const archiveMessage = calls.find((call: any[]) =>
+        call[0] && call[0].includes('archived as')
+      );
+      expect(archiveMessage).toBeDefined();
+      expect(archiveMessage[0]).not.toContain('tasks archived');
+    });
+
+    it('should show singular task in archive output when 1 task', async () => {
+      const changeName = 'one-task-feature';
+      const changeDir = path.join(tempDir, 'workspace', 'changes', changeName);
+      await fs.mkdir(changeDir, { recursive: true });
+
+      // Create single task
+      await createCentralizedTask(changeName, 'change', 1, 'done');
+
+      // Execute archive with --yes flag
+      await archiveCommand.execute(changeName, { yes: true });
+
+      // Verify singular form is used
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringMatching(/archived as '.*' \(1 task archived\)/)
+      );
+    });
+
+    it('should recognize done status as complete', async () => {
+      const changeName = 'done-status-feature';
+      const changeDir = path.join(tempDir, 'workspace', 'changes', changeName);
+      await fs.mkdir(changeDir, { recursive: true });
+
+      // Create tasks all with 'done' status
+      await createCentralizedTask(changeName, 'change', 1, 'done');
+      await createCentralizedTask(changeName, 'change', 2, 'done');
+
+      // Execute archive with --yes flag
+      await archiveCommand.execute(changeName, { yes: true });
+
+      // Verify no incomplete task warning
+      expect(console.log).not.toHaveBeenCalledWith(
+        expect.stringContaining('incomplete task(s) found')
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Task status: ✓ Complete (2/2 tasks)')
+      );
+    });
+
+    it('should recognize in-progress status as incomplete', async () => {
+      const changeName = 'inprogress-status-feature';
+      const changeDir = path.join(tempDir, 'workspace', 'changes', changeName);
+      await fs.mkdir(changeDir, { recursive: true });
+
+      // Create task with in-progress status
+      await createCentralizedTask(changeName, 'change', 1, 'in-progress');
+
+      // Execute archive with --yes flag
+      await archiveCommand.execute(changeName, { yes: true });
+
+      // Verify incomplete warning
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Warning: 1 incomplete task(s) found')
+      );
+    });
+
+    it('should recognize to-do status as incomplete', async () => {
+      const changeName = 'todo-status-feature';
+      const changeDir = path.join(tempDir, 'workspace', 'changes', changeName);
+      await fs.mkdir(changeDir, { recursive: true });
+
+      // Create task with to-do status
+      await createCentralizedTask(changeName, 'change', 1, 'to-do');
+
+      // Execute archive with --yes flag
+      await archiveCommand.execute(changeName, { yes: true });
+
+      // Verify incomplete warning
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Warning: 1 incomplete task(s) found')
       );
     });
 
@@ -755,21 +1023,20 @@ E1 updated`);
     it('should use confirm prompt for task warnings', async () => {
       const { confirm } = await import('@inquirer/prompts');
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
-      
+
       const changeName = 'incomplete-interactive';
       const changeDir = path.join(tempDir, 'workspace', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
-      
-      // Create tasks.md with incomplete tasks
-      const tasksContent = '- [ ] Task 1';
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
-      
+
+      // Create centralized task with to-do status
+      await createCentralizedTask(changeName, 'change', 1, 'to-do');
+
       // Mock confirm to return true (proceed)
       mockConfirm.mockResolvedValueOnce(true);
-      
+
       // Execute without --yes flag
       await archiveCommand.execute(changeName);
-      
+
       // Verify confirm was called
       expect(mockConfirm).toHaveBeenCalledWith({
         message: 'Warning: 1 incomplete task(s) found. Continue?',
@@ -780,26 +1047,25 @@ E1 updated`);
     it('should cancel when user declines task warning', async () => {
       const { confirm } = await import('@inquirer/prompts');
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
-      
+
       const changeName = 'cancel-test';
       const changeDir = path.join(tempDir, 'workspace', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
-      
-      // Create tasks.md with incomplete tasks
-      const tasksContent = '- [ ] Task 1';
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
-      
+
+      // Create centralized task with to-do status
+      await createCentralizedTask(changeName, 'change', 1, 'to-do');
+
       // Mock confirm to return false (cancel) for validation skip
       mockConfirm.mockResolvedValueOnce(false);
       // Mock another false for task warning
       mockConfirm.mockResolvedValueOnce(false);
-      
+
       // Execute without --yes flag but skip validation to test task warning
       await archiveCommand.execute(changeName, { noValidate: true });
-      
+
       // Verify archive was cancelled
       expect(console.log).toHaveBeenCalledWith('Archive cancelled.');
-      
+
       // Verify change was not archived
       await expect(fs.access(changeDir)).resolves.not.toThrow();
     });

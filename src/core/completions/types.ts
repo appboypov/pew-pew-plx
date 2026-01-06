@@ -33,9 +33,10 @@ export interface FlagDefinition {
    * Type of value for dynamic completion (like positionalType but for flag values)
    * - 'change-id': Complete with active change IDs
    * - 'spec-id': Complete with spec IDs
+   * - 'review-id': Complete with active review IDs
    * - 'change-or-spec-id': Complete with both changes and specs
    */
-  valueType?: 'change-id' | 'spec-id' | 'change-or-spec-id';
+  valueType?: 'change-id' | 'spec-id' | 'review-id' | 'change-or-spec-id';
 }
 
 /**

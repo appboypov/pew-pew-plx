@@ -4,7 +4,7 @@ Instructions for AI coding assistants using Pew Pew Plx for spec-driven developm
 
 ## TL;DR Quick Checklist
 
-- Search existing work: \`plx spec list --long\`, \`plx list\` (use \`rg\` only for full-text search)
+- Search existing work: \`plx get specs --long\`, \`plx get changes\` (use \`rg\` only for full-text search)
 - Decide scope: new capability vs modify existing capability
 - Pick a unique \`change-id\`: kebab-case, verb-led (\`add-\`, \`update-\`, \`remove-\`, \`refactor-\`)
 - Scaffold: \`proposal.md\`, \`tasks/\` directory, \`design.md\` (only if needed), and delta specs per affected capability
@@ -45,7 +45,7 @@ Skip proposal for:
 - \`plx/plan-proposal\` - Scaffold \`proposal.md\`, \`tasks/\` directory, \`design.md\`, and spec deltas. Consumes request.md when present.
 
 **Workflow**
-1. Review \`ARCHITECTURE.md\`, \`plx list\`, and \`plx list --specs\` to understand current context.
+1. Review \`ARCHITECTURE.md\`, \`plx get changes\`, and \`plx get specs\` to understand current context.
 2. If requirements are ambiguous, run \`plx/plan-request\` to clarify intent first.
 3. Choose a unique verb-led \`change-id\` and scaffold \`proposal.md\`, \`tasks/\` directory, optional \`design.md\`, and spec deltas under \`workspace/changes/<id>/\`.
 4. Draft spec deltas using \`## ADDED|MODIFIED|REMOVED Requirements\` with at least one \`#### Scenario:\` per requirement.
@@ -65,7 +65,7 @@ Track these steps as TODOs and complete them one by one.
 After deployment, create separate PR to:
 - Move \`changes/[name]/\` → \`changes/archive/YYYY-MM-DD-[name]/\`
 - Update \`specs/\` if capabilities changed
-- Use \`plx archive <change-id> --skip-specs --yes\` for tooling-only changes (always pass the change ID explicitly)
+- Use \`plx archive change --id <change-id> --skip-specs --yes\` for tooling-only changes (always pass the change ID explicitly)
 - Run \`plx validate --strict\` to confirm the archived change passes checks
 
 ## Before Any Task
@@ -74,21 +74,21 @@ After deployment, create separate PR to:
 - [ ] Read relevant specs in \`specs/[capability]/spec.md\`
 - [ ] Check pending changes in \`changes/\` for conflicts
 - [ ] Read \`ARCHITECTURE.md\` for project context and conventions
-- [ ] Run \`plx list\` to see active changes
-- [ ] Run \`plx list --specs\` to see existing capabilities
+- [ ] Run \`plx get changes\` to see active changes
+- [ ] Run \`plx get specs\` to see existing capabilities
 
 **Before Creating Specs:**
 - Always check if capability already exists
 - Prefer modifying existing specs over creating duplicates
-- Use \`plx show [spec]\` to review current state
+- Use \`plx get spec --id [spec]\` to review current state
 - If request is ambiguous, gather as many as necessary clarifications (using your question tool if available) before scaffolding
 
 ### Search Guidance
-- Enumerate specs: \`plx spec list --long\` (or \`--json\` for scripts)
-- Enumerate changes: \`plx list\` (or \`plx change list --json\` - deprecated but available)
+- Enumerate specs: \`plx get specs --long\` (or \`--json\` for scripts)
+- Enumerate changes: \`plx get changes\` (or \`plx get changes --json\`)
 - Show details:
-  - Spec: \`plx show <spec-id> --type spec\` (use \`--json\` for filters)
-  - Change: \`plx show <change-id> --json --deltas-only\`
+  - Spec: \`plx get spec --id <spec-id>\` (use \`--json\` for filters)
+  - Change: \`plx get change --id <change-id> --json --deltas-only\`
 - Full-text search (use ripgrep): \`rg -n "Requirement:|Scenario:" workspace/specs\`
 
 ## External Issue Tracking
@@ -134,23 +134,29 @@ Use available tools to interact with issue trackers. If no tools available for a
 
 \`\`\`bash
 # Essential commands
-plx list                  # List active changes
-plx list --specs          # List specifications
-plx show [item]           # Display change or spec
+plx get changes           # List active changes
+plx get specs             # List specifications
+plx get change --id [id]  # Display change
+plx get spec --id [id]    # Display spec
 plx validate [item]       # Validate changes or specs
-plx archive <change-id> [--yes|-y]   # Archive after deployment (add --yes for non-interactive runs)
+plx archive change --id <change-id> [--yes|-y]   # Archive after deployment (add --yes for non-interactive runs)
 
 # Project management
 plx init [path]           # Initialize Pew Pew Plx
 plx update [path]         # Update instruction files
 
-# Interactive mode
-plx show                  # Prompts for selection
+# Bulk validation mode
 plx validate              # Bulk validation mode
 
 # Debugging
-plx show [change] --json --deltas-only
+plx get change --id [change] --json --deltas-only
 plx validate [change] --strict
+
+# Create project artifacts
+plx create task "Title" --parent-id <id>      # Create task linked to change or review
+plx create change "Name"                      # Create new change proposal
+plx create spec "Name"                        # Create new specification
+plx create request "Description"              # Create new request
 
 # Retrieve tasks and items
 plx get task                          # Get next task from highest-priority change
@@ -432,7 +438,7 @@ Example for RENAMED:
 
 **Silent scenario parsing failures**
 - Exact format required: \`#### Scenario: Name\`
-- Debug with: \`plx show [change] --json --deltas-only\`
+- Debug with: \`plx get change --id [change] --json --deltas-only\`
 
 ### Validation Tips
 
@@ -441,18 +447,18 @@ Example for RENAMED:
 plx validate [change] --strict
 
 # Debug delta parsing
-plx show [change] --json | jq '.deltas'
+plx get change --id [change] --json | jq '.deltas'
 
 # Check specific requirement
-plx show [spec] --json -r 1
+plx get spec --id [spec] --json -r 1
 \`\`\`
 
 ## Happy Path Script
 
 \`\`\`bash
 # 1) Explore current state
-plx spec list --long
-plx list
+plx get specs --long
+plx get changes
 # Optional full-text search:
 # rg -n "Requirement:|Scenario:" workspace/specs
 # rg -n "^#|Requirement:" workspace/changes
@@ -551,7 +557,7 @@ Only add complexity with:
 ## Error Recovery
 
 ### Change Conflicts
-1. Run \`plx list\` to see active changes
+1. Run \`plx get changes\` to see active changes
 2. Check for overlapping specs
 3. Coordinate with change owners
 4. Consider combining proposals
@@ -583,10 +589,11 @@ Only add complexity with:
 
 ### CLI Essentials
 \`\`\`bash
-plx list              # What's in progress?
-plx show [item]       # View details
-plx validate --strict # Is it correct?
-plx archive <change-id> [--yes|-y]  # Mark complete (add --yes for automation)
+plx get changes            # What's in progress?
+plx get change --id [item] # View change details
+plx get spec --id [item]   # View spec details
+plx validate --strict      # Is it correct?
+plx archive change --id <change-id> [--yes|-y]  # Mark complete (add --yes for automation)
 \`\`\`
 
 Remember: Specs are truth. Changes are proposals. Keep them in sync.

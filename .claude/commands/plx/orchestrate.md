@@ -20,6 +20,11 @@ tags: [plx, orchestrate, sub-agents]
   - No clarifications about previous states or deprecated behavior.
 - Verify scope adherence: confirm no unnecessary additions.
 - Verify project convention alignment before accepting work.
+- Select sub-agent model based on task skill-level:
+  - junior → haiku (simple tasks)
+  - medior → sonnet (moderate complexity)
+  - senior → opus (architectural/complex tasks)
+  - For non-Claude models, determine equivalent or use default.
 
 **Steps**
 1. Understand the work scope:
@@ -28,7 +33,7 @@ tags: [plx, orchestrate, sub-agents]
    - For other work: enumerate the discrete units of work.
 2. For each unit of work:
    a. Get detailed context (`plx get task --id <id>` or equivalent).
-   b. Spawn a sub-agent with clear, scoped instructions.
+   b. Spawn a sub-agent with clear, scoped instructions; select model based on task skill-level (junior→haiku, medior→sonnet, senior→opus).
    c. Wait for sub-agent to complete work.
 3. Review sub-agent output:
    - Scope adherence: no unrequested features or changes.
@@ -47,8 +52,8 @@ tags: [plx, orchestrate, sub-agents]
 7. Final validation: run `plx validate` if applicable.
 
 **Reference**
-- Use `plx show <change-id>` for proposal context.
-- Use `plx list` to see all changes and progress.
-- Use `plx review` for review context.
+- Use `plx get change --id <change-id>` for proposal context.
+- Use `plx get changes` to see all changes and progress.
+- Use `plx review change --id <id>` for review context.
 - Use `plx parse feedback` to convert review feedback to tasks.
 <!-- PLX:END -->

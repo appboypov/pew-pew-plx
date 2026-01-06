@@ -5,7 +5,7 @@ import ora from 'ora';
 import {
   getPrioritizedChange,
   PrioritizedChange,
-} from '../utils/change-prioritization.js';
+} from '../utils/parent-prioritization.js';
 import {
   parseStatus,
   parseSkillLevel,
@@ -14,15 +14,20 @@ import {
   SkillLevel,
   completeTaskFully,
 } from '../utils/task-status.js';
-import { TaskFileInfo, countTasksFromContent } from '../utils/task-progress.js';
+import { TaskFileInfo, countTasksFromContent, formatTaskStatus } from '../utils/task-progress.js';
 import { ItemRetrievalService, OpenTaskInfo } from '../services/item-retrieval.js';
+import { EntityListingService, ChangeInfo, SpecInfo, ReviewInfo } from '../services/entity-listing.js';
 import { ContentFilterService } from '../services/content-filter.js';
+import { SpecFilterService } from '../services/spec-filter.js';
 import { getTaskId } from '../services/task-id.js';
 import { getFilteredWorkspaces } from '../utils/workspace-filter.js';
 import {
   isMultiWorkspace,
   DiscoveredWorkspace,
 } from '../utils/workspace-discovery.js';
+import { MarkdownParser } from '../core/parsers/markdown-parser.js';
+import { ChangeParser } from '../core/parsers/change-parser.js';
+import type { Change, Spec } from '../core/schemas/index.js';
 
 interface TaskOptions {
   id?: string;
@@ -35,15 +40,37 @@ interface TaskOptions {
 interface ChangeOptions {
   id: string;
   json?: boolean;
+  deltasOnly?: boolean;
 }
 
 interface SpecOptions {
   id: string;
   json?: boolean;
+  requirements?: boolean;
+  scenarios?: boolean;
+  requirement?: string;
 }
 
 interface TasksOptions {
-  id?: string;
+  parentId?: string;
+  parentType?: 'change' | 'review' | 'spec';
+  json?: boolean;
+}
+
+interface ChangesOptions {
+  json?: boolean;
+}
+
+interface SpecsOptions {
+  json?: boolean;
+}
+
+interface ReviewsOptions {
+  json?: boolean;
+}
+
+interface ReviewOptions {
+  id: string;
   json?: boolean;
 }
 
@@ -78,12 +105,15 @@ interface JsonOutput {
 
 export class GetCommand {
   private itemRetrievalService: ItemRetrievalService | null = null;
+  private entityListingService: EntityListingService | null = null;
   private contentFilterService: ContentFilterService;
+  private specFilterService: SpecFilterService;
   private workspaces: DiscoveredWorkspace[] = [];
   private isMulti: boolean = false;
 
   constructor() {
     this.contentFilterService = new ContentFilterService();
+    this.specFilterService = new SpecFilterService();
   }
 
   private async ensureInitialized(): Promise<void> {
@@ -92,6 +122,10 @@ export class GetCommand {
     this.workspaces = await getFilteredWorkspaces(process.cwd());
     this.isMulti = isMultiWorkspace(this.workspaces);
     this.itemRetrievalService = await ItemRetrievalService.create(
+      process.cwd(),
+      this.workspaces
+    );
+    this.entityListingService = await EntityListingService.create(
       process.cwd(),
       this.workspaces
     );
@@ -574,25 +608,49 @@ export class GetCommand {
       result;
 
     if (options.json) {
-      console.log(
-        JSON.stringify(
-          {
-            changeId: options.id,
-            workspacePath,
-            projectName,
-            displayId,
-            proposal,
-            design,
-            tasks: tasks.map((t) => ({
-              id: getTaskId(t),
-              filename: t.filename,
-              sequence: t.sequence,
-            })),
-          },
-          null,
-          2
-        )
-      );
+      if (options.deltasOnly) {
+        const changesPath = workspacePath
+          ? path.join(workspacePath, 'changes')
+          : path.join(process.cwd(), 'workspace', 'changes');
+        const changeDir = path.join(changesPath, options.id);
+
+        const parser = new ChangeParser(proposal, changeDir);
+        const parsed: Change = await parser.parseChangeWithDeltas(options.id);
+
+        console.log(
+          JSON.stringify(
+            {
+              changeId: options.id,
+              workspacePath,
+              projectName,
+              displayId,
+              deltas: parsed.deltas || [],
+            },
+            null,
+            2
+          )
+        );
+      } else {
+        console.log(
+          JSON.stringify(
+            {
+              changeId: options.id,
+              workspacePath,
+              projectName,
+              displayId,
+              proposal,
+              design,
+              tasks: tasks.map((t) => ({
+                id: getTaskId(t),
+                filename: t.filename,
+                sequence: t.sequence,
+              })),
+            },
+            null,
+            2
+          )
+        );
+      }
     } else {
       const headerId = this.isMulti ? displayId : options.id;
       console.log(chalk.bold.blue(`\n═══ Proposal: ${headerId} ═══\n`));
@@ -629,19 +687,47 @@ export class GetCommand {
     const { content, workspacePath, projectName, displayId } = result;
 
     if (options.json) {
-      console.log(
-        JSON.stringify(
-          {
-            specId: options.id,
-            workspacePath,
-            projectName,
-            displayId,
-            content,
-          },
-          null,
-          2
-        )
-      );
+      const hasFilterOptions = options.requirements || options.scenarios === false || options.requirement;
+
+      if (hasFilterOptions) {
+        if (options.requirements && options.requirement) {
+          console.log(JSON.stringify({ error: 'Options --requirements and --requirement cannot be used together' }));
+          process.exitCode = 1;
+          return;
+        }
+
+        const parser = new MarkdownParser(content);
+        const parsed: Spec = parser.parseSpec(options.id);
+        const filtered = this.specFilterService.filterSpec(parsed, options);
+
+        const output = {
+          specId: options.id,
+          workspacePath,
+          projectName,
+          displayId,
+          title: parsed.name,
+          overview: parsed.overview,
+          requirementCount: filtered.requirements.length,
+          requirements: filtered.requirements,
+          metadata: parsed.metadata ?? { version: '1.0.0', format: 'plx' as const },
+        };
+
+        console.log(JSON.stringify(output, null, 2));
+      } else {
+        console.log(
+          JSON.stringify(
+            {
+              specId: options.id,
+              workspacePath,
+              projectName,
+              displayId,
+              content,
+            },
+            null,
+            2
+          )
+        );
+      }
     } else {
       const headerId = this.isMulti ? displayId : options.id;
       console.log(chalk.bold.magenta(`\n═══ Spec: ${headerId} ═══\n`));
@@ -652,17 +738,18 @@ export class GetCommand {
   async tasks(options: TasksOptions = {}): Promise<void> {
     await this.ensureInitialized();
 
-    if (options.id) {
-      // List tasks for a specific change
-      const tasks = await this.itemRetrievalService!.getTasksForChange(
-        options.id
+    if (options.parentId) {
+      // List tasks for a specific parent
+      const tasks = await this.itemRetrievalService!.getTasksForParent(
+        options.parentId,
+        options.parentType
       );
 
       if (tasks.length === 0) {
         if (options.json) {
-          console.log(JSON.stringify({ changeId: options.id, tasks: [] }));
+          console.log(JSON.stringify({ parentId: options.parentId, tasks: [] }));
         } else {
-          ora().info(`No tasks found for change: ${options.id}`);
+          ora().info(`No tasks found for: ${options.parentId}`);
         }
         return;
       }
@@ -676,20 +763,22 @@ export class GetCommand {
           taskData.push({
             id: getTaskId(task),
             status,
-            changeId: options.id,
+            parentId: options.parentId,
             ...(skillLevel && { skillLevel }),
           });
         }
         console.log(
-          JSON.stringify({ changeId: options.id, tasks: taskData }, null, 2)
+          JSON.stringify({ parentId: options.parentId, tasks: taskData }, null, 2)
         );
       } else {
-        console.log(chalk.bold.cyan(`\n═══ Tasks for: ${options.id} ═══\n`));
-        await this.printTaskTable(tasks, options.id);
+        console.log(chalk.bold.cyan(`\n═══ Tasks for: ${options.parentId} ═══\n`));
+        await this.printTaskTable(tasks, options.parentId);
       }
     } else {
-      // List all open tasks
-      const openTasks = await this.itemRetrievalService!.getAllOpenTasks();
+      // List all open tasks (optionally filtered by parent type)
+      const openTasks = await this.itemRetrievalService!.getAllOpenTasks(
+        options.parentType
+      );
 
       if (openTasks.length === 0) {
         if (options.json) {
@@ -704,7 +793,8 @@ export class GetCommand {
         const taskData = openTasks.map((t) => ({
           id: t.taskId,
           status: t.status,
-          changeId: t.changeId,
+          parentId: t.parentId,
+          parentType: t.parentType,
           workspacePath: t.workspacePath,
           projectName: t.projectName,
           displayId: t.displayId,
@@ -754,11 +844,11 @@ export class GetCommand {
         chalk.bold.white('ID'.padEnd(50)) +
         chalk.bold.white('Status'.padEnd(15)) +
         chalk.bold.white('Skill'.padEnd(10)) +
-        chalk.bold.white('Change')
+        chalk.bold.white('Parent')
     );
     console.log(chalk.dim('  ' + '─'.repeat(95)));
 
-    for (const { taskId, status, changeId, displayId, skillLevel } of tasks) {
+    for (const { taskId, status, parentId, displayId, skillLevel } of tasks) {
       const statusColor = status === 'in-progress' ? chalk.yellow : chalk.gray;
       const displayTaskId = this.isMulti && displayId ? displayId : taskId;
       const skillDisplay = skillLevel ? this.formatSkillLevel(skillLevel) : chalk.dim('-');
@@ -769,8 +859,185 @@ export class GetCommand {
           chalk.white(displayTaskId.padEnd(50)) +
           statusColor(status.padEnd(15)) +
           skillDisplay + skillPadding +
-          chalk.blue(changeId)
+          chalk.blue(parentId)
       );
+    }
+  }
+
+  async changes(options: ChangesOptions = {}): Promise<void> {
+    await this.ensureInitialized();
+    const changes = await this.entityListingService!.listChanges();
+
+    if (changes.length === 0) {
+      if (options.json) {
+        console.log(JSON.stringify({ changes: [] }));
+      } else {
+        ora().info('No active changes found');
+      }
+      return;
+    }
+
+    if (options.json) {
+      const changeData = changes.map((c) => ({
+        id: c.name,
+        completedTasks: c.completedTasks,
+        totalTasks: c.totalTasks,
+        trackedIssue: c.trackedIssue,
+        projectName: c.projectName,
+        displayId: c.displayId,
+      }));
+      console.log(JSON.stringify({ changes: changeData }, null, 2));
+    } else {
+      console.log('Changes:');
+      this.printChangesTable(changes);
+    }
+  }
+
+  private printChangesTable(changes: ChangeInfo[]): void {
+    const padding = '  ';
+    const getDisplayName = (c: ChangeInfo) => {
+      const name = this.isMulti && c.displayId ? c.displayId : c.name;
+      const issueDisplay = c.trackedIssue ? ` (${c.trackedIssue})` : '';
+      return `${name}${issueDisplay}`;
+    };
+    const nameWidth = Math.max(...changes.map((c) => getDisplayName(c).length));
+
+    for (const change of changes) {
+      const displayName = getDisplayName(change).padEnd(nameWidth);
+      const status = formatTaskStatus({
+        total: change.totalTasks,
+        completed: change.completedTasks,
+      });
+      console.log(`${padding}${displayName}     ${status}`);
+    }
+  }
+
+  async specs(options: SpecsOptions = {}): Promise<void> {
+    await this.ensureInitialized();
+    const specs = await this.entityListingService!.listSpecs();
+
+    if (specs.length === 0) {
+      if (options.json) {
+        console.log(JSON.stringify({ specs: [] }));
+      } else {
+        ora().info('No specs found');
+      }
+      return;
+    }
+
+    if (options.json) {
+      const specData = specs.map((s) => ({
+        id: s.id,
+        requirementCount: s.requirementCount,
+        projectName: s.projectName,
+        displayId: s.displayId,
+      }));
+      console.log(JSON.stringify({ specs: specData }, null, 2));
+    } else {
+      console.log('Specs:');
+      this.printSpecsTable(specs);
+    }
+  }
+
+  private printSpecsTable(specs: SpecInfo[]): void {
+    const padding = '  ';
+    const getDisplayName = (s: SpecInfo) =>
+      this.isMulti && s.displayId ? s.displayId : s.id;
+    const nameWidth = Math.max(...specs.map((s) => getDisplayName(s).length));
+
+    for (const spec of specs) {
+      const padded = getDisplayName(spec).padEnd(nameWidth);
+      console.log(`${padding}${padded}     requirements ${spec.requirementCount}`);
+    }
+  }
+
+  async reviews(options: ReviewsOptions = {}): Promise<void> {
+    await this.ensureInitialized();
+    const reviews = await this.entityListingService!.listReviews();
+
+    if (reviews.length === 0) {
+      if (options.json) {
+        console.log(JSON.stringify({ reviews: [] }));
+      } else {
+        ora().info('No active reviews found');
+      }
+      return;
+    }
+
+    if (options.json) {
+      const reviewData = reviews.map((r) => ({
+        id: r.name,
+        parentType: r.parentType,
+        parentId: r.parentId,
+        completedTasks: r.completedTasks,
+        totalTasks: r.totalTasks,
+        projectName: r.projectName,
+        displayId: r.displayId,
+      }));
+      console.log(JSON.stringify({ reviews: reviewData }, null, 2));
+    } else {
+      console.log('Reviews:');
+      this.printReviewsTable(reviews);
+    }
+  }
+
+  private printReviewsTable(reviews: ReviewInfo[]): void {
+    const padding = '  ';
+    const getDisplayName = (r: ReviewInfo) =>
+      this.isMulti && r.displayId ? r.displayId : r.name;
+    const nameWidth = Math.max(...reviews.map((r) => getDisplayName(r).length));
+    const typeWidth = Math.max(...reviews.map((r) => r.parentType.length));
+
+    for (const review of reviews) {
+      const paddedName = getDisplayName(review).padEnd(nameWidth);
+      const paddedType = review.parentType.padEnd(typeWidth);
+      const status = formatTaskStatus({
+        total: review.totalTasks,
+        completed: review.completedTasks,
+      });
+      console.log(`${padding}${paddedName}     ${paddedType}     ${status}`);
+    }
+  }
+
+  async review(options: ReviewOptions): Promise<void> {
+    await this.ensureInitialized();
+    const result = await this.entityListingService!.getReviewById(options.id);
+
+    if (!result) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: `Review not found: ${options.id}` }));
+      } else {
+        ora().fail(`Review not found: ${options.id}`);
+      }
+      process.exitCode = 1;
+      return;
+    }
+
+    const { review, parentType, parentId, workspacePath, projectName, displayId } =
+      result;
+
+    if (options.json) {
+      console.log(
+        JSON.stringify(
+          {
+            reviewId: options.id,
+            parentType,
+            parentId,
+            workspacePath,
+            projectName,
+            displayId,
+            content: review,
+          },
+          null,
+          2
+        )
+      );
+    } else {
+      const headerId = this.isMulti ? displayId : options.id;
+      console.log(chalk.bold.yellow(`\n═══ Review: ${headerId} ═══\n`));
+      console.log(chalk.dim(`Parent: ${parentType}/${parentId}`));
+      console.log();
+      console.log(review);
     }
   }
 }

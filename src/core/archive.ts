@@ -1,7 +1,5 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { getTaskProgressForChange, getTaskProgressForReview, formatTaskStatus } from '../utils/task-progress.js';
-import { migrateIfNeeded } from '../utils/task-migration.js';
 import { Validator } from './validation/validator.js';
 import chalk from 'chalk';
 import {
@@ -12,6 +10,7 @@ import {
 } from './parsers/requirement-blocks.js';
 import { MarkdownParser } from './parsers/markdown-parser.js';
 import type { TrackedIssue } from './schemas/index.js';
+import { archiveTasksForParent, getTasksForParent } from '../utils/centralized-task-discovery.js';
 
 type EntityType = 'change' | 'review';
 
@@ -50,6 +49,26 @@ export class ArchiveCommand {
 
     // Default to change archiving
     return this.archiveChange(itemName, changesDir, mainSpecsDir, options);
+  }
+
+  async archiveChangeById(
+    id: string,
+    options: { yes?: boolean; skipSpecs?: boolean; noValidate?: boolean; validate?: boolean } = {}
+  ): Promise<void> {
+    const targetPath = '.';
+    const changesDir = path.join(targetPath, 'workspace', 'changes');
+    const mainSpecsDir = path.join(targetPath, 'workspace', 'specs');
+    return this.archiveChange(id, changesDir, mainSpecsDir, options);
+  }
+
+  async archiveReviewById(
+    id: string,
+    options: { yes?: boolean; skipSpecs?: boolean; noValidate?: boolean; validate?: boolean } = {}
+  ): Promise<void> {
+    const targetPath = '.';
+    const reviewsDir = path.join(targetPath, 'workspace', 'reviews');
+    const mainSpecsDir = path.join(targetPath, 'workspace', 'specs');
+    return this.archiveReview(id, reviewsDir, mainSpecsDir, options);
   }
 
   private async detectEntityType(id: string, changesDir: string, reviewsDir: string): Promise<EntityType> {
@@ -217,23 +236,19 @@ export class ArchiveCommand {
       console.log(chalk.yellow(`Affected files: ${changeDir}`));
     }
 
-    // Trigger migration if needed
-    const migrationResult = await migrateIfNeeded(changeDir);
-    if (migrationResult?.migrated) {
-      console.log(`Migrated tasks.md → tasks/001-tasks.md`);
-    }
+    // Check for incomplete tasks using centralized task discovery
+    const workspacePath = path.join('.', 'workspace');
+    const tasks = await getTasksForParent(workspacePath, changeName, 'change');
+    const incompleteTasks = tasks.filter(t => t.status !== 'done');
 
-    // Show progress and check for incomplete tasks
-    const progress = await getTaskProgressForChange(changesDir, changeName);
-    const status = formatTaskStatus(progress);
-    console.log(`Task status: ${status}`);
+    if (incompleteTasks.length > 0) {
+      console.log(`Task status: ${tasks.length - incompleteTasks.length}/${tasks.length} tasks complete`);
+      console.log(`Incomplete tasks: ${incompleteTasks.map(t => t.filename).join(', ')}`);
 
-    const incompleteTasks = Math.max(progress.total - progress.completed, 0);
-    if (incompleteTasks > 0) {
       if (!options.yes) {
         const { confirm } = await import('@inquirer/prompts');
         const proceed = await confirm({
-          message: `Warning: ${incompleteTasks} incomplete task(s) found. Continue?`,
+          message: `Warning: ${incompleteTasks.length} incomplete task(s) found. Continue?`,
           default: false
         });
         if (!proceed) {
@@ -241,8 +256,12 @@ export class ArchiveCommand {
           return;
         }
       } else {
-        console.log(`Warning: ${incompleteTasks} incomplete task(s) found. Continuing due to --yes flag.`);
+        console.log(`Warning: ${incompleteTasks.length} incomplete task(s) found. Continuing due to --yes flag.`);
       }
+    } else if (tasks.length > 0) {
+      console.log(`Task status: ✓ Complete (${tasks.length}/${tasks.length} tasks)`);
+    } else {
+      console.log('Task status: No tasks');
     }
 
     // Handle spec updates unless skipSpecs flag is set
@@ -351,11 +370,25 @@ export class ArchiveCommand {
     // Move change to archive
     await fs.rename(changeDir, archivePath);
 
+    // Archive linked tasks from centralized task storage
+    const taskArchiveResult = await archiveTasksForParent(workspacePath, changeName, 'change');
+
+    // Report any task archiving errors
+    if (taskArchiveResult.errors.length > 0) {
+      console.log(chalk.yellow('\nTask archiving warnings:'));
+      for (const error of taskArchiveResult.errors) {
+        console.log(chalk.yellow(`  ⚠ ${error}`));
+      }
+    }
+
     // Display archive success with tracked issues if present
     const issueDisplay = trackedIssues.length > 0
       ? ` (${trackedIssues.map(i => i.id).join(', ')})`
       : '';
-    console.log(`Change '${changeName}'${issueDisplay} archived as '${archiveName}'.`);
+    const taskCountDisplay = taskArchiveResult.movedTasks.length > 0
+      ? ` (${taskArchiveResult.movedTasks.length} task${taskArchiveResult.movedTasks.length === 1 ? '' : 's'} archived)`
+      : '';
+    console.log(`Change '${changeName}'${issueDisplay} archived as '${archiveName}'${taskCountDisplay}.`);
   }
 
   private async selectChange(changesDir: string): Promise<string | null> {
@@ -375,17 +408,19 @@ export class ArchiveCommand {
     // Build choices with progress inline to avoid duplicate lists
     let choices: Array<{ name: string; value: string }>;
     try {
+      const workspacePath = path.join('.', 'workspace');
       const progressList: Array<{ id: string; status: string }> = [];
       for (const id of changeDirs) {
-        // Trigger migration if needed
-        const changeFullPath = path.join(changesDir, id);
-        const migrationResult = await migrateIfNeeded(changeFullPath);
-        if (migrationResult?.migrated) {
-          console.log(`Migrated tasks.md → tasks/001-tasks.md`);
+        const tasks = await getTasksForParent(workspacePath, id, 'change');
+        const incompleteTasks = tasks.filter(t => t.status !== 'done');
+        let status = 'No tasks';
+        if (tasks.length > 0) {
+          if (incompleteTasks.length === 0) {
+            status = `✓ Complete (${tasks.length}/${tasks.length})`;
+          } else {
+            status = `${tasks.length - incompleteTasks.length}/${tasks.length} tasks`;
+          }
         }
-
-        const progress = await getTaskProgressForChange(changesDir, id);
-        const status = formatTaskStatus(progress);
         progressList.push({ id, status });
       }
       const nameWidth = Math.max(...progressList.map(p => p.id.length));
@@ -435,10 +470,19 @@ export class ArchiveCommand {
     // Build choices with progress inline
     let choices: Array<{ name: string; value: string }>;
     try {
+      const workspacePath = path.join('.', 'workspace');
       const progressList: Array<{ id: string; status: string }> = [];
       for (const id of reviewDirs) {
-        const progress = await getTaskProgressForReview(reviewsDir, id);
-        const status = formatTaskStatus(progress);
+        const tasks = await getTasksForParent(workspacePath, id, 'review');
+        const incompleteTasks = tasks.filter(t => t.status !== 'done');
+        let status = 'No tasks';
+        if (tasks.length > 0) {
+          if (incompleteTasks.length === 0) {
+            status = `✓ Complete (${tasks.length}/${tasks.length})`;
+          } else {
+            status = `${tasks.length - incompleteTasks.length}/${tasks.length} tasks`;
+          }
+        }
         progressList.push({ id, status });
       }
       const nameWidth = Math.max(...progressList.map(p => p.id.length));
@@ -561,17 +605,19 @@ export class ArchiveCommand {
       console.log(chalk.yellow(`Affected files: ${reviewDir}`));
     }
 
-    // Show progress and check for incomplete tasks
-    const progress = await getTaskProgressForReview(reviewsDir, reviewName);
-    const status = formatTaskStatus(progress);
-    console.log(`Task status: ${status}`);
+    // Check for incomplete tasks using centralized task discovery
+    const workspacePath = path.join('.', 'workspace');
+    const tasks = await getTasksForParent(workspacePath, reviewName, 'review');
+    const incompleteTasks = tasks.filter(t => t.status !== 'done');
 
-    const incompleteTasks = Math.max(progress.total - progress.completed, 0);
-    if (incompleteTasks > 0) {
+    if (incompleteTasks.length > 0) {
+      console.log(`Task status: ${tasks.length - incompleteTasks.length}/${tasks.length} tasks complete`);
+      console.log(`Incomplete tasks: ${incompleteTasks.map(t => t.filename).join(', ')}`);
+
       if (!options.yes) {
         const { confirm } = await import('@inquirer/prompts');
         const proceed = await confirm({
-          message: `Warning: ${incompleteTasks} incomplete task(s) found. Continue?`,
+          message: `Warning: ${incompleteTasks.length} incomplete task(s) found. Continue?`,
           default: false
         });
         if (!proceed) {
@@ -579,8 +625,12 @@ export class ArchiveCommand {
           return;
         }
       } else {
-        console.log(`Warning: ${incompleteTasks} incomplete task(s) found. Continuing due to --yes flag.`);
+        console.log(`Warning: ${incompleteTasks.length} incomplete task(s) found. Continuing due to --yes flag.`);
       }
+    } else if (tasks.length > 0) {
+      console.log(`Task status: ✓ Complete (${tasks.length}/${tasks.length} tasks)`);
+    } else {
+      console.log('Task status: No tasks');
     }
 
     // Track if spec updates were applied
@@ -706,11 +756,25 @@ export class ArchiveCommand {
     // Move review to archive
     await fs.rename(reviewDir, archivePath);
 
+    // Archive linked tasks from centralized task storage
+    const taskArchiveResult = await archiveTasksForParent(workspacePath, reviewName, 'review');
+
+    // Report any task archiving errors
+    if (taskArchiveResult.errors.length > 0) {
+      console.log(chalk.yellow('\nTask archiving warnings:'));
+      for (const error of taskArchiveResult.errors) {
+        console.log(chalk.yellow(`  ⚠ ${error}`));
+      }
+    }
+
     // Display archive success with tracked issues if present
     const issueDisplay = trackedIssues.length > 0
       ? ` (${trackedIssues.map(i => i.id).join(', ')})`
       : '';
-    console.log(`Review '${reviewName}'${issueDisplay} archived as '${archiveName}'.`);
+    const taskCountDisplay = taskArchiveResult.movedTasks.length > 0
+      ? ` (${taskArchiveResult.movedTasks.length} task${taskArchiveResult.movedTasks.length === 1 ? '' : 's'} archived)`
+      : '';
+    console.log(`Review '${reviewName}'${issueDisplay} archived as '${archiveName}'${taskCountDisplay}.`);
   }
 
   // Deprecated: replaced by shared task-progress utilities
