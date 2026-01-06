@@ -3,9 +3,13 @@ import path from 'path';
 import chalk from 'chalk';
 import ora from 'ora';
 import {
-  getPrioritizedChange,
-  PrioritizedChange,
+  getPrioritizedParent,
+  PrioritizedParent,
 } from '../utils/parent-prioritization.js';
+import {
+  discoverTasks,
+  DiscoveredTask,
+} from '../utils/centralized-task-discovery.js';
 import {
   parseStatus,
   parseSkillLevel,
@@ -147,25 +151,25 @@ export class GetCommand {
       return;
     }
 
-    // Find best prioritized change across all workspaces
-    let prioritizedChange: PrioritizedChange | null = null;
-    let currentWorkspace: DiscoveredWorkspace | null = null;
+    // Discover all tasks across all workspaces using centralized storage
+    let allTasks: DiscoveredTask[] = [];
+    const taskWorkspaceMap = new Map<string, DiscoveredWorkspace>();
 
     for (const workspace of this.workspaces) {
-      const changesPath = path.join(workspace.path, 'changes');
-      const change = await getPrioritizedChange(changesPath);
-
-      if (
-        change &&
-        (!prioritizedChange ||
-          change.completionPercentage > prioritizedChange.completionPercentage)
-      ) {
-        prioritizedChange = change;
-        currentWorkspace = workspace;
+      const result = await discoverTasks(workspace);
+      for (const task of result.tasks) {
+        allTasks.push(task);
+        taskWorkspaceMap.set(task.filepath, workspace);
       }
     }
 
-    if (!prioritizedChange || !currentWorkspace) {
+    // Get prioritized parent using centralized task data
+    let prioritizedParent = getPrioritizedParent(allTasks);
+    let currentWorkspace: DiscoveredWorkspace | null = prioritizedParent?.nextTask
+      ? taskWorkspaceMap.get(prioritizedParent.nextTask.filepath) ?? null
+      : null;
+
+    if (!prioritizedParent || !currentWorkspace) {
       if (options.json) {
         console.log(JSON.stringify({ error: 'No active changes found' }));
       } else {
@@ -175,16 +179,16 @@ export class GetCommand {
     }
 
     // Check if all tasks are complete
-    if (!prioritizedChange.nextTask) {
+    if (!prioritizedParent.nextTask) {
       if (options.json) {
         console.log(
           JSON.stringify({
-            changeId: prioritizedChange.id,
+            changeId: prioritizedParent.parentId,
             workspacePath: currentWorkspace.path,
             projectName: currentWorkspace.projectName,
             displayId: this.getDisplayId(
               currentWorkspace.projectName,
-              prioritizedChange.id
+              prioritizedParent.parentId
             ),
             task: null,
             taskContent: null,
@@ -198,28 +202,24 @@ export class GetCommand {
     }
 
     let warning: string | undefined;
-    let nextTask: TaskFileInfo | null = prioritizedChange.nextTask;
+    let nextTask: DiscoveredTask | null = prioritizedParent.nextTask;
     let completedTaskInfo: CompletedTaskInfo | undefined;
     let autoCompletedTaskInfo: { id: string } | undefined;
 
     // Check for auto-completion of in-progress task
-    if (prioritizedChange.inProgressTask) {
-      const inProgressContent = await fs.readFile(
-        prioritizedChange.inProgressTask.filepath,
-        'utf-8'
-      );
-      const progress = countTasksFromContent(inProgressContent);
+    if (prioritizedParent.inProgressTask) {
+      const progress = countTasksFromContent(prioritizedParent.inProgressTask.content);
 
       // Auto-complete if all checklist items are checked AND there's at least one item
       if (progress.total > 0 && progress.completed === progress.total) {
         // Mark in-progress task as done (checkboxes already checked)
-        await setTaskStatus(prioritizedChange.inProgressTask.filepath, 'done');
+        await setTaskStatus(prioritizedParent.inProgressTask.filepath, 'done');
         autoCompletedTaskInfo = {
-          id: getTaskId(prioritizedChange.inProgressTask),
+          id: getTaskId(this.discoveredTaskToTaskFileInfo(prioritizedParent.inProgressTask)),
         };
 
         // Find and mark next to-do task as in-progress
-        nextTask = await this.findNextTodoTask(prioritizedChange);
+        nextTask = this.findNextTodoTaskFromParent(prioritizedParent);
         if (nextTask) {
           await setTaskStatus(nextTask.filepath, 'in-progress');
         }
@@ -228,18 +228,18 @@ export class GetCommand {
 
     if (options.didCompletePrevious) {
       // Handle --did-complete-previous flag
-      if (prioritizedChange.inProgressTask) {
+      if (prioritizedParent.inProgressTask) {
         // Complete the in-progress task with checkbox marking
         const completedItems = await completeTaskFully(
-          prioritizedChange.inProgressTask.filepath
+          prioritizedParent.inProgressTask.filepath
         );
         completedTaskInfo = {
-          id: getTaskId(prioritizedChange.inProgressTask),
+          id: getTaskId(this.discoveredTaskToTaskFileInfo(prioritizedParent.inProgressTask)),
           completedItems,
         };
 
         // Find the next to-do task
-        nextTask = await this.findNextTodoTask(prioritizedChange);
+        nextTask = this.findNextTodoTaskFromParent(prioritizedParent);
 
         if (nextTask) {
           // Mark next task as in-progress
@@ -258,41 +258,38 @@ export class GetCommand {
 
     // Check again if we have a next task after transitions
     if (!nextTask) {
-      // Current change is complete - check for other actionable changes across all workspaces
-      let nextPrioritizedChange: PrioritizedChange | null = null;
-      let nextWorkspace: DiscoveredWorkspace | null = null;
-
+      // Current change is complete - re-discover tasks to find other actionable changes
+      allTasks = [];
       for (const workspace of this.workspaces) {
-        const changesPath = path.join(workspace.path, 'changes');
-        const change = await getPrioritizedChange(changesPath);
-
-        if (
-          change &&
-          change.nextTask &&
-          (!nextPrioritizedChange ||
-            change.completionPercentage > nextPrioritizedChange.completionPercentage)
-        ) {
-          nextPrioritizedChange = change;
-          nextWorkspace = workspace;
+        const result = await discoverTasks(workspace);
+        for (const task of result.tasks) {
+          allTasks.push(task);
+          taskWorkspaceMap.set(task.filepath, workspace);
         }
       }
 
-      if (nextPrioritizedChange && nextWorkspace && nextPrioritizedChange.nextTask) {
+      const nextPrioritizedParent = getPrioritizedParent(allTasks);
+
+      const nextWorkspace = nextPrioritizedParent?.nextTask
+        ? taskWorkspaceMap.get(nextPrioritizedParent.nextTask.filepath)
+        : undefined;
+
+      if (nextPrioritizedParent?.nextTask && nextWorkspace) {
         // Another change has pending work - update to use it
-        prioritizedChange = nextPrioritizedChange;
+        prioritizedParent = nextPrioritizedParent;
         currentWorkspace = nextWorkspace;
-        nextTask = nextPrioritizedChange.nextTask;
+        nextTask = nextPrioritizedParent.nextTask;
         // Continue to task output logic below (auto-transition handled there)
       } else {
         // Truly all tasks complete
         if (options.json) {
           const output: JsonOutput = {
-            changeId: prioritizedChange.id,
+            changeId: prioritizedParent.parentId,
             workspacePath: currentWorkspace.path,
             projectName: currentWorkspace.projectName,
             displayId: this.getDisplayId(
               currentWorkspace.projectName,
-              prioritizedChange.id
+              prioritizedParent.parentId
             ),
             task: null,
             taskContent: null,
@@ -345,22 +342,23 @@ export class GetCommand {
     // Apply content filtering if requested
     taskContent = this.applyContentFiltering(taskContent, options);
 
+    const nextTaskFileInfo = this.discoveredTaskToTaskFileInfo(nextTask);
     const taskDisplayId = this.getDisplayId(
       currentWorkspace.projectName,
-      `${prioritizedChange.id}/${getTaskId(nextTask)}`
+      `${prioritizedParent.parentId}/${getTaskId(nextTaskFileInfo)}`
     );
 
     if (options.json) {
       const output: JsonOutput = {
-        changeId: prioritizedChange.id,
+        changeId: prioritizedParent.parentId,
         workspacePath: currentWorkspace.path,
         projectName: currentWorkspace.projectName,
         displayId: this.getDisplayId(
           currentWorkspace.projectName,
-          prioritizedChange.id
+          prioritizedParent.parentId
         ),
         task: {
-          id: getTaskId(nextTask),
+          id: getTaskId(nextTaskFileInfo),
           filename: nextTask.filename,
           filepath: nextTask.filepath,
           sequence: nextTask.sequence,
@@ -373,7 +371,7 @@ export class GetCommand {
       // Include change documents unless --did-complete-previous or auto-completed
       if (!options.didCompletePrevious && !autoCompletedTaskInfo) {
         output.changeDocuments = await this.readChangeDocuments(
-          prioritizedChange.id,
+          prioritizedParent.parentId,
           currentWorkspace.path
         );
       }
@@ -418,11 +416,11 @@ export class GetCommand {
 
       // Show change documents unless --did-complete-previous or auto-completed
       if (!options.didCompletePrevious && !autoCompletedTaskInfo) {
-        await this.printChangeDocuments(prioritizedChange.id, currentWorkspace.path);
+        await this.printChangeDocuments(prioritizedParent.parentId, currentWorkspace.path);
       }
 
       // Print task header with display ID in multi-workspace mode
-      const headerTaskId = this.isMulti ? taskDisplayId : getTaskId(nextTask);
+      const headerTaskId = this.isMulti ? taskDisplayId : getTaskId(nextTaskFileInfo);
       const skillBadge = skillLevel ? ` [${this.formatSkillLevel(skillLevel)}]` : '';
       console.log(
         chalk.bold.cyan(`\n═══ Task ${nextTask.sequence}: ${headerTaskId}${skillBadge} ═══\n`)
@@ -539,14 +537,22 @@ export class GetCommand {
     console.log();
   }
 
-  private async findNextTodoTask(
-    change: PrioritizedChange
-  ): Promise<TaskFileInfo | null> {
-    for (const taskFile of change.taskFiles) {
-      const content = await fs.readFile(taskFile.filepath, 'utf-8');
-      const status = parseStatus(content);
-      if (status === 'to-do') {
-        return taskFile;
+  private discoveredTaskToTaskFileInfo(task: DiscoveredTask): TaskFileInfo {
+    return {
+      filename: task.filename,
+      filepath: task.filepath,
+      sequence: task.sequence,
+      name: task.name,
+      progress: countTasksFromContent(task.content),
+    };
+  }
+
+  private findNextTodoTaskFromParent(
+    parent: PrioritizedParent
+  ): DiscoveredTask | null {
+    for (const task of parent.tasks) {
+      if (task.status === 'to-do') {
+        return task;
       }
     }
     return null;

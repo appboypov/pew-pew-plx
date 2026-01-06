@@ -1,5 +1,16 @@
 # Pew Pew Plx Changelog
 
+## 0.13.1 - 2026-01-06
+
+### Fixed
+
+- `plx get task` now uses centralized task storage for prioritization
+  - Previously looked in deprecated `workspace/changes/{id}/tasks/` location
+  - Now correctly discovers tasks from `workspace/tasks/` with parent linking
+  - Aligns with `plx get changes` behavior introduced in 0.13.0
+
+---
+
 ## 0.13.0 - 2026-01-06
 
 ### Added

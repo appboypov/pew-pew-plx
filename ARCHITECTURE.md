@@ -583,9 +583,11 @@ The `get` command provides subcommands for retrieving project artifacts:
 ```
 User runs: plx get task
     ↓
-getPrioritizedChange() → find highest-priority change
+discoverTasks() → scan workspace/tasks/ for all tasks with parent linking
     ↓
-Find next task (in-progress or first to-do) in workspace/tasks/
+getPrioritizedParent() → find highest-priority parent entity
+    ↓
+Find next task (in-progress or first to-do) for that parent
     ↓
 Auto-transition to-do → in-progress (if needed)
     ↓

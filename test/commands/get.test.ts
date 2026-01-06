@@ -37,8 +37,7 @@ describe('get task command', () => {
 
     it('shows next task with change context', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
@@ -48,10 +47,13 @@ describe('get task command', () => {
         path.join(changeDir, 'design.md'),
         '## Design\n\nTest design content'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -70,7 +72,7 @@ status: to-do
         expect(output).toContain('Proposal: test-change');
         expect(output).toContain('Design');
         expect(output).toContain('Test design content');
-        expect(output).toContain('Task 1: 001-first-task');
+        expect(output).toContain('Task 1: 001-test-change-first-task');
         expect(output).toContain('Do something');
       } finally {
         process.chdir(originalCwd);
@@ -79,17 +81,19 @@ status: to-do
 
     it('shows "No active changes found" when only change is complete', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: done
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -115,17 +119,19 @@ status: done
   describe('--json flag', () => {
     it('outputs valid JSON with task info', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -144,9 +150,9 @@ status: in-progress
         const json = JSON.parse(output);
         expect(json.changeId).toBe('test-change');
         expect(json.task).toBeDefined();
-        expect(json.task.filename).toBe('001-first-task.md');
+        expect(json.task.filename).toBe('001-test-change-first-task.md');
         expect(json.task.sequence).toBe(1);
-        expect(json.task.id).toBe('001-first-task');
+        expect(json.task.id).toBe('001-test-change-first-task');
         expect(json.task.status).toBe('in-progress');
         expect(json.taskContent).toContain('First Task');
         expect(json.changeDocuments).toBeDefined();
@@ -174,17 +180,19 @@ status: in-progress
   describe('--did-complete-previous flag', () => {
     it('completes in-progress task and advances to next', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -194,9 +202,11 @@ status: in-progress
 `
       );
       await fs.writeFile(
-        path.join(tasksDir, '002-second-task.md'),
+        path.join(centralTasksDir, '002-test-change-second-task.md'),
         `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Second Task
@@ -215,7 +225,7 @@ status: to-do
         );
 
         // Should show second task
-        expect(output).toContain('Task 2: 002-second-task');
+        expect(output).toContain('Task 2: 002-test-change-second-task');
         expect(output).toContain('Do something else');
 
         // Should NOT show proposal (only task with --did-complete-previous)
@@ -223,14 +233,14 @@ status: to-do
 
         // Verify first task is now done
         const firstTaskContent = await fs.readFile(
-          path.join(tasksDir, '001-first-task.md'),
+          path.join(centralTasksDir, '001-test-change-first-task.md'),
           'utf-8'
         );
         expect(firstTaskContent).toContain('status: done');
 
         // Verify second task is now in-progress
         const secondTaskContent = await fs.readFile(
-          path.join(tasksDir, '002-second-task.md'),
+          path.join(centralTasksDir, '002-test-change-second-task.md'),
           'utf-8'
         );
         expect(secondTaskContent).toContain('status: in-progress');
@@ -241,17 +251,19 @@ status: to-do
 
     it('warns when no in-progress task exists', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -269,11 +281,11 @@ status: to-do
           { encoding: 'utf-8' }
         );
         expect(output).toContain('No in-progress task found');
-        expect(output).toContain('Task 1: 001-first-task');
+        expect(output).toContain('Task 1: 001-test-change-first-task');
 
         // Verify task is now in-progress
         const taskContent = await fs.readFile(
-          path.join(tasksDir, '001-first-task.md'),
+          path.join(centralTasksDir, '001-test-change-first-task.md'),
           'utf-8'
         );
         expect(taskContent).toContain('status: in-progress');
@@ -284,17 +296,19 @@ status: to-do
 
     it('marks Implementation Checklist items as complete', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -312,9 +326,11 @@ status: in-progress
 `
       );
       await fs.writeFile(
-        path.join(tasksDir, '002-second-task.md'),
+        path.join(centralTasksDir, '002-test-change-second-task.md'),
         `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Second Task
@@ -334,7 +350,7 @@ status: to-do
 
         // Verify first task checkboxes
         const firstTaskContent = await fs.readFile(
-          path.join(tasksDir, '001-first-task.md'),
+          path.join(centralTasksDir, '001-test-change-first-task.md'),
           'utf-8'
         );
 
@@ -352,17 +368,19 @@ status: to-do
 
     it('includes completedTask in JSON output', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -373,9 +391,11 @@ status: in-progress
 `
       );
       await fs.writeFile(
-        path.join(tasksDir, '002-second-task.md'),
+        path.join(centralTasksDir, '002-test-change-second-task.md'),
         `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Second Task
@@ -395,7 +415,7 @@ status: to-do
         const json = JSON.parse(output);
 
         expect(json.completedTask).toBeDefined();
-        expect(json.completedTask.id).toBe('001-first-task');
+        expect(json.completedTask.id).toBe('001-test-change-first-task');
         expect(json.completedTask.completedItems).toContain('First item');
         expect(json.completedTask.completedItems).toContain('Second item');
       } finally {
@@ -405,17 +425,19 @@ status: to-do
 
     it('shows completed task info in text output', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -425,9 +447,11 @@ status: in-progress
 `
       );
       await fs.writeFile(
-        path.join(tasksDir, '002-second-task.md'),
+        path.join(centralTasksDir, '002-test-change-second-task.md'),
         `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Second Task
@@ -445,7 +469,7 @@ status: to-do
           { encoding: 'utf-8' }
         );
 
-        expect(output).toContain('Completed task: 001-first-task');
+        expect(output).toContain('Completed task: 001-test-change-first-task');
         expect(output).toContain('Marked complete:');
         expect(output).toContain('First item');
       } finally {
@@ -457,8 +481,7 @@ status: to-do
   describe('auto-completion', () => {
     it('auto-completes in-progress task when all checklist items are checked', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
@@ -468,10 +491,13 @@ status: to-do
         path.join(changeDir, 'design.md'),
         '## Design\n\nTest design content'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -482,9 +508,11 @@ status: in-progress
 `
       );
       await fs.writeFile(
-        path.join(tasksDir, '002-second-task.md'),
+        path.join(centralTasksDir, '002-test-change-second-task.md'),
         `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Second Task
@@ -502,10 +530,10 @@ status: to-do
         });
 
         // Should show auto-completed message
-        expect(output).toContain('Auto-completed task: 001-first-task');
+        expect(output).toContain('Auto-completed task: 001-test-change-first-task');
 
         // Should show second task
-        expect(output).toContain('Task 2: 002-second-task');
+        expect(output).toContain('Task 2: 002-test-change-second-task');
         expect(output).toContain('Second item');
 
         // Should NOT show proposal/design (change documents excluded after auto-complete)
@@ -513,14 +541,14 @@ status: to-do
 
         // Verify first task is now done
         const firstTaskContent = await fs.readFile(
-          path.join(tasksDir, '001-first-task.md'),
+          path.join(centralTasksDir, '001-test-change-first-task.md'),
           'utf-8'
         );
         expect(firstTaskContent).toContain('status: done');
 
         // Verify second task is now in-progress
         const secondTaskContent = await fs.readFile(
-          path.join(tasksDir, '002-second-task.md'),
+          path.join(centralTasksDir, '002-test-change-second-task.md'),
           'utf-8'
         );
         expect(secondTaskContent).toContain('status: in-progress');
@@ -531,17 +559,19 @@ status: to-do
 
     it('displays task normally when partially complete', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -560,7 +590,7 @@ status: in-progress
         });
 
         // Should show the in-progress task (not auto-completed)
-        expect(output).toContain('Task 1: 001-first-task');
+        expect(output).toContain('Task 1: 001-test-change-first-task');
         expect(output).toContain('Not done item');
 
         // Should NOT show auto-completed message
@@ -571,7 +601,7 @@ status: in-progress
 
         // Verify task is still in-progress
         const taskContent = await fs.readFile(
-          path.join(tasksDir, '001-first-task.md'),
+          path.join(centralTasksDir, '001-test-change-first-task.md'),
           'utf-8'
         );
         expect(taskContent).toContain('status: in-progress');
@@ -582,19 +612,20 @@ status: in-progress
 
     it('does not auto-complete task with zero checklist items', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
       // Task with zero checklist items AND a second task with incomplete items
-      // (so the change is not filtered out by prioritization)
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -604,9 +635,11 @@ No checklist items in this task.
 `
       );
       await fs.writeFile(
-        path.join(tasksDir, '002-second-task.md'),
+        path.join(centralTasksDir, '002-test-change-second-task.md'),
         `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Second Task
@@ -624,14 +657,14 @@ status: to-do
         });
 
         // Should show the in-progress task (first-task has no checkboxes, so not auto-completed)
-        expect(output).toContain('Task 1: 001-first-task');
+        expect(output).toContain('Task 1: 001-test-change-first-task');
 
         // Should NOT show auto-completed message
         expect(output).not.toContain('Auto-completed');
 
         // Verify task is still in-progress
         const taskContent = await fs.readFile(
-          path.join(tasksDir, '001-first-task.md'),
+          path.join(centralTasksDir, '001-test-change-first-task.md'),
           'utf-8'
         );
         expect(taskContent).toContain('status: in-progress');
@@ -642,18 +675,20 @@ status: to-do
 
     it('shows all tasks complete when auto-completing final to-do task', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       // First task is done
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: done
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -664,9 +699,11 @@ status: done
       );
       // Second task is in-progress with all items checked (will be auto-completed)
       await fs.writeFile(
-        path.join(tasksDir, '002-second-task.md'),
+        path.join(centralTasksDir, '002-test-change-second-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Second Task
@@ -677,9 +714,11 @@ status: in-progress
       );
       // Third task is to-do with unchecked items (makes change actionable for prioritization)
       await fs.writeFile(
-        path.join(tasksDir, '003-third-task.md'),
+        path.join(centralTasksDir, '003-test-change-third-task.md'),
         `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Third Task
@@ -697,21 +736,21 @@ status: to-do
         });
 
         // Should show auto-completed message
-        expect(output).toContain('Auto-completed task: 002-second-task');
+        expect(output).toContain('Auto-completed task: 002-test-change-second-task');
 
         // Should show third task (the next task after auto-completion)
-        expect(output).toContain('Task 3: 003-third-task');
+        expect(output).toContain('Task 3: 003-test-change-third-task');
 
         // Verify second task is now done
         const secondTaskContent = await fs.readFile(
-          path.join(tasksDir, '002-second-task.md'),
+          path.join(centralTasksDir, '002-test-change-second-task.md'),
           'utf-8'
         );
         expect(secondTaskContent).toContain('status: done');
 
         // Verify third task is now in-progress
         const thirdTaskContent = await fs.readFile(
-          path.join(tasksDir, '003-third-task.md'),
+          path.join(centralTasksDir, '003-test-change-third-task.md'),
           'utf-8'
         );
         expect(thirdTaskContent).toContain('status: in-progress');
@@ -722,17 +761,19 @@ status: to-do
 
     it('includes autoCompletedTask in JSON output', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -742,9 +783,11 @@ status: in-progress
 `
       );
       await fs.writeFile(
-        path.join(tasksDir, '002-second-task.md'),
+        path.join(centralTasksDir, '002-test-change-second-task.md'),
         `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Second Task
@@ -764,11 +807,11 @@ status: to-do
 
         // Should include autoCompletedTask
         expect(json.autoCompletedTask).toBeDefined();
-        expect(json.autoCompletedTask.id).toBe('001-first-task');
+        expect(json.autoCompletedTask.id).toBe('001-test-change-first-task');
 
         // Should have task info for second task
         expect(json.task).toBeDefined();
-        expect(json.task.id).toBe('002-second-task');
+        expect(json.task.id).toBe('002-test-change-second-task');
 
         // Should NOT include changeDocuments
         expect(json.changeDocuments).toBeUndefined();
@@ -780,17 +823,16 @@ status: to-do
     it('transitions to next change when current change auto-completes', async () => {
       // Create change-a: in-progress task with all checkboxes checked (will auto-complete)
       const changeA = path.join(changesDir, 'change-a');
-      const tasksA = path.join(changeA, 'tasks');
-      await fs.mkdir(tasksA, { recursive: true });
+      await fs.mkdir(changeA, { recursive: true });
       await fs.writeFile(path.join(changeA, 'proposal.md'), '# Change A\n\n## Why\nTest\n\n## What Changes\n- Test');
-      await fs.writeFile(path.join(tasksA, '001-task.md'), `---\nstatus: in-progress\n---\n# Task\n## Implementation Checklist\n- [x] Done`);
+      // Use centralized task storage
+      await fs.writeFile(path.join(centralTasksDir, '001-change-a-task.md'), `---\nstatus: in-progress\nparent-type: change\nparent-id: change-a\n---\n# Task\n## Implementation Checklist\n- [x] Done`);
 
       // Create change-b: to-do task with incomplete checkboxes (should be selected next)
       const changeB = path.join(changesDir, 'change-b');
-      const tasksB = path.join(changeB, 'tasks');
-      await fs.mkdir(tasksB, { recursive: true });
+      await fs.mkdir(changeB, { recursive: true });
       await fs.writeFile(path.join(changeB, 'proposal.md'), '# Change B\n\n## Why\nTest\n\n## What Changes\n- Test');
-      await fs.writeFile(path.join(tasksB, '001-task.md'), `---\nstatus: to-do\n---\n# Task\n## Implementation Checklist\n- [ ] Not done`);
+      await fs.writeFile(path.join(centralTasksDir, '001-change-b-task.md'), `---\nstatus: to-do\nparent-type: change\nparent-id: change-b\n---\n# Task\n## Implementation Checklist\n- [ ] Not done`);
 
       const originalCwd = process.cwd();
       try {
@@ -810,10 +852,10 @@ status: to-do
     it('shows all tasks complete only when no other changes have pending tasks', async () => {
       // Single change with in-progress task that will auto-complete
       const changeA = path.join(changesDir, 'change-a');
-      const tasksA = path.join(changeA, 'tasks');
-      await fs.mkdir(tasksA, { recursive: true });
+      await fs.mkdir(changeA, { recursive: true });
       await fs.writeFile(path.join(changeA, 'proposal.md'), '# Change A\n\n## Why\nTest\n\n## What Changes\n- Test');
-      await fs.writeFile(path.join(tasksA, '001-task.md'), `---\nstatus: in-progress\n---\n# Task\n## Implementation Checklist\n- [x] Done`);
+      // Use centralized task storage
+      await fs.writeFile(path.join(centralTasksDir, '001-change-a-task.md'), `---\nstatus: in-progress\nparent-type: change\nparent-id: change-a\n---\n# Task\n## Implementation Checklist\n- [x] Done`);
 
       const originalCwd = process.cwd();
       try {
@@ -831,18 +873,19 @@ status: to-do
       // checked (100% checkbox completion), it was filtered out as "non-actionable"
       // before auto-completion could run, leaving the task stuck in in-progress status.
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test Change\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
-      // Single in-progress task with all checkboxes checked
+      // Use centralized task storage - Single in-progress task with all checkboxes checked
       await fs.writeFile(
-        path.join(tasksDir, '001-only-task.md'),
+        path.join(centralTasksDir, '001-test-change-only-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Only Task
@@ -862,14 +905,14 @@ status: in-progress
         });
 
         // Should show auto-completed message
-        expect(output).toContain('Auto-completed task: 001-only-task');
+        expect(output).toContain('Auto-completed task: 001-test-change-only-task');
 
         // Should show all tasks complete
         expect(output).toContain('All tasks complete');
 
         // Verify task is now done
         const taskContent = await fs.readFile(
-          path.join(tasksDir, '001-only-task.md'),
+          path.join(centralTasksDir, '001-test-change-only-task.md'),
           'utf-8'
         );
         expect(taskContent).toContain('status: done');
@@ -883,16 +926,18 @@ status: in-progress
     it('skips completed changes and selects actionable one', async () => {
       // Create complete-change with all tasks marked done (should be skipped)
       const completeChange = path.join(changesDir, 'complete-change');
-      const completeTasks = path.join(completeChange, 'tasks');
-      await fs.mkdir(completeTasks, { recursive: true });
+      await fs.mkdir(completeChange, { recursive: true });
       await fs.writeFile(
         path.join(completeChange, 'proposal.md'),
         '# Change: Complete\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(completeTasks, '001-task.md'),
+        path.join(centralTasksDir, '001-complete-change-task.md'),
         `---
 status: done
+parent-type: change
+parent-id: complete-change
 ---
 # Task
 ## Implementation Checklist
@@ -901,17 +946,21 @@ status: done
 `
       );
 
-      // Create actionable-change with 50% completion
+      // Create actionable-change with a to-do task
       const actionableChange = path.join(changesDir, 'actionable-change');
-      const actionableTasks = path.join(actionableChange, 'tasks');
-      await fs.mkdir(actionableTasks, { recursive: true });
+      await fs.mkdir(actionableChange, { recursive: true });
       await fs.writeFile(
         path.join(actionableChange, 'proposal.md'),
         '# Change: Actionable\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
       await fs.writeFile(
-        path.join(actionableTasks, '001-task.md'),
-        `# Task
+        path.join(centralTasksDir, '001-actionable-change-task.md'),
+        `---
+status: to-do
+parent-type: change
+parent-id: actionable-change
+---
+# Task
 ## Implementation Checklist
 - [x] Done
 - [ ] Not done
@@ -932,43 +981,30 @@ status: done
     });
 
     it('selects change with highest completion percentage', async () => {
-      // Create change-a with 25% completion (1/4 tasks)
+      // Create change-a with 25% completion (1/4 tasks done)
       const changeA = path.join(changesDir, 'change-a');
-      const tasksA = path.join(changeA, 'tasks');
-      await fs.mkdir(tasksA, { recursive: true });
+      await fs.mkdir(changeA, { recursive: true });
       await fs.writeFile(
         path.join(changeA, 'proposal.md'),
         '# Change: A\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
-      await fs.writeFile(
-        path.join(tasksA, '001-task.md'),
-        `# Task
-## Implementation Checklist
-- [x] Done
-- [ ] Not done
-- [ ] Not done
-- [ ] Not done
-`
-      );
+      // Use centralized task storage
+      await fs.writeFile(path.join(centralTasksDir, '001-change-a-done.md'), `---\nstatus: done\nparent-type: change\nparent-id: change-a\n---\n# Task 1`);
+      await fs.writeFile(path.join(centralTasksDir, '002-change-a-todo1.md'), `---\nstatus: to-do\nparent-type: change\nparent-id: change-a\n---\n# Task 2`);
+      await fs.writeFile(path.join(centralTasksDir, '003-change-a-todo2.md'), `---\nstatus: to-do\nparent-type: change\nparent-id: change-a\n---\n# Task 3`);
+      await fs.writeFile(path.join(centralTasksDir, '004-change-a-todo3.md'), `---\nstatus: to-do\nparent-type: change\nparent-id: change-a\n---\n# Task 4`);
 
-      // Create change-b with 75% completion (3/4 tasks)
+      // Create change-b with 75% completion (3/4 tasks done)
       const changeB = path.join(changesDir, 'change-b');
-      const tasksB = path.join(changeB, 'tasks');
-      await fs.mkdir(tasksB, { recursive: true });
+      await fs.mkdir(changeB, { recursive: true });
       await fs.writeFile(
         path.join(changeB, 'proposal.md'),
         '# Change: B\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
-      await fs.writeFile(
-        path.join(tasksB, '001-task.md'),
-        `# Task
-## Implementation Checklist
-- [x] Done
-- [x] Done
-- [x] Done
-- [ ] Not done
-`
-      );
+      await fs.writeFile(path.join(centralTasksDir, '001-change-b-done1.md'), `---\nstatus: done\nparent-type: change\nparent-id: change-b\n---\n# Task 1`);
+      await fs.writeFile(path.join(centralTasksDir, '002-change-b-done2.md'), `---\nstatus: done\nparent-type: change\nparent-id: change-b\n---\n# Task 2`);
+      await fs.writeFile(path.join(centralTasksDir, '003-change-b-done3.md'), `---\nstatus: done\nparent-type: change\nparent-id: change-b\n---\n# Task 3`);
+      await fs.writeFile(path.join(centralTasksDir, '004-change-b-todo.md'), `---\nstatus: to-do\nparent-type: change\nparent-id: change-b\n---\n# Task 4`);
 
       const originalCwd = process.cwd();
       try {
@@ -987,17 +1023,19 @@ status: done
   describe('in-progress task selection', () => {
     it('selects in-progress task over to-do task', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-done.md'),
+        path.join(centralTasksDir, '001-test-change-done.md'),
         `---
 status: done
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Done
@@ -1006,9 +1044,11 @@ status: done
 `
       );
       await fs.writeFile(
-        path.join(tasksDir, '002-in-progress.md'),
+        path.join(centralTasksDir, '002-test-change-in-progress.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: In Progress
@@ -1017,9 +1057,11 @@ status: in-progress
 `
       );
       await fs.writeFile(
-        path.join(tasksDir, '003-todo.md'),
+        path.join(centralTasksDir, '003-test-change-todo.md'),
         `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Todo
@@ -1035,7 +1077,7 @@ status: to-do
           encoding: 'utf-8',
         });
         const json = JSON.parse(output);
-        expect(json.task.filename).toBe('002-in-progress.md');
+        expect(json.task.filename).toBe('002-test-change-in-progress.md');
         expect(json.task.status).toBe('in-progress');
       } finally {
         process.chdir(originalCwd);
@@ -1160,17 +1202,19 @@ parent-id: test-change
   describe('auto-transition on retrieval', () => {
     it('auto-transitions to-do task to in-progress when retrieved via prioritization', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-first-task.md'),
+        path.join(centralTasksDir, '001-test-change-first-task.md'),
         `---
 status: to-do
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: First Task
@@ -1193,7 +1237,7 @@ status: to-do
 
         // Verify file was updated
         const taskContent = await fs.readFile(
-          path.join(tasksDir, '001-first-task.md'),
+          path.join(centralTasksDir, '001-test-change-first-task.md'),
           'utf-8'
         );
         expect(taskContent).toContain('status: in-progress');
@@ -1248,17 +1292,19 @@ status: to-do
 
     it('does NOT transition already in-progress tasks', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-task.md'),
+        path.join(centralTasksDir, '001-test-change-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Test
@@ -1325,17 +1371,19 @@ status: in-progress
   describe('--constraints and --acceptance-criteria flags', () => {
     it('filters to only Constraints section', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-task.md'),
+        path.join(centralTasksDir, '001-test-change-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Test Task
@@ -1371,17 +1419,19 @@ status: in-progress
 
     it('filters to only Acceptance Criteria section', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-task.md'),
+        path.join(centralTasksDir, '001-test-change-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Test Task
@@ -1416,17 +1466,19 @@ status: in-progress
 
     it('shows both sections when both flags are used', async () => {
       const changeDir = path.join(changesDir, 'test-change');
-      const tasksDir = path.join(changeDir, 'tasks');
-      await fs.mkdir(tasksDir, { recursive: true });
+      await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
         path.join(changeDir, 'proposal.md'),
         '# Change: Test\n\n## Why\nTest\n\n## What Changes\n- Test'
       );
+      // Use centralized task storage
       await fs.writeFile(
-        path.join(tasksDir, '001-task.md'),
+        path.join(centralTasksDir, '001-test-change-task.md'),
         `---
 status: in-progress
+parent-type: change
+parent-id: test-change
 ---
 
 # Task: Test Task
