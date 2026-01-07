@@ -115,6 +115,8 @@ This creates the `workspace/` directory structure and configures slash commands 
 | `plx config path` | Show config file location |
 | `plx config list` | Show all settings |
 | `plx update` | Refresh instruction files |
+| `plx upgrade` | Upgrade CLI to latest version |
+| `plx upgrade --check` | Check for updates without installing |
 
 ### Subdirectory Support
 

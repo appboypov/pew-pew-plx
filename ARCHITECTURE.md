@@ -116,6 +116,7 @@ Command Classes (src/commands/*.ts, src/core/*.ts)
 Each command class encapsulates its own logic:
 - `InitCommand` - Interactive project initialization
 - `UpdateCommand` - Refresh PLX files
+- `UpgradeCommand` - Self-update CLI via npm/pnpm
 - `ViewCommand` - Interactive dashboard
 - `ChangeCommand` - Change entity management with subcommands
 - `SpecCommand` - Spec entity management with subcommands

@@ -5,6 +5,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { AI_TOOLS } from '../core/config.js';
 import { UpdateCommand } from '../core/update.js';
+import { UpgradeCommand } from '../core/upgrade.js';
 import { ListCommand } from '../core/list.js';
 import { ArchiveCommand } from '../core/archive.js';
 import { ViewCommand } from '../core/view.js';
@@ -103,6 +104,21 @@ program
       const resolvedPath = path.resolve(targetPath);
       const updateCommand = new UpdateCommand();
       await updateCommand.execute(resolvedPath);
+    } catch (error) {
+      console.log(); // Empty line for spacing
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('upgrade')
+  .description('Upgrade the PLX CLI to the latest version')
+  .option('--check', 'Only check for updates without installing')
+  .action(async (options?: { check?: boolean }) => {
+    try {
+      const upgradeCommand = new UpgradeCommand();
+      await upgradeCommand.execute(options);
     } catch (error) {
       console.log(); // Empty line for spacing
       ora().fail(`Error: ${(error as Error).message}`);

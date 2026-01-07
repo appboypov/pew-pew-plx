@@ -1,5 +1,17 @@
 # Pew Pew Plx Changelog
 
+## 0.15.0 - 2026-01-07
+
+### Added
+
+- **CLI self-upgrade command**: New `plx upgrade` command to update the CLI binary
+  - Checks npm registry for latest version
+  - Detects and uses appropriate package manager (pnpm or npm)
+  - `--check` flag shows version comparison without installing
+  - Cross-platform support (macOS, Linux, Windows)
+
+---
+
 ## 0.14.0 - 2026-01-07
 
 ### Added
