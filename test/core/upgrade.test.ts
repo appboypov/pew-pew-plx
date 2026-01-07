@@ -171,7 +171,7 @@ describe('UpgradeCommand', () => {
         expect(mockSpawn).toHaveBeenCalledWith(
           'pnpm',
           ['install', '-g', '@appboypov/pew-pew-plx@latest'],
-          { stdio: 'inherit', shell: false }
+          { stdio: 'inherit', shell: true }
         );
       });
 
@@ -192,7 +192,7 @@ describe('UpgradeCommand', () => {
         expect(mockSpawn).toHaveBeenCalledWith(
           'npm',
           ['install', '-g', '@appboypov/pew-pew-plx@latest'],
-          { stdio: 'inherit', shell: false }
+          { stdio: 'inherit', shell: true }
         );
       });
     });

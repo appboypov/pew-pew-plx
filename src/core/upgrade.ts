@@ -1,5 +1,5 @@
-import { spawn, execSync } from 'child_process';
-import { createRequire } from 'module';
+import { spawn, execSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import chalk from 'chalk';
 
 const require = createRequire(import.meta.url);
@@ -67,18 +67,21 @@ export class UpgradeCommand {
 
   private async performUpgrade(): Promise<void> {
     const packageManager = this.detectPackageManager();
-    const command = packageManager;
     const args = ['install', '-g', `${this.packageName}@latest`];
 
     return new Promise<void>((resolve, reject) => {
-      const child = spawn(command, args, {
+      const child = spawn(packageManager, args, {
         stdio: 'inherit',
-        shell: false,
+        shell: true,
       });
 
       child.on('close', (code) => {
         if (code === 0) {
-          console.log(chalk.green('\nUpgrade completed successfully!'));
+          console.log(
+            chalk.green(
+              '\nUpgrade completed successfully! The new version will be used the next time you run this CLI.'
+            )
+          );
           resolve();
         } else {
           reject(new Error(`Upgrade failed with exit code ${code}`));
