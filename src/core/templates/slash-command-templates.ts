@@ -24,12 +24,22 @@ const baseGuardrails = `**Guardrails**
 - Refer to \`workspace/AGENTS.md\` (located inside the \`workspace/\` directory—run \`ls workspace\` or \`plx update\` if you don't see it) if you need additional Pew Pew Plx conventions or clarifications.
 - When clarification is needed, use your available question tool (if one exists) instead of asking in chat. If no question tool is available, ask in chat.`;
 
+const monorepoAwareness = `**Monorepo Awareness**
+- Derive target package from the user's request context (mentioned package name, file paths, or current focus).
+- If target package is unclear in a monorepo, clarify with user before proceeding.
+- Create artifacts in the relevant package's workspace folder (e.g., \`packages/foo/workspace/\`), not the monorepo root.
+- For root-level changes (not package-specific), use the root workspace.
+- If multiple packages are affected, process each package separately.
+- Follow each package's AGENTS.md instructions if present.`;
+
 const planningContext = `**Context**
 @ARCHITECTURE.md
 @workspace/AGENTS.md`;
 
 const proposalGuardrails = `${planningContext}\n\n${baseGuardrails}\n- Identify any vague or ambiguous details and gather the necessary clarifications before editing files.
-- Do not write any code during the proposal stage. Only create design documents (proposal.md, task files in workspace/tasks/, design.md, and spec deltas). Implementation happens in the implement stage after approval.`;
+- Do not write any code during the proposal stage. Only create design documents (proposal.md, task files in workspace/tasks/, design.md, and spec deltas). Implementation happens in the implement stage after approval.
+
+${monorepoAwareness}`;
 
 const proposalSteps = `**Steps**
 0. Check for existing \`workspace/changes/<change-id>/request.md\`:
@@ -108,7 +118,9 @@ const prepareCompactSteps = `**Steps**
 const reviewGuardrails = `**Guardrails**
 - Use CLI to retrieve review context.
 - Output feedback as language-aware markers.
-- Include parent linkage in markers when reviewing a task, change, or spec.`;
+- Include parent linkage in markers when reviewing a task, change, or spec.
+
+${monorepoAwareness}`;
 
 const reviewSteps = `**Steps**
 1. Run \`plx review change --id <id>\` (or \`plx review spec --id <id>\`, \`plx review task --id <id>\`).
@@ -123,7 +135,9 @@ const reviewSteps = `**Steps**
 const refineArchitectureGuardrails = `**Guardrails**
 - Reference @ARCHITECTURE.md template structure.
 - Focus on practical documentation.
-- Preserve user content.`;
+- Preserve user content.
+
+${monorepoAwareness}`;
 
 const refineArchitectureSteps = `**Steps**
 1. Check if @ARCHITECTURE.md exists.
@@ -135,6 +149,8 @@ const refineReviewGuardrails = `**Guardrails**
 - Preserve existing review guidelines.
 - Use question tool to guide user through configuration options.
 - Write final selections to REVIEW.md.
+
+${monorepoAwareness}
 
 ## Configuration Options Reference
 
@@ -249,6 +265,8 @@ const refineTestingGuardrails = `**Guardrails**
 - Use question tool to guide user through configuration options.
 - Write final selections to TESTING.md.
 
+${monorepoAwareness}
+
 ## Configuration Options Reference
 
 ### Test Types
@@ -354,7 +372,9 @@ const refineTestingSteps = `**Steps**
 const parseFeedbackGuardrails = `**Guardrails**
 - Scan only tracked files.
 - Generate one task per marker.
-- Markers with parent linkage are grouped automatically.`;
+- Markers with parent linkage are grouped automatically.
+
+${monorepoAwareness}`;
 
 const parseFeedbackSteps = `**Steps**
 1. Run \`plx parse feedback <name> --parent-id <id> --parent-type change|spec|task\` (or omit flags if markers include parent linkage: \`{type}:{id} |\`).
@@ -367,6 +387,8 @@ const refineReleaseGuardrails = `**Guardrails**
 - Preserve existing release configuration.
 - Use question tool to guide user through configuration options.
 - Write final selections to RELEASE.md Config section.
+
+${monorepoAwareness}
 
 ## Configuration Options Reference
 
@@ -513,6 +535,10 @@ const prepareReleaseGuardrails = `**Guardrails**
 - Execute steps sequentially: changelog → readme → architecture.
 - User confirms or skips each step before proceeding.
 - Preserve existing content when updating files.
+- Never use 'Unreleased' in changelog entries - always determine the concrete next version number based on semantic versioning.
+- Run the \`date\` command to get the accurate release date in YYYY-MM-DD format.
+
+${monorepoAwareness}
 
 ## Default Configuration
 When RELEASE.md Config section is missing or incomplete, apply these defaults:
@@ -537,7 +563,11 @@ const prepareReleaseSteps = `**Steps**
 2. Execute changelog update:
    - Ask user for change source: git commits, branch diff, or manual entry.
    - If git commits: ask for range (recent N, since date, since tag, tag range).
-   - Analyze commits for version bump type (major/minor/patch).
+   - Analyze commits for version bump type:
+     - Breaking changes or BREAKING footer → suggest major version bump
+     - feat commits → suggest minor version bump
+     - fix commits → suggest patch version bump
+     - Apply AI judgment on overall scope to confirm or adjust suggestion
    - Generate changelog entry using configured format and emoji level.
    - Prepend to CHANGELOG.md (create if not exists).
 
@@ -615,7 +645,9 @@ const planRequestGuardrails = `${planningContext}
 - Create request.md early and update it incrementally after each question.
 - Do not write code during this stage—output is intent clarification only.
 - Use your question tool to present questions (if available).
-- End only when user confirms 100% intent capture.`;
+- End only when user confirms 100% intent capture.
+
+${monorepoAwareness}`;
 
 const planRequestSteps = `**Steps**
 1. Parse \`$ARGUMENTS\` to extract the source input (request, wish, idea, etc.).

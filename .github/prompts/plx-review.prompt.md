@@ -9,6 +9,14 @@ $ARGUMENTS
 - Output feedback as language-aware markers.
 - Include parent linkage in markers when reviewing a task, change, or spec.
 
+**Monorepo Awareness**
+- Derive target package from the user's request context (mentioned package name, file paths, or current focus).
+- If target package is unclear in a monorepo, clarify with user before proceeding.
+- Create artifacts in the relevant package's workspace folder (e.g., `packages/foo/workspace/`), not the monorepo root.
+- For root-level changes (not package-specific), use the root workspace.
+- If multiple packages are affected, process each package separately.
+- Follow each package's AGENTS.md instructions if present.
+
 **Steps**
 1. Run `plx review change --id <id>` (or `plx review spec --id <id>`, `plx review task --id <id>`).
 2. Read the output: @REVIEW.md guidelines + parent documents.

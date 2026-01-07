@@ -911,6 +911,11 @@ Pew Pew Plx provides:
 14. **Review System**: Structured review workflow with feedback markers and centralized task storage
 15. **Paste Command**: Create entities from clipboard (`plx paste task/change/spec/request`) with cross-platform clipboard support (macOS, Windows, Linux)
 16. **Create Command**: Unified entity creation (`plx create task/change/spec/request/review`) with parent linking support
+17. **Monorepo-Aware Slash Commands**: Artifact-creating commands detect monorepo context
+    - Derives target package from user request context (mentioned package name, file paths, or current focus)
+    - Creates artifacts in the relevant package's workspace folder (e.g., `packages/foo/workspace/`)
+    - Follows each package's AGENTS.md instructions if present
+    - Affected commands: `/plx:plan-proposal`, `/plx:plan-request`, `/plx:prepare-release`, `/plx:review`, `/plx:parse-feedback`, `/plx:refine-architecture`, `/plx:refine-release`, `/plx:refine-review`, `/plx:refine-testing`
 
 ## Extending the System
 

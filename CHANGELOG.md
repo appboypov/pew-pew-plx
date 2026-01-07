@@ -1,5 +1,21 @@
 # Pew Pew Plx Changelog
 
+## 0.14.0 - 2026-01-07
+
+### Added
+
+- **Monorepo awareness in slash commands**: Artifact-creating commands now detect monorepo context
+  - Derives target package from user request context (mentioned package name, file paths, or current focus)
+  - Creates artifacts in the relevant package's workspace folder
+  - Follows each package's AGENTS.md instructions if present
+  - Affected commands: `/plx:plan-proposal`, `/plx:plan-request`, `/plx:prepare-release`, `/plx:review`, `/plx:parse-feedback`, `/plx:refine-architecture`, `/plx:refine-release`, `/plx:refine-review`, `/plx:refine-testing`
+- **Improved prepare-release workflow**: Added version determination and date handling
+  - Enforces concrete version numbers (no "Unreleased" in changelog entries)
+  - Uses `date` command for accurate release dates
+  - Analyzes commits for version bump type (major/minor/patch)
+
+---
+
 ## 0.13.1 - 2026-01-06
 
 ### Fixed

@@ -11,6 +11,14 @@
 - Identify any vague or ambiguous details and gather the necessary clarifications before editing files.
 - Do not write any code during the proposal stage. Only create design documents (proposal.md, task files in workspace/tasks/, design.md, and spec deltas). Implementation happens in the implement stage after approval.
 
+**Monorepo Awareness**
+- Derive target package from the user's request context (mentioned package name, file paths, or current focus).
+- If target package is unclear in a monorepo, clarify with user before proceeding.
+- Create artifacts in the relevant package's workspace folder (e.g., `packages/foo/workspace/`), not the monorepo root.
+- For root-level changes (not package-specific), use the root workspace.
+- If multiple packages are affected, process each package separately.
+- Follow each package's AGENTS.md instructions if present.
+
 **Steps**
 0. Check for existing `workspace/changes/<change-id>/request.md`:
    - If found: consume it as the source of truth for user intent and skip interactive clarification.

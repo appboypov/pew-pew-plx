@@ -9,6 +9,14 @@ auto_execution_mode: 3
 - Use question tool to guide user through configuration options.
 - Write final selections to REVIEW.md.
 
+**Monorepo Awareness**
+- Derive target package from the user's request context (mentioned package name, file paths, or current focus).
+- If target package is unclear in a monorepo, clarify with user before proceeding.
+- Create artifacts in the relevant package's workspace folder (e.g., `packages/foo/workspace/`), not the monorepo root.
+- For root-level changes (not package-specific), use the root workspace.
+- If multiple packages are affected, process each package separately.
+- Follow each package's AGENTS.md instructions if present.
+
 ## Configuration Options Reference
 
 ### Review Types
