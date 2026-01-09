@@ -894,7 +894,7 @@ Pew Pew Plx provides:
    - `/plx/undo-task` - Revert task to to-do
    - `/plx/implement` - Implement tasks with guided workflow (processes entire change)
    - `/plx/orchestrate` - Coordinate sub-agents for multi-task work
-   - `/plx/refine-architecture` - Create or update ARCHITECTURE.md
+   - `/plx/refine-architecture` - Create or update ARCHITECTURE.md with spec-ready component inventories
    - `/plx/review` - Review implementations against specs/changes/tasks
    - `/plx/parse-feedback` - Parse feedback markers and generate review tasks
    - `/plx/refine-review` - Create or update REVIEW.md template

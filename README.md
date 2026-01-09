@@ -200,7 +200,7 @@ When you run `plx init`, these commands are installed for supported AI tools:
 - `/plx/undo-task` - Revert task to to-do
 - `/plx/implement` - Implement current task with guided workflow
 - `/plx/orchestrate` - Coordinate sub-agents for multi-task work
-- `/plx/refine-architecture` - Create or update `ARCHITECTURE.md`
+- `/plx/refine-architecture` - Create or update `ARCHITECTURE.md` with spec-ready component inventories
 - `/plx/refine-review` - Create or update `REVIEW.md` template
 - `/plx/refine-release` - Create or update `RELEASE.md` template
 - `/plx/refine-testing` - Create or update `TESTING.md` template
