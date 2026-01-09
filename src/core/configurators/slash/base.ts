@@ -49,7 +49,7 @@ export abstract class SlashCommandConfigurator {
       const filePath = FileSystemUtils.joinPath(projectPath, target.path);
 
       if (await FileSystemUtils.fileExists(filePath)) {
-        await this.updateBody(filePath, body);
+        await this.updateFullFile(filePath, target.id, body);
       } else {
         const frontmatter = this.getFrontmatter(target.id);
         const sections: string[] = [];
@@ -74,7 +74,7 @@ export abstract class SlashCommandConfigurator {
       const filePath = FileSystemUtils.joinPath(projectPath, target.path);
       if (await FileSystemUtils.fileExists(filePath)) {
         const body = this.getBody(target.id);
-        await this.updateBody(filePath, body);
+        await this.updateFullFile(filePath, target.id, body);
         updated.push(target.path);
       }
     }
@@ -106,19 +106,40 @@ export abstract class SlashCommandConfigurator {
     return FileSystemUtils.joinPath(projectPath, rel);
   }
 
-  protected async updateBody(filePath: string, body: string): Promise<void> {
+  protected async updateFullFile(filePath: string, id: SlashCommandId, body: string): Promise<void> {
     const content = await FileSystemUtils.readFile(filePath);
     const startIndex = content.indexOf(PLX_MARKERS.start);
     const endIndex = content.indexOf(PLX_MARKERS.end);
 
-    if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+    if (startIndex === -1 || endIndex === -1) {
       throw new Error(`Missing PLX markers in ${filePath}`);
     }
 
-    const before = content.slice(0, startIndex + PLX_MARKERS.start.length);
-    const after = content.slice(endIndex);
-    const updatedContent = `${before}\n${body}\n${after}`;
+    // Parse existing content structure
+    const beforeMarker = content.slice(0, startIndex);
+    const afterMarker = content.slice(endIndex + PLX_MARKERS.end.length);
 
-    await FileSystemUtils.writeFile(filePath, updatedContent);
+    // Detect and strip existing YAML frontmatter from beforeMarker
+    let customPreContent = beforeMarker;
+    const frontmatterMatch = beforeMarker.match(/^---\n[\s\S]*?\n---\n?/);
+    if (frontmatterMatch) {
+      customPreContent = beforeMarker.slice(frontmatterMatch[0].length);
+    }
+
+    // Build new content: new frontmatter + preserved pre-content + new body + preserved post-content
+    const newFrontmatter = this.getFrontmatter(id);
+    const sections: string[] = [];
+    if (newFrontmatter) sections.push(newFrontmatter.trim());
+    if (customPreContent.trim()) sections.push(customPreContent.trimEnd());
+    sections.push(`${PLX_MARKERS.start}\n${body}\n${PLX_MARKERS.end}`);
+
+    let result = sections.join('\n');
+    if (afterMarker.trim()) {
+      result += afterMarker;
+    } else {
+      result += '\n';
+    }
+
+    await FileSystemUtils.writeFile(filePath, result);
   }
 }

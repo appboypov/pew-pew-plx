@@ -130,7 +130,7 @@ Old slash content
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(proposalPath, 'utf-8');
-    expect(updated).toContain('name: Pew Pew Plx: Proposal');
+    expect(updated).toContain('name: Plan Proposal');
     expect(updated).toContain('**Guardrails**');
     expect(updated).toContain(
       'Validate with `plx validate change --id <id> --strict`'
@@ -384,7 +384,7 @@ Old body
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(openCodePath, 'utf-8');
-    expect(updated).toContain('id: plx-implement');
+    expect(updated).toContain('description: Implement an approved PLX change');
     expect(updated).not.toContain('Old body');
 
     const [logMessage] = consoleSpy.mock.calls[0];
@@ -910,7 +910,7 @@ Old slash content
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(codeBuddyPath, 'utf-8');
-    expect(updated).toContain('name: Pew Pew Plx: Proposal');
+    expect(updated).toContain('name: Plan Proposal');
     expect(updated).toContain('**Guardrails**');
     expect(updated).toContain(
       'Validate with `plx validate change --id <id> --strict`'
@@ -987,7 +987,7 @@ Old slash content
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(crushPath, 'utf-8');
-    expect(updated).toContain('name: Pew Pew Plx: Proposal');
+    expect(updated).toContain('name: Plan Proposal');
     expect(updated).toContain('**Guardrails**');
     expect(updated).toContain(
       'Validate with `plx validate change --id <id> --strict`'
@@ -1062,9 +1062,9 @@ Old body
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(costrictPath, 'utf-8');
-    // For slash commands, only the content between PLX markers is updated
-    expect(updated).toContain('description: "Old description"');
-    expect(updated).toContain('argument-hint: old-hint');
+    // Frontmatter is now updated along with the body
+    expect(updated).toContain('description: "Scaffold a new PLX change');
+    expect(updated).toContain('argument-hint: feature description or request');
     expect(updated).toContain('**Guardrails**');
     expect(updated).toContain(
       'Validate with `plx validate change --id <id> --strict`'
@@ -1104,7 +1104,7 @@ Old slash content
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(qoderPath, 'utf-8');
-    expect(updated).toContain('name: Pew Pew Plx: Proposal');
+    expect(updated).toContain('name: Plan Proposal');
     expect(updated).toContain('**Guardrails**');
     expect(updated).toContain(
       'Validate with `plx validate change --id <id> --strict`'

@@ -200,22 +200,6 @@ export class CodexSlashCommandConfigurator extends SlashCommandConfigurator {
     return updated;
   }
 
-  private async updateFullFile(filePath: string, id: SlashCommandId, body: string): Promise<void> {
-    const content = await FileSystemUtils.readFile(filePath);
-    const startIndex = content.indexOf(PLX_MARKERS.start);
-
-    if (startIndex === -1) {
-      throw new Error(`Missing PLX start marker in ${filePath}`);
-    }
-
-    const frontmatter = this.getFrontmatter(id);
-    const sections: string[] = [];
-    if (frontmatter) sections.push(frontmatter.trim());
-    sections.push(`${PLX_MARKERS.start}\n${body}\n${PLX_MARKERS.end}`);
-
-    await FileSystemUtils.writeFile(filePath, sections.join('\n') + '\n');
-  }
-
   resolveAbsolutePath(_projectPath: string, id: SlashCommandId): string {
     const promptsDir = this.getGlobalPromptsDir();
     const fileName = path.basename(FILE_PATHS[id]);

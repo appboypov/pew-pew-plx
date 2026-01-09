@@ -1,5 +1,16 @@
 # Pew Pew Plx Changelog
 
+## 0.16.1 - 2026-01-09
+
+### Fixed
+
+- **`plx update` now updates frontmatter in slash command files**: Previously only body content between PLX markers was updated, leaving frontmatter (descriptions, names, hints) unchanged
+  - Frontmatter is now regenerated from source definitions during update
+  - User customizations outside PLX markers (before start marker or after end marker) are preserved
+  - TOML-based configurators (Qwen, Gemini) also regenerate full content including description field
+
+---
+
 ## 0.16.0 - 2026-01-09
 
 ### Changed

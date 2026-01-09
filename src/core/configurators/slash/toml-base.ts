@@ -19,7 +19,7 @@ export abstract class TomlSlashCommandConfigurator extends SlashCommandConfigura
       const filePath = FileSystemUtils.joinPath(projectPath, target.path);
 
       if (await FileSystemUtils.fileExists(filePath)) {
-        await this.updateBody(filePath, body);
+        await this.updateFullFile(filePath, target.id, body);
       } else {
         const tomlContent = this.generateTOML(target.id, body);
         await FileSystemUtils.writeFile(filePath, tomlContent);
@@ -46,20 +46,16 @@ ${PLX_MARKERS.end}
 `;
   }
 
-  // Override updateBody to handle TOML format
-  protected async updateBody(filePath: string, body: string): Promise<void> {
+  // Override to regenerate full TOML content (description + body)
+  protected async updateFullFile(filePath: string, id: SlashCommandId, body: string): Promise<void> {
     const content = await FileSystemUtils.readFile(filePath);
     const startIndex = content.indexOf(PLX_MARKERS.start);
-    const endIndex = content.indexOf(PLX_MARKERS.end);
 
-    if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-      throw new Error(`Missing PLX markers in ${filePath}`);
+    if (startIndex === -1) {
+      throw new Error(`Missing PLX start marker in ${filePath}`);
     }
 
-    const before = content.slice(0, startIndex + PLX_MARKERS.start.length);
-    const after = content.slice(endIndex);
-    const updatedContent = `${before}\n${body}\n${after}`;
-
-    await FileSystemUtils.writeFile(filePath, updatedContent);
+    const tomlContent = this.generateTOML(id, body);
+    await FileSystemUtils.writeFile(filePath, tomlContent);
   }
 }
