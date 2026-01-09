@@ -1,5 +1,5 @@
 ---
-name: Pew Pew Plx: Refine Testing
+name: Refine Testing
 description: Create or update TESTING.md.
 category: Pew Pew Plx
 tags: [plx, testing, documentation]

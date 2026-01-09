@@ -1,5 +1,5 @@
 ---
-name: Pew Pew Plx: Sync Workspace
+name: Sync Workspace
 description: Scan workspace state and suggest maintenance actions.
 category: Pew Pew Plx
 tags: [plx, workspace, maintenance]

@@ -1,8 +1,8 @@
 ---
-name: Pew Pew Plx: Complete Task
-description: Mark a task as done and check all Implementation Checklist items.
+name: Complete Task
+description: Mark a task as done.
 category: Pew Pew Plx
-tags: [plx, task, complete, workflow]
+tags: [plx, task, workflow]
 ---
 <!-- PLX:START -->
 **Steps**

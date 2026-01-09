@@ -1,5 +1,5 @@
 ---
-name: Pew Pew Plx: Parse Feedback
+name: Parse Feedback
 description: Parse feedback markers and generate review tasks.
 category: Pew Pew Plx
 tags: [plx, review, workflow]

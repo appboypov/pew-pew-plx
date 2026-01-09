@@ -1,5 +1,5 @@
 ---
-name: Pew Pew Plx: Test
+name: Test
 description: Run tests based on scope (change, task, or spec) using TESTING.md configuration.
 category: Pew Pew Plx
 tags: [plx, testing, workflow]

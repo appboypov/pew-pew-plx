@@ -1,5 +1,5 @@
 ---
-name: Pew Pew Plx: Prepare Compact
+name: Prepare Compact
 description: Preserve session progress in PROGRESS.md for context continuity.
 category: Pew Pew Plx
 tags: [plx, context, session]

@@ -1,5 +1,5 @@
 ---
-name: Pew Pew Plx: Plan Request
+name: Plan Request
 description: Clarify user intent through iterative yes/no questions before proposal creation.
 category: Pew Pew Plx
 tags: [plx, change, planning]

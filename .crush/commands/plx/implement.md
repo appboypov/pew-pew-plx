@@ -1,6 +1,6 @@
 ---
-name: Pew Pew Plx: Implement
-description: Implement an approved Pew Pew Plx change and keep tasks in sync.
+name: Implement
+description: Implement an approved change and keep tasks in sync.
 category: Pew Pew Plx
 tags: [plx, implement]
 ---

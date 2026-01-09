@@ -1,5 +1,5 @@
 ---
-name: Pew Pew Plx: Undo Task
+name: Undo Task
 description: Revert a task to to-do.
 category: Pew Pew Plx
 tags: [plx, task, workflow]

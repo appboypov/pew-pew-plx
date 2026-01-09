@@ -24,7 +24,7 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   'archive': `---
-description: Archive a deployed Pew Pew Plx change and update specs.
+description: Archive a deployed change and update specs.
 argument-hint: change-id
 ---`,
   'complete-task': `---
@@ -36,7 +36,7 @@ description: Select and display the next prioritized task to work on.
 argument-hint: (optional context)
 ---`,
   'implement': `---
-description: Implement an approved Pew Pew Plx change and keep tasks in sync.
+description: Implement an approved change and keep tasks in sync.
 argument-hint: change-id
 ---`,
   'orchestrate': `---
@@ -48,7 +48,7 @@ description: Parse feedback markers and generate review tasks.
 argument-hint: (optional context)
 ---`,
   'plan-proposal': `---
-description: Scaffold a new Pew Pew Plx change and validate strictly. Consumes request.md when present.
+description: Scaffold a new change and validate strictly. Consumes request.md when present.
 argument-hint: feature description or request
 ---`,
   'plan-request': `---
@@ -64,7 +64,7 @@ description: Prepare release by updating changelog, readme, and architecture doc
 argument-hint: (optional context)
 ---`,
   'refine-architecture': `---
-description: Create or update ARCHITECTURE.md.
+description: Create or update ARCHITECTURE.md with spec-ready component inventories.
 argument-hint: (optional context)
 ---`,
   'refine-release': `---

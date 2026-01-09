@@ -1,6 +1,6 @@
 ---
-name: Pew Pew Plx: Archive
-description: Archive a deployed Pew Pew Plx change and update specs.
+name: Archive
+description: Archive a deployed change and update specs.
 category: Pew Pew Plx
 tags: [plx, archive]
 ---

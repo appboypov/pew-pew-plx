@@ -1,5 +1,5 @@
 ---
-name: Pew Pew Plx: Refine Release
+name: Refine Release
 description: Create or update RELEASE.md.
 category: Pew Pew Plx
 tags: [plx, release, documentation]

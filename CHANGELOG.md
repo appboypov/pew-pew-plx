@@ -1,5 +1,19 @@
 # Pew Pew Plx Changelog
 
+## 0.16.0 - 2026-01-09
+
+### Changed
+
+- **Simplified slash command names**: Removed "Pew Pew Plx: " prefix from all 18 command names for cleaner display (e.g., "Pew Pew Plx: Refine Architecture" → "Refine Architecture")
+- **Enhanced `/plx:refine-architecture` command**: Produces spec-ready documentation with complete component inventories
+  - Guardrails require spec-ready reference enabling architects to create specs without opening the codebase
+  - New Context Retrieval section instructs use of Auggie MCP, Codebase Retrieval, or similar semantic search tools
+  - Expanded from 3 to 7 detailed steps: Discover, Check, Create/Load, Populate Inventories, Map Dependencies, Validate Completeness, Write
+  - New Template Structure section defines required sections and 10 component inventory categories with universal terms
+  - Component categories use framework-agnostic terms (DTOs/Models/Records/Entities, Services/Providers/Managers, APIs/Repositories/Controllers/Data Sources, etc.)
+
+---
+
 ## 0.15.0 - 2026-01-07
 
 ### Added

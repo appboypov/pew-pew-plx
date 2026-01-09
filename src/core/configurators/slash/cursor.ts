@@ -27,7 +27,7 @@ const FRONTMATTER: Record<SlashCommandId, string> = {
 name: /plx-archive
 id: plx-archive
 category: Pew Pew Plx
-description: Archive a deployed Pew Pew Plx change and update specs.
+description: Archive a deployed change and update specs.
 ---`,
   'complete-task': `---
 name: /plx-complete-task
@@ -45,7 +45,7 @@ description: Select and display the next prioritized task to work on.
 name: /plx-implement
 id: plx-implement
 category: Pew Pew Plx
-description: Implement an approved Pew Pew Plx change and keep tasks in sync.
+description: Implement an approved change and keep tasks in sync.
 ---`,
   'orchestrate': `---
 name: /plx-orchestrate
@@ -63,7 +63,7 @@ description: Parse feedback markers and generate review tasks.
 name: /plx-plan-proposal
 id: plx-plan-proposal
 category: Pew Pew Plx
-description: Scaffold a new Pew Pew Plx change and validate strictly. Consumes request.md when present.
+description: Scaffold a new change and validate strictly. Consumes request.md when present.
 ---`,
   'plan-request': `---
 name: /plx-plan-request
@@ -87,7 +87,7 @@ description: Prepare release by updating changelog, readme, and architecture doc
 name: /plx-refine-architecture
 id: plx-refine-architecture
 category: Pew Pew Plx
-description: Create or update ARCHITECTURE.md.
+description: Create or update ARCHITECTURE.md with spec-ready component inventories.
 ---`,
   'refine-release': `---
 name: /plx-refine-release

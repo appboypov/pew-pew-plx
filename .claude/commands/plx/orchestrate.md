@@ -1,5 +1,5 @@
 ---
-name: Pew Pew Plx: Orchestrate
+name: Orchestrate
 description: Orchestrate sub-agents to complete work collaboratively.
 category: Pew Pew Plx
 tags: [plx, orchestrate, sub-agents]

@@ -1,5 +1,5 @@
 ---
-name: Pew Pew Plx: Refine Review
+name: Refine Review
 description: Create or update REVIEW.md.
 category: Pew Pew Plx
 tags: [plx, review, documentation]

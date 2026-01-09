@@ -24,109 +24,109 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   'archive': `---
-name: Pew Pew Plx: Archive
-description: Archive a deployed Pew Pew Plx change and update specs.
+name: Archive
+description: Archive a deployed change and update specs.
 category: Pew Pew Plx
 tags: [plx, archive]
 ---`,
   'complete-task': `---
-name: Pew Pew Plx: Complete Task
+name: Complete Task
 description: Mark a task as done.
 category: Pew Pew Plx
 tags: [plx, task, workflow]
 ---`,
   'get-task': `---
-name: Pew Pew Plx: Get Task
+name: Get Task
 description: Select and display the next prioritized task to work on.
 category: Pew Pew Plx
 tags: [plx, task, workflow]
 ---`,
   'implement': `---
-name: Pew Pew Plx: Implement
-description: Implement an approved Pew Pew Plx change and keep tasks in sync.
+name: Implement
+description: Implement an approved change and keep tasks in sync.
 category: Pew Pew Plx
 tags: [plx, implement]
 ---`,
   'orchestrate': `---
-name: Pew Pew Plx: Orchestrate
+name: Orchestrate
 description: Orchestrate sub-agents to complete work collaboratively.
 category: Pew Pew Plx
 tags: [plx, orchestrate, sub-agents]
 ---`,
   'parse-feedback': `---
-name: Pew Pew Plx: Parse Feedback
+name: Parse Feedback
 description: Parse feedback markers and generate review tasks.
 category: Pew Pew Plx
 tags: [plx, review, workflow]
 ---`,
   'plan-proposal': `---
-name: Pew Pew Plx: Plan Proposal
-description: Scaffold a new Pew Pew Plx change and validate strictly. Consumes request.md when present.
+name: Plan Proposal
+description: Scaffold a new change and validate strictly. Consumes request.md when present.
 category: Pew Pew Plx
 tags: [plx, change]
 ---`,
   'plan-request': `---
-name: Pew Pew Plx: Plan Request
+name: Plan Request
 description: Clarify user intent through iterative yes/no questions before proposal creation.
 category: Pew Pew Plx
 tags: [plx, change, planning]
 ---`,
   'prepare-compact': `---
-name: Pew Pew Plx: Prepare Compact
+name: Prepare Compact
 description: Preserve session progress in PROGRESS.md for context continuity.
 category: Pew Pew Plx
 tags: [plx, context, session]
 ---`,
   'prepare-release': `---
-name: Pew Pew Plx: Prepare Release
+name: Prepare Release
 description: Prepare release by updating changelog, readme, and architecture documentation.
 category: Pew Pew Plx
 tags: [plx, release, documentation]
 ---`,
   'refine-architecture': `---
-name: Pew Pew Plx: Refine Architecture
-description: Create or update ARCHITECTURE.md.
+name: Refine Architecture
+description: Create or update ARCHITECTURE.md with spec-ready component inventories.
 category: Pew Pew Plx
 tags: [plx, architecture, documentation]
 ---`,
   'refine-release': `---
-name: Pew Pew Plx: Refine Release
+name: Refine Release
 description: Create or update RELEASE.md.
 category: Pew Pew Plx
 tags: [plx, release, documentation]
 ---`,
   'refine-review': `---
-name: Pew Pew Plx: Refine Review
+name: Refine Review
 description: Create or update REVIEW.md.
 category: Pew Pew Plx
 tags: [plx, review, documentation]
 ---`,
   'refine-testing': `---
-name: Pew Pew Plx: Refine Testing
+name: Refine Testing
 description: Create or update TESTING.md.
 category: Pew Pew Plx
 tags: [plx, testing, documentation]
 ---`,
   'review': `---
-name: Pew Pew Plx: Review
+name: Review
 description: Review implementations against specs, changes, or tasks.
 category: Pew Pew Plx
 tags: [plx, review, workflow]
 ---`,
   'sync-workspace': `---
-name: Pew Pew Plx: Sync Workspace
+name: Sync Workspace
 description: Scan workspace state and suggest maintenance actions.
 category: Pew Pew Plx
 tags: [plx, workspace, maintenance]
 ---`,
   'test': `---
-name: Pew Pew Plx: Test
+name: Test
 description: Run tests based on scope (change, task, or spec) using TESTING.md configuration.
 category: Pew Pew Plx
 tags: [plx, testing, workflow]
 ---`,
   'undo-task': `---
-name: Pew Pew Plx: Undo Task
+name: Undo Task
 description: Revert a task to to-do.
 category: Pew Pew Plx
 tags: [plx, task, workflow]

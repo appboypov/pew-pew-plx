@@ -1,5 +1,5 @@
 ---
-name: Pew Pew Plx: Prepare Release
+name: Prepare Release
 description: Prepare release by updating changelog, readme, and architecture documentation.
 category: Pew Pew Plx
 tags: [plx, release, documentation]

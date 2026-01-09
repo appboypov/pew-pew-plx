@@ -1,5 +1,5 @@
 ---
-name: Pew Pew Plx: Complete Task
+name: Complete Task
 description: Mark a task as done.
 category: Pew Pew Plx
 tags: [plx, task, workflow]
