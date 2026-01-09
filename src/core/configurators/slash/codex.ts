@@ -88,7 +88,7 @@ argument-hint: (optional context)
 
 $ARGUMENTS`,
   'refine-architecture': `---
-description: Create or update ARCHITECTURE.md.
+description: Create or update ARCHITECTURE.md with spec-ready component inventories.
 argument-hint: (optional context)
 ---
 

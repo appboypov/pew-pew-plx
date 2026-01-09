@@ -64,7 +64,7 @@ description: Prepare release by updating changelog, readme, and architecture doc
 argument-hint: (optional context)
 ---`,
   'refine-architecture': `---
-description: Create or update ARCHITECTURE.md.
+description: Create or update ARCHITECTURE.md with spec-ready component inventories.
 argument-hint: (optional context)
 ---`,
   'refine-release': `---

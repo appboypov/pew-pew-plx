@@ -10,7 +10,7 @@ The system SHALL provide a `plx/refine-architecture` slash command that produces
 
 - **WHEN** Claude Code is selected during initialization
 - **THEN** create `.claude/commands/plx/refine-architecture.md`
-- **AND** include frontmatter with name "Pew Pew Plx: Refine Architecture", description "Create or update ARCHITECTURE.md with complete technical inventory for spec-ready documentation.", category "Pew Pew Plx", and relevant tags
+- **AND** include frontmatter with name "Refine Architecture", description "Create or update ARCHITECTURE.md with spec-ready component inventories.", category "Pew Pew Plx", and relevant tags
 - **AND** wrap the command body in PLX markers
 - **AND** include guardrails requiring spec-ready reference, complete component inventories, user content preservation, and completeness validation
 - **AND** include context retrieval section with codebase-retrieval tool instructions

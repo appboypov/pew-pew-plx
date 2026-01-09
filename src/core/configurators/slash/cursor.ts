@@ -87,7 +87,7 @@ description: Prepare release by updating changelog, readme, and architecture doc
 name: /plx-refine-architecture
 id: plx-refine-architecture
 category: Pew Pew Plx
-description: Create or update ARCHITECTURE.md.
+description: Create or update ARCHITECTURE.md with spec-ready component inventories.
 ---`,
   'refine-release': `---
 name: /plx-refine-release

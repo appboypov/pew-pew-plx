@@ -33,7 +33,7 @@ const DESCRIPTIONS: Record<SlashCommandId, string> = {
   'plan-request': 'Clarify user intent through iterative yes/no questions before proposal creation.',
   'prepare-compact': 'Preserve session progress in PROGRESS.md for context continuity.',
   'prepare-release': 'Prepare release by updating changelog, readme, and architecture documentation.',
-  'refine-architecture': 'Create or update ARCHITECTURE.md.',
+  'refine-architecture': 'Create or update ARCHITECTURE.md with spec-ready component inventories.',
   'refine-release': 'Create or update RELEASE.md.',
   'refine-review': 'Create or update REVIEW.md.',
   'refine-testing': 'Create or update TESTING.md.',

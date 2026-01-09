@@ -4,6 +4,7 @@
 
 ### Changed
 
+- **Simplified slash command names**: Removed "Pew Pew Plx: " prefix from all 18 command names for cleaner display (e.g., "Pew Pew Plx: Refine Architecture" → "Refine Architecture")
 - **Enhanced `/plx:refine-architecture` command**: Produces spec-ready documentation with complete component inventories
   - Guardrails require spec-ready reference enabling architects to create specs without opening the codebase
   - New Context Retrieval section instructs use of Auggie MCP, Codebase Retrieval, or similar semantic search tools
