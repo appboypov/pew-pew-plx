@@ -612,12 +612,10 @@ export class CreateCommand {
     const lines = proposal.split('\n');
     const result: string[] = [];
     let inSection = false;
-    let currentSection = '';
 
     for (const line of lines) {
       if (line.startsWith('## Why') || line.startsWith('## What Changes')) {
         inSection = true;
-        currentSection = line;
         result.push(line);
       } else if (line.startsWith('## ') && inSection) {
         inSection = false;
