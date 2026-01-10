@@ -26,6 +26,8 @@ export interface TransferItem {
   sourcePath: string;
   targetPath: string;
   type: 'directory' | 'file';
+  /** For spec transfers with rename: maps old spec name to new spec name for delta directory renaming */
+  specRename?: { oldName: string; newName: string };
 }
 
 export interface TaskRenumber {
@@ -154,6 +156,10 @@ export class TransferService {
       throw new Error('Source and target workspaces must be set before building transfer plan');
     }
 
+    if (!entityId || entityId.trim() === '') {
+      throw new Error('Entity ID cannot be empty');
+    }
+
     const requiresInit = !(await isValidPlxWorkspace(this.targetProjectRoot));
     const resolvedTargetName = targetName || entityId;
 
@@ -231,7 +237,7 @@ export class TransferService {
 
       for (const dir of directories) {
         if (dir.sourcePath) {
-          await this.copyDirectory(dir.sourcePath, dir.targetPath);
+          await this.copyDirectory(dir.sourcePath, dir.targetPath, dir.specRename);
         } else {
           // Create directory if sourcePath is empty (minimal structure creation)
           await fs.mkdir(dir.targetPath, { recursive: true });
@@ -598,6 +604,8 @@ export class TransferService {
 
     // Find related changes and their tasks
     const relatedChanges = await this.findRelatedChanges(specId);
+    const isRename = targetName !== specId;
+
     for (const changeId of relatedChanges) {
       const sourceChangePath = path.join(this.sourceWorkspace!.path, 'changes', changeId);
       const targetChangePath = path.join(this.targetWorkspace!.path, 'changes', changeId);
@@ -606,6 +614,8 @@ export class TransferService {
         sourcePath: sourceChangePath,
         targetPath: targetChangePath,
         type: 'directory',
+        // Include spec rename info so delta directories are renamed during copy
+        ...(isRename && { specRename: { oldName: specId, newName: targetName } }),
       });
 
       // Find and plan linked tasks for this change
@@ -710,16 +720,31 @@ export class TransferService {
     }
   }
 
-  private async copyDirectory(source: string, target: string): Promise<void> {
+  private async copyDirectory(
+    source: string,
+    target: string,
+    specRename?: { oldName: string; newName: string }
+  ): Promise<void> {
     await fs.mkdir(target, { recursive: true });
 
     const entries = await fs.readdir(source, { withFileTypes: true });
     for (const entry of entries) {
       const sourcePath = path.join(source, entry.name);
-      const targetPath = path.join(target, entry.name);
+      let targetEntryName = entry.name;
+
+      // Handle spec delta directory renaming inside cascaded changes
+      // Directory structure: changes/{changeId}/specs/{specId}/spec.md
+      if (specRename && entry.isDirectory() && entry.name === specRename.oldName) {
+        const parentDir = path.basename(path.dirname(sourcePath));
+        if (parentDir === 'specs') {
+          targetEntryName = specRename.newName;
+        }
+      }
+
+      const targetPath = path.join(target, targetEntryName);
 
       if (entry.isDirectory()) {
-        await this.copyDirectory(sourcePath, targetPath);
+        await this.copyDirectory(sourcePath, targetPath, specRename);
       } else {
         await fs.copyFile(sourcePath, targetPath);
       }
