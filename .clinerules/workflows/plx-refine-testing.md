@@ -1,9 +1,6 @@
 # PLX: Refine Testing
 
 Create or update TESTING.md.
-# PLX: Refine Testing
-
-Create or update TESTING.md.
 <!-- PLX:START -->
 **Guardrails**
 - Reference @TESTING.md template structure.

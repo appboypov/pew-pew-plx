@@ -3,8 +3,6 @@ description: Orchestrate sub-agents to complete work collaboratively.
 ---
 
 $ARGUMENTS
-
-$ARGUMENTS
 <!-- PLX:START -->
 **Context**
 @ARCHITECTURE.md

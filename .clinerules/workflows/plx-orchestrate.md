@@ -1,9 +1,6 @@
 # PLX: Orchestrate
 
 Orchestrate sub-agents to complete work collaboratively.
-# PLX: Orchestrate
-
-Orchestrate sub-agents to complete work collaboratively.
 <!-- PLX:START -->
 **Context**
 @ARCHITECTURE.md

@@ -1,9 +1,6 @@
 # PLX: Implement
 
 Implement an approved PLX change and keep tasks in sync.
-# PLX: Implement
-
-Implement an approved PLX change and keep tasks in sync.
 <!-- PLX:START -->
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.

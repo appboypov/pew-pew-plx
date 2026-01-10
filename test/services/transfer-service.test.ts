@@ -2,12 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { createValidPlxWorkspace } from '../test-utils.js';
-import {
-  TransferService,
-  TransferPlan,
-  TransferResult,
-  TransferEntityType,
-} from '../../src/services/transfer-service.js';
+import { TransferService } from '../../src/services/transfer-service.js';
 
 describe('TransferService', () => {
   const projectRoot = process.cwd();

@@ -3,8 +3,6 @@ description: Mark a task as done.
 ---
 
 <arguments>$ARGUMENTS</arguments>
-
-<arguments>$ARGUMENTS</arguments>
 <!-- PLX:START -->
 **Steps**
 1. Parse `$ARGUMENTS` to extract task-id.

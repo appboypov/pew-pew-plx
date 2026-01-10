@@ -11,7 +11,6 @@ import {
   discoverWorkspaces,
   DiscoveredWorkspace,
 } from '../utils/workspace-discovery.js';
-import { getFilteredWorkspaces } from '../utils/workspace-filter.js';
 
 interface TransferOptions {
   id: string;
@@ -115,7 +114,7 @@ export class TransferCommand {
       // Create transfer service and configure workspaces
       const service = await TransferService.create();
       await service.setSourceWorkspace(sourcePath);
-      const { requiresInit } = await service.setTargetWorkspace(targetPath);
+      await service.setTargetWorkspace(targetPath);
 
       // Build transfer plan
       if (!options.json) {

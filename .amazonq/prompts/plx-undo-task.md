@@ -3,8 +3,6 @@ description: Revert a task to to-do.
 ---
 
 <arguments>$ARGUMENTS</arguments>
-
-<arguments>$ARGUMENTS</arguments>
 <!-- PLX:START -->
 **Steps**
 1. Parse `$ARGUMENTS` to extract task-id.

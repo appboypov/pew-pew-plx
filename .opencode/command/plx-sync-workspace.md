@@ -4,8 +4,6 @@ argument-hint: --id <id> --parent-type change|task
 ---
 
 $ARGUMENTS
-
-$ARGUMENTS
 <!-- PLX:START -->
 **Context**
 @ARCHITECTURE.md

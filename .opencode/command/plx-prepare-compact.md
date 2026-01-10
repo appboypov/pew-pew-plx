@@ -4,8 +4,6 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS
-
-$ARGUMENTS
 <!-- PLX:START -->
 **Guardrails**
 - Save ALL modified files before creating PROGRESS.md.

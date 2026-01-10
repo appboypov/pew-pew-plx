@@ -1,9 +1,6 @@
 # PLX: Refine Review
 
 Create or update REVIEW.md.
-# PLX: Refine Review
-
-Create or update REVIEW.md.
 <!-- PLX:START -->
 **Guardrails**
 - Reference @REVIEW.md template structure.

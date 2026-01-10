@@ -1,9 +1,6 @@
 # PLX: Undo Task
 
 Revert a task to to-do.
-# PLX: Undo Task
-
-Revert a task to to-do.
 <!-- PLX:START -->
 **Steps**
 1. Parse `$ARGUMENTS` to extract task-id.

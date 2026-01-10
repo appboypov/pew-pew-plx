@@ -7,12 +7,6 @@ The user has requested the following change proposal. Use the PLX instructions t
 <UserRequest>
   $ARGUMENTS
 </UserRequest>
-
-The user has requested the following change proposal. Use the PLX instructions to create their change proposal.
-
-<UserRequest>
-  $ARGUMENTS
-</UserRequest>
 <!-- PLX:START -->
 **Context**
 @ARCHITECTURE.md

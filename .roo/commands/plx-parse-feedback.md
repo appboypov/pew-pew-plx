@@ -1,9 +1,6 @@
 # PLX: Parse Feedback
 
 Parse feedback markers and generate review tasks.
-# PLX: Parse Feedback
-
-Parse feedback markers and generate review tasks.
 <!-- PLX:START -->
 **Guardrails**
 - Scan only tracked files.

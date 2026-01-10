@@ -3,8 +3,6 @@ description: Review implementations against specs, changes, or tasks.
 ---
 
 $ARGUMENTS
-
-$ARGUMENTS
 <!-- PLX:START -->
 **Guardrails**
 - Use CLI to retrieve review context.

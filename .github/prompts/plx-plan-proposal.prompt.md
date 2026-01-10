@@ -3,8 +3,6 @@ description: Scaffold a new PLX change and validate strictly. Consumes request.m
 ---
 
 $ARGUMENTS
-
-$ARGUMENTS
 <!-- PLX:START -->
 **Context**
 @ARCHITECTURE.md

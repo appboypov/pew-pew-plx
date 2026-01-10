@@ -1,9 +1,6 @@
 # PLX: Complete Task
 
 Mark a task as done.
-# PLX: Complete Task
-
-Mark a task as done.
 <!-- PLX:START -->
 **Steps**
 1. Parse `$ARGUMENTS` to extract task-id.

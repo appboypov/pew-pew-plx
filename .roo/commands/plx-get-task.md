@@ -1,9 +1,6 @@
 # PLX: Get Task
 
 Select and display the next prioritized task to work on.
-# PLX: Get Task
-
-Select and display the next prioritized task to work on.
 <!-- PLX:START -->
 **Guardrails**
 - Complete tasks sequentially, marking each done before starting the next.

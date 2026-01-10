@@ -3,8 +3,6 @@ description: Preserve session progress in PROGRESS.md for context continuity.
 ---
 
 $ARGUMENTS
-
-$ARGUMENTS
 <!-- PLX:START -->
 **Guardrails**
 - Save ALL modified files before creating PROGRESS.md.

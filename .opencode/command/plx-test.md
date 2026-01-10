@@ -4,8 +4,6 @@ argument-hint: --id <id> --parent-type change|task|spec
 ---
 
 $ARGUMENTS
-
-$ARGUMENTS
 <!-- PLX:START -->
 **Guardrails**
 - Read @TESTING.md for test runner, coverage threshold, and test patterns.

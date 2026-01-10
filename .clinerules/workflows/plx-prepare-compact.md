@@ -1,9 +1,6 @@
 # PLX: Prepare Compact
 
 Preserve session progress in PROGRESS.md for context continuity.
-# PLX: Prepare Compact
-
-Preserve session progress in PROGRESS.md for context continuity.
 <!-- PLX:START -->
 **Guardrails**
 - Save ALL modified files before creating PROGRESS.md.

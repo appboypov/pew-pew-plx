@@ -4,8 +4,6 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS
-
-$ARGUMENTS
 <!-- PLX:START -->
 **Guardrails**
 - Produce a spec-ready reference: senior architects and developers must be able to create detailed technical specs without opening the codebase.

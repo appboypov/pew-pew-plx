@@ -111,26 +111,36 @@ export abstract class SlashCommandConfigurator {
     const startIndex = content.indexOf(PLX_MARKERS.start);
     const endIndex = content.indexOf(PLX_MARKERS.end);
 
-    if (startIndex === -1 || endIndex === -1) {
-      throw new Error(`Missing PLX markers in ${filePath}`);
+    if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+      throw new Error(`Missing or malformed PLX markers in ${filePath}`);
     }
 
-    // Parse existing content structure
     const beforeMarker = content.slice(0, startIndex);
     const afterMarker = content.slice(endIndex + PLX_MARKERS.end.length);
 
-    // Detect and strip existing YAML frontmatter from beforeMarker
-    let customPreContent = beforeMarker;
+    // Get the new frontmatter template
+    const newFrontmatter = this.getFrontmatter(id);
+    const newFrontmatterTrimmed = (newFrontmatter || '').trim();
+
+    // Strip YAML frontmatter from existing content
+    let existingPreContent = beforeMarker;
     const frontmatterMatch = beforeMarker.match(/^---\n[\s\S]*?\n---\n?/);
     if (frontmatterMatch) {
-      customPreContent = beforeMarker.slice(frontmatterMatch[0].length);
+      existingPreContent = beforeMarker.slice(frontmatterMatch[0].length);
     }
 
-    // Build new content: new frontmatter + preserved pre-content + new body + preserved post-content
-    const newFrontmatter = this.getFrontmatter(id);
+    // Check if existing pre-content is already part of the new frontmatter template
+    // This prevents duplication when frontmatter includes non-YAML content
+    const existingPreContentTrimmed = existingPreContent.trim();
+    const isPreContentManaged = existingPreContentTrimmed && newFrontmatterTrimmed.includes(existingPreContentTrimmed);
+
+    // Build new content
     const sections: string[] = [];
-    if (newFrontmatter) sections.push(newFrontmatter.trim());
-    if (customPreContent.trim()) sections.push(customPreContent.trimEnd());
+    if (newFrontmatter) sections.push(newFrontmatterTrimmed);
+    // Only preserve pre-content if it's truly custom (not part of the frontmatter template)
+    if (existingPreContentTrimmed && !isPreContentManaged) {
+      sections.push(existingPreContentTrimmed);
+    }
     sections.push(`${PLX_MARKERS.start}\n${body}\n${PLX_MARKERS.end}`);
 
     let result = sections.join('\n');

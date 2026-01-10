@@ -410,8 +410,26 @@ export class TransferService {
       }
     }
 
+    // Check for conflicts in cascaded files and directories to move
+    // Skip the primary entity (already checked above) and empty sourcePaths (created, not moved)
+    for (const item of plan.filesToMove) {
+      if (!item.sourcePath) continue;
+      if (item.targetPath === targetEntityPath) continue;
+
+      try {
+        await fs.access(item.targetPath);
+        const entityId = path.basename(item.targetPath);
+        plan.conflicts.push({
+          type: 'entity',
+          id: entityId,
+          existingPath: item.targetPath,
+        });
+      } catch {
+        // Target doesn't exist, no conflict
+      }
+    }
+
     // Check for task filename conflicts
-    const targetTasksDir = getTasksDir(this.targetWorkspace.path);
     for (const taskRenumber of plan.tasksToRenumber) {
       try {
         await fs.access(taskRenumber.targetPath);
@@ -532,7 +550,8 @@ export class TransferService {
       case 'review':
         return path.join(workspacePath, 'reviews', entityId);
       case 'request':
-        return path.join(workspacePath, 'requests', `${entityId}.md`);
+        // Requests are stored inside their parent change directory
+        return path.join(workspacePath, 'changes', entityId, 'request.md');
       case 'task':
         return null; // Tasks are handled via renumbering
       default:
@@ -601,7 +620,6 @@ export class TransferService {
     taskId: string,
     targetName: string
   ): Promise<void> {
-    const tasksDir = getTasksDir(this.sourceWorkspace!.path);
     const taskFilename = taskId.endsWith('.md') ? taskId : `${taskId}.md`;
 
     // Find the task to get its details

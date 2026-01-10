@@ -3,8 +3,6 @@ description: Select and display the next prioritized task to work on.
 ---
 
 <arguments>$ARGUMENTS</arguments>
-
-<arguments>$ARGUMENTS</arguments>
 <!-- PLX:START -->
 **Guardrails**
 - Complete tasks sequentially, marking each done before starting the next.
