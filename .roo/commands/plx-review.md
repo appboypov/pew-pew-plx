@@ -1,6 +1,9 @@
 # PLX: Review
 
 Review implementations against specs, changes, or tasks.
+# PLX: Review
+
+Review implementations against specs, changes, or tasks.
 <!-- PLX:START -->
 **Guardrails**
 - Use CLI to retrieve review context.

@@ -5,6 +5,10 @@ The user has requested to implement the following change proposal. Find the chan
 <UserRequest>
   $ARGUMENTS
 </UserRequest>
+The user has requested to implement the following change proposal. Find the change proposal and follow the instructions below. If you're not sure or if ambiguous, ask for clarification from the user.
+<UserRequest>
+  $ARGUMENTS
+</UserRequest>
 <!-- PLX:START -->
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.

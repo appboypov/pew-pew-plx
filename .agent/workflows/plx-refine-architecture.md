@@ -1,5 +1,5 @@
 ---
-description: Create or update ARCHITECTURE.md.
+description: Create or update ARCHITECTURE.md with spec-ready component inventories.
 ---
 <!-- PLX:START -->
 **Guardrails**

@@ -3,6 +3,8 @@ description: Create or update TESTING.md.
 ---
 
 <arguments>$ARGUMENTS</arguments>
+
+<arguments>$ARGUMENTS</arguments>
 <!-- PLX:START -->
 **Guardrails**
 - Reference @TESTING.md template structure.

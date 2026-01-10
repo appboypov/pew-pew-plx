@@ -1,7 +1,9 @@
 ---
 description: Run tests based on scope (change, task, or spec) using TESTING.md configuration.
-argument-hint: --change-id, --task-id, or --spec-id
+argument-hint: --id <id> --parent-type change|task|spec
 ---
+
+$ARGUMENTS
 
 $ARGUMENTS
 <!-- PLX:START -->

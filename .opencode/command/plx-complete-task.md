@@ -4,6 +4,8 @@ argument-hint: task-id
 ---
 
 $ARGUMENTS
+
+$ARGUMENTS
 <!-- PLX:START -->
 **Steps**
 1. Parse `$ARGUMENTS` to extract task-id.

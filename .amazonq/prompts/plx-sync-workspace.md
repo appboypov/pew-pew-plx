@@ -3,6 +3,8 @@ description: Scan workspace state and suggest maintenance actions.
 ---
 
 <arguments>$ARGUMENTS</arguments>
+
+<arguments>$ARGUMENTS</arguments>
 <!-- PLX:START -->
 **Context**
 @ARCHITECTURE.md

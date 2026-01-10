@@ -3,6 +3,8 @@ description: Prepare release by updating changelog, readme, and architecture doc
 ---
 
 $ARGUMENTS
+
+$ARGUMENTS
 <!-- PLX:START -->
 **Guardrails**
 - Read @RELEASE.md Config section for release configuration.

@@ -3,6 +3,8 @@ description: Create or update REVIEW.md.
 ---
 
 <arguments>$ARGUMENTS</arguments>
+
+<arguments>$ARGUMENTS</arguments>
 <!-- PLX:START -->
 **Guardrails**
 - Reference @REVIEW.md template structure.

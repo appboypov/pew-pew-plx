@@ -1,6 +1,9 @@
 # PLX: Plan Proposal
 
 Scaffold a new PLX change and validate strictly. Consumes request.md when present.
+# PLX: Plan Proposal
+
+Scaffold a new PLX change and validate strictly. Consumes request.md when present.
 <!-- PLX:START -->
 **Context**
 @ARCHITECTURE.md

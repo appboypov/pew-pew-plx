@@ -1,6 +1,8 @@
 ---
-description: Create or update ARCHITECTURE.md.
+description: Create or update ARCHITECTURE.md with spec-ready component inventories.
 ---
+
+$ARGUMENTS
 
 $ARGUMENTS
 <!-- PLX:START -->

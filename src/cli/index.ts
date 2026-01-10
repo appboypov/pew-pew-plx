@@ -23,6 +23,7 @@ import { ReviewCommand } from '../commands/review.js';
 import { PasteCommand } from '../commands/paste.js';
 import { CreateCommand } from '../commands/create.js';
 import { MigrateCommand } from '../commands/migrate.js';
+import { TransferCommand } from '../commands/transfer.js';
 import { emitDeprecationWarning } from '../utils/deprecation.js';
 
 // Import command name detection utility
@@ -1025,6 +1026,120 @@ migrateCmd
     try {
       const migrateCommand = new MigrateCommand();
       await migrateCommand.tasks(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Transfer command with subcommands
+const transferCmd = program
+  .command('transfer')
+  .description('Transfer entities between workspaces');
+
+transferCmd
+  .command('change')
+  .description('Transfer a change to another workspace')
+  .requiredOption('--id <id>', 'Change ID to transfer')
+  .option('--source <path>', 'Source workspace path (defaults to current directory)')
+  .option('--target <path>', 'Target workspace path')
+  .option('--target-name <name>', 'Rename entity in target workspace')
+  .option('--dry-run', 'Preview transfer without executing')
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .option('--json', 'Output as JSON')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (options: { id: string; source?: string; target?: string; targetName?: string; dryRun?: boolean; yes?: boolean; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
+    try {
+      const transferCommand = new TransferCommand();
+      await transferCommand.transferChange(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+transferCmd
+  .command('spec')
+  .description('Transfer a spec and related changes to another workspace')
+  .requiredOption('--id <id>', 'Spec ID to transfer')
+  .option('--source <path>', 'Source workspace path (defaults to current directory)')
+  .option('--target <path>', 'Target workspace path')
+  .option('--target-name <name>', 'Rename entity in target workspace')
+  .option('--dry-run', 'Preview transfer without executing')
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .option('--json', 'Output as JSON')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (options: { id: string; source?: string; target?: string; targetName?: string; dryRun?: boolean; yes?: boolean; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
+    try {
+      const transferCommand = new TransferCommand();
+      await transferCommand.transferSpec(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+transferCmd
+  .command('task')
+  .description('Transfer a task to another workspace')
+  .requiredOption('--id <id>', 'Task ID to transfer')
+  .option('--source <path>', 'Source workspace path (defaults to current directory)')
+  .option('--target <path>', 'Target workspace path')
+  .option('--target-name <name>', 'Rename task in target workspace')
+  .option('--dry-run', 'Preview transfer without executing')
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .option('--json', 'Output as JSON')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (options: { id: string; source?: string; target?: string; targetName?: string; dryRun?: boolean; yes?: boolean; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
+    try {
+      const transferCommand = new TransferCommand();
+      await transferCommand.transferTask(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+transferCmd
+  .command('review')
+  .description('Transfer a review and linked tasks to another workspace')
+  .requiredOption('--id <id>', 'Review ID to transfer')
+  .option('--source <path>', 'Source workspace path (defaults to current directory)')
+  .option('--target <path>', 'Target workspace path')
+  .option('--target-name <name>', 'Rename entity in target workspace')
+  .option('--dry-run', 'Preview transfer without executing')
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .option('--json', 'Output as JSON')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (options: { id: string; source?: string; target?: string; targetName?: string; dryRun?: boolean; yes?: boolean; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
+    try {
+      const transferCommand = new TransferCommand();
+      await transferCommand.transferReview(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+transferCmd
+  .command('request')
+  .description('Transfer a request to another workspace')
+  .requiredOption('--id <id>', 'Request ID to transfer')
+  .option('--source <path>', 'Source workspace path (defaults to current directory)')
+  .option('--target <path>', 'Target workspace path')
+  .option('--dry-run', 'Preview transfer without executing')
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .option('--json', 'Output as JSON')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (options: { id: string; source?: string; target?: string; dryRun?: boolean; yes?: boolean; json?: boolean; noInteractive?: boolean; interactive?: boolean }) => {
+    try {
+      const transferCommand = new TransferCommand();
+      await transferCommand.transferRequest(options);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);

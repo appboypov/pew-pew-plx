@@ -2,7 +2,7 @@
 name: /plx-refine-architecture
 id: plx-refine-architecture
 category: Pew Pew Plx
-description: Create or update ARCHITECTURE.md.
+description: Create or update ARCHITECTURE.md with spec-ready component inventories.
 ---
 <!-- PLX:START -->
 **Guardrails**

@@ -134,6 +134,7 @@ Each command class encapsulates its own logic:
 - `ParseFeedbackCommand` - Parse feedback markers from code and generate review tasks
 - `PasteCommand` - Paste clipboard content as entities (tasks, changes, specs, requests)
 - `MigrateCommand` - Migrate legacy task storage to centralized format
+- `TransferCommand` - Transfer entities between workspaces with cascade logic
 
 ### Registry Pattern
 
@@ -235,6 +236,17 @@ Domain services encapsulate business logic for reuse across commands:
   - `parseTaskId(taskId)` - Parse and validate task ID format
   - `normalizeTaskId(taskId)` - Normalize task ID format
   - `isValidTaskId(taskId)` - Validate task ID format
+
+- **TransferService** (`src/services/transfer-service.ts`) - Transfer entities between workspaces
+  - `buildTransferPlan(entityType, entityId, targetName?)` - Build transfer plan with cascade logic
+  - `executeTransfer(plan, dryRun?)` - Execute transfer (copy-then-delete)
+  - `findLinkedTasks(parentId, parentType)` - Find tasks linked to a parent entity
+  - `findRelatedChanges(specId)` - Find changes with delta specs for a spec
+  - `calculateTaskRenumbering(tasks, newParentId?)` - Calculate new sequence numbers
+  - `detectConflicts(plan)` - Detect ID conflicts in target workspace
+  - `extractSourceToolConfig()` - Extract configured tools from source workspace
+  - `initializeTargetWorkspace(toolIds)` - Initialize target workspace with tools
+  - Supports cascade: change→tasks, spec→changes→tasks, review→tasks
 
 ### Template System
 

@@ -1,6 +1,9 @@
 # PLX: Prepare Release
 
 Prepare release by updating changelog, readme, and architecture documentation.
+# PLX: Prepare Release
+
+Prepare release by updating changelog, readme, and architecture documentation.
 <!-- PLX:START -->
 **Guardrails**
 - Read @RELEASE.md Config section for release configuration.

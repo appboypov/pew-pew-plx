@@ -1,6 +1,6 @@
 ---
 description: Scan workspace state and suggest maintenance actions.
-argument-hint: (optional change-id or task-id)
+argument-hint: --id <id> --parent-type change|task
 ---
 <!-- PLX:START -->
 **Context**

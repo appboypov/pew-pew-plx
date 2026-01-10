@@ -3,6 +3,8 @@ description: Run tests based on scope (change, task, or spec) using TESTING.md c
 ---
 
 <arguments>$ARGUMENTS</arguments>
+
+<arguments>$ARGUMENTS</arguments>
 <!-- PLX:START -->
 **Guardrails**
 - Read @TESTING.md for test runner, coverage threshold, and test patterns.

@@ -1,5 +1,5 @@
 ---
-description: Scaffold a new Pew Pew Plx change and validate strictly. Consumes request.md when present.
+description: Scaffold a new change and validate strictly. Consumes request.md when present.
 argument-hint: feature description or request
 ---
 <!-- PLX:START -->

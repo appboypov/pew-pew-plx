@@ -3,6 +3,8 @@ description: Clarify user intent through iterative yes/no questions before propo
 ---
 
 <arguments>$ARGUMENTS</arguments>
+
+<arguments>$ARGUMENTS</arguments>
 <!-- PLX:START -->
 **Context**
 @ARCHITECTURE.md

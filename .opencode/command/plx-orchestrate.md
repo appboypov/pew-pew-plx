@@ -4,6 +4,8 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS
+
+$ARGUMENTS
 <!-- PLX:START -->
 **Context**
 @ARCHITECTURE.md

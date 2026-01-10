@@ -7,6 +7,12 @@ The user wants to archive the following deployed change. Use the PLX instruction
 <ChangeId>
   $ARGUMENTS
 </ChangeId>
+
+The user wants to archive the following deployed change. Use the PLX instructions to archive the change and update specs.
+
+<ChangeId>
+  $ARGUMENTS
+</ChangeId>
 <!-- PLX:START -->
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.

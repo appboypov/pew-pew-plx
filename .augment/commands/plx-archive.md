@@ -1,5 +1,5 @@
 ---
-description: Archive a deployed Pew Pew Plx change and update specs.
+description: Archive a deployed change and update specs.
 argument-hint: change-id
 ---
 <!-- PLX:START -->

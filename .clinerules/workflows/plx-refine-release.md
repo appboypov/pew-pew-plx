@@ -1,6 +1,9 @@
 # PLX: Refine Release
 
 Create or update RELEASE.md.
+# PLX: Refine Release
+
+Create or update RELEASE.md.
 <!-- PLX:START -->
 **Guardrails**
 - Reference @RELEASE.md template structure.

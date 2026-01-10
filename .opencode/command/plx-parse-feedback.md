@@ -4,6 +4,8 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS
+
+$ARGUMENTS
 <!-- PLX:START -->
 **Guardrails**
 - Scan only tracked files.

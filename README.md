@@ -132,6 +132,18 @@ All PLX commands work from any subdirectory within a project. The CLI automatica
 
 In monorepos, items display with project prefixes (e.g., `project-a/add-feature`). Use `--workspace` to filter operations.
 
+### Transfer (Cross-Workspace)
+
+| Command | Description |
+|---------|-------------|
+| `plx transfer change --id <id> --target <path>` | Move change and linked tasks |
+| `plx transfer spec --id <id> --target <path>` | Move spec and related changes |
+| `plx transfer task --id <id> --target <path>` | Move single task |
+| `plx transfer review --id <id> --target <path>` | Move review and linked tasks |
+| `plx transfer request --id <id> --target <path>` | Move request to target change |
+
+Transfer options: `--source <path>`, `--target-name <name>`, `--dry-run`, `--yes`, `--json`.
+
 ## Task Structure
 
 Tasks are stored centrally in `workspace/tasks/` as numbered files:

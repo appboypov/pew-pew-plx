@@ -927,4 +927,189 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
       },
     ],
   },
+  {
+    name: 'transfer',
+    description: 'Transfer entities between workspaces',
+    flags: [],
+    subcommands: [
+      {
+        name: 'change',
+        description: 'Transfer a change to another workspace',
+        flags: [
+          {
+            name: 'id',
+            description: 'Change ID to transfer',
+            takesValue: true,
+            valueType: 'change-id',
+          },
+          {
+            name: 'source',
+            description: 'Source workspace path',
+            takesValue: true,
+          },
+          {
+            name: 'target',
+            description: 'Target workspace path',
+            takesValue: true,
+          },
+          {
+            name: 'target-name',
+            description: 'Rename entity in target workspace',
+            takesValue: true,
+          },
+          {
+            name: 'dry-run',
+            description: 'Preview transfer without executing',
+          },
+          {
+            name: 'yes',
+            short: 'y',
+            description: 'Skip confirmation prompts',
+          },
+          COMMON_FLAGS.json,
+          COMMON_FLAGS.noInteractive,
+        ],
+      },
+      {
+        name: 'spec',
+        description: 'Transfer a spec and related changes to another workspace',
+        flags: [
+          {
+            name: 'id',
+            description: 'Spec ID to transfer',
+            takesValue: true,
+            valueType: 'spec-id',
+          },
+          {
+            name: 'source',
+            description: 'Source workspace path',
+            takesValue: true,
+          },
+          {
+            name: 'target',
+            description: 'Target workspace path',
+            takesValue: true,
+          },
+          {
+            name: 'target-name',
+            description: 'Rename entity in target workspace',
+            takesValue: true,
+          },
+          {
+            name: 'dry-run',
+            description: 'Preview transfer without executing',
+          },
+          {
+            name: 'yes',
+            short: 'y',
+            description: 'Skip confirmation prompts',
+          },
+          COMMON_FLAGS.json,
+          COMMON_FLAGS.noInteractive,
+        ],
+      },
+      {
+        name: 'task',
+        description: 'Transfer a task to another workspace',
+        flags: [
+          {
+            name: 'id',
+            description: 'Task ID to transfer',
+            takesValue: true,
+          },
+          {
+            name: 'source',
+            description: 'Source workspace path',
+            takesValue: true,
+          },
+          {
+            name: 'target',
+            description: 'Target workspace path',
+            takesValue: true,
+          },
+          {
+            name: 'dry-run',
+            description: 'Preview transfer without executing',
+          },
+          {
+            name: 'yes',
+            short: 'y',
+            description: 'Skip confirmation prompts',
+          },
+          COMMON_FLAGS.json,
+          COMMON_FLAGS.noInteractive,
+        ],
+      },
+      {
+        name: 'review',
+        description: 'Transfer a review and linked tasks to another workspace',
+        flags: [
+          {
+            name: 'id',
+            description: 'Review ID to transfer',
+            takesValue: true,
+            valueType: 'review-id',
+          },
+          {
+            name: 'source',
+            description: 'Source workspace path',
+            takesValue: true,
+          },
+          {
+            name: 'target',
+            description: 'Target workspace path',
+            takesValue: true,
+          },
+          {
+            name: 'target-name',
+            description: 'Rename entity in target workspace',
+            takesValue: true,
+          },
+          {
+            name: 'dry-run',
+            description: 'Preview transfer without executing',
+          },
+          {
+            name: 'yes',
+            short: 'y',
+            description: 'Skip confirmation prompts',
+          },
+          COMMON_FLAGS.json,
+          COMMON_FLAGS.noInteractive,
+        ],
+      },
+      {
+        name: 'request',
+        description: 'Transfer a request to another workspace',
+        flags: [
+          {
+            name: 'id',
+            description: 'Request ID to transfer',
+            takesValue: true,
+          },
+          {
+            name: 'source',
+            description: 'Source workspace path',
+            takesValue: true,
+          },
+          {
+            name: 'target',
+            description: 'Target workspace path',
+            takesValue: true,
+          },
+          {
+            name: 'dry-run',
+            description: 'Preview transfer without executing',
+          },
+          {
+            name: 'yes',
+            short: 'y',
+            description: 'Skip confirmation prompts',
+          },
+          COMMON_FLAGS.json,
+          COMMON_FLAGS.noInteractive,
+        ],
+      },
+    ],
+  },
 ];

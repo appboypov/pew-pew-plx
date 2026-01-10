@@ -2,7 +2,7 @@
 name: /plx-plan-proposal
 id: plx-plan-proposal
 category: Pew Pew Plx
-description: Scaffold a new Pew Pew Plx change and validate strictly. Consumes request.md when present.
+description: Scaffold a new change and validate strictly. Consumes request.md when present.
 ---
 <!-- PLX:START -->
 **Context**

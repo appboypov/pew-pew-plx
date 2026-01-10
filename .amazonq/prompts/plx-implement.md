@@ -7,6 +7,12 @@ The user wants to implement the following change. Use the PLX instructions to im
 <ChangeId>
   $ARGUMENTS
 </ChangeId>
+
+The user wants to implement the following change. Use the PLX instructions to implement the approved change.
+
+<ChangeId>
+  $ARGUMENTS
+</ChangeId>
 <!-- PLX:START -->
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.

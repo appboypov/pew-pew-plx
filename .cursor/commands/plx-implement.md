@@ -2,7 +2,7 @@
 name: /plx-implement
 id: plx-implement
 category: Pew Pew Plx
-description: Implement an approved Pew Pew Plx change and keep tasks in sync.
+description: Implement an approved change and keep tasks in sync.
 ---
 <!-- PLX:START -->
 **Guardrails**

@@ -4,6 +4,8 @@ argument-hint: (optional context)
 ---
 
 $ARGUMENTS
+
+$ARGUMENTS
 <!-- PLX:START -->
 **Guardrails**
 - Use CLI to retrieve review context.

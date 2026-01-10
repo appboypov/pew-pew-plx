@@ -3,6 +3,8 @@ description: Parse feedback markers and generate review tasks.
 ---
 
 <arguments>$ARGUMENTS</arguments>
+
+<arguments>$ARGUMENTS</arguments>
 <!-- PLX:START -->
 **Guardrails**
 - Scan only tracked files.

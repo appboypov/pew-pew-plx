@@ -1,6 +1,9 @@
 # PLX: Sync Workspace
 
 Scan workspace state and suggest maintenance actions.
+# PLX: Sync Workspace
+
+Scan workspace state and suggest maintenance actions.
 <!-- PLX:START -->
 **Context**
 @ARCHITECTURE.md

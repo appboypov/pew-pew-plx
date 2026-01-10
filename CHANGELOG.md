@@ -1,5 +1,21 @@
 # Pew Pew Plx Changelog
 
+## 0.17.0 - 2026-01-10
+
+### Added
+
+- **Transfer command for multi-workspace workflows**: New `plx transfer` command moves PLX entities between workspaces in monorepo setups
+  - Subcommands: `change`, `spec`, `task`, `review`, `request`
+  - Cascade logic: change→tasks, spec→changes→tasks, review→tasks
+  - Task renumbering continues from target's highest sequence number
+  - Workspace auto-initialization using source tool configuration
+  - Conflict detection with `--target-name` resolution
+  - `--dry-run` for transfer preview without changes
+  - Interactive workspace selection when `--target` omitted
+  - JSON output for machine-readable results
+
+---
+
 ## 0.16.1 - 2026-01-09
 
 ### Fixed

@@ -1,6 +1,9 @@
 # PLX: Archive
 
 Archive a deployed PLX change and update specs.
+# PLX: Archive
+
+Archive a deployed PLX change and update specs.
 <!-- PLX:START -->
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.

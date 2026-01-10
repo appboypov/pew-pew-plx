@@ -1,6 +1,9 @@
 # PLX: Plan Request
 
 Clarify user intent through iterative yes/no questions before proposal creation.
+# PLX: Plan Request
+
+Clarify user intent through iterative yes/no questions before proposal creation.
 <!-- PLX:START -->
 **Context**
 @ARCHITECTURE.md

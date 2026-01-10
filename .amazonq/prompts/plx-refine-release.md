@@ -3,6 +3,8 @@ description: Create or update RELEASE.md.
 ---
 
 <arguments>$ARGUMENTS</arguments>
+
+<arguments>$ARGUMENTS</arguments>
 <!-- PLX:START -->
 **Guardrails**
 - Reference @RELEASE.md template structure.

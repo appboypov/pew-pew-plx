@@ -163,3 +163,8 @@ Merge preserves upstream SHAs, resulting in "X ahead + 0 behind".
 ## PR Workflow
 
 PRs from feature branches target `origin/main` (this fork), not upstream.
+
+<Memory>
+@PROGRESS.md
+@MEMORY.md
+</Memory>
