@@ -183,6 +183,8 @@ describe('complete change command', () => {
   const plxBin = path.join(projectRoot, 'bin', 'plx.js');
 
   beforeEach(async () => {
+    // Clean up any leftover files from previous test runs
+    await fs.rm(testDir, { recursive: true, force: true });
     await createValidPlxWorkspace(testDir);
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(tasksDir, { recursive: true });
