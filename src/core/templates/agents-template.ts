@@ -45,7 +45,7 @@ Skip proposal for:
 - \`plx/plan-proposal\` - Scaffold \`proposal.md\`, task files in \`workspace/tasks/\`, \`design.md\`, and spec deltas. Consumes request.md when present.
 
 **Workflow**
-1. Review \`ARCHITECTURE.md\`, \`plx get changes\`, and \`plx get specs\` to understand current context.
+1. Review \`workspace/ARCHITECTURE.md\`, \`plx get changes\`, and \`plx get specs\` to understand current context.
 2. If requirements are ambiguous, run \`plx/plan-request\` to clarify intent first.
 3. Choose a unique verb-led \`change-id\` and scaffold \`proposal.md\`, task files in \`workspace/tasks/\`, optional \`design.md\`, and spec deltas under \`workspace/changes/<id>/\`.
 4. Draft spec deltas using \`## ADDED|MODIFIED|REMOVED Requirements\` with at least one \`#### Scenario:\` per requirement.
@@ -73,7 +73,7 @@ After deployment, create separate PR to:
 **Context Checklist:**
 - [ ] Read relevant specs in \`specs/[capability]/spec.md\`
 - [ ] Check pending changes in \`changes/\` for conflicts
-- [ ] Read \`ARCHITECTURE.md\` for project context and conventions
+- [ ] Read \`workspace/ARCHITECTURE.md\` for project context and conventions
 - [ ] Run \`plx get changes\` to see active changes
 - [ ] Run \`plx get specs\` to see existing capabilities
 
@@ -214,10 +214,10 @@ plx archive review --id <review-id>            # Archive completed review
 
 \`\`\`
 project-root/
-├── ARCHITECTURE.md             # Project context and conventions
 ├── AGENTS.md                   # Root stub pointing to workspace/AGENTS.md
 └── workspace/
     ├── AGENTS.md               # AI assistant instructions
+    ├── ARCHITECTURE.md         # Project context and conventions
     ├── specs/                  # Current truth - what IS built
     │   └── [capability]/       # Single focused capability
     │       ├── spec.md         # Requirements and scenarios
@@ -592,7 +592,7 @@ Only add complexity with:
 4. Ensure scenarios properly formatted
 
 ### Missing Context
-1. Read ARCHITECTURE.md first
+1. Read workspace/ARCHITECTURE.md first
 2. Check related specs
 3. Review recent archives
 4. Request clarification (use your question tool if available)

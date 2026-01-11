@@ -207,24 +207,24 @@ When you run `plx init`, these commands are installed for supported AI tools:
 
 - `/plx/plan-request` - Clarify intent via iterative yes/no questions
 - `/plx/plan-proposal` - Scaffold change proposal (auto-consumes request.md)
-- `/plx/plan-implementation` - Generate PROGRESS.md for multi-agent task handoff
+- `/plx/plan-implementation` - Generate workspace/PROGRESS.md for multi-agent task handoff
 - `/plx/get-task` - Get next prioritized task
 - `/plx/copy-next-task` - Copy next task or feedback block to clipboard
-- `/plx/copy-review-request` - Copy review request with REVIEW.md guidelines to clipboard
-- `/plx/copy-test-request` - Copy test request with TESTING.md configuration to clipboard
+- `/plx/copy-review-request` - Copy review request with workspace/REVIEW.md guidelines to clipboard
+- `/plx/copy-test-request` - Copy test request with workspace/TESTING.md configuration to clipboard
 - `/plx/complete-task` - Mark task as done
 - `/plx/undo-task` - Revert task to to-do
 - `/plx/implement` - Implement current task with guided workflow
 - `/plx/orchestrate` - Coordinate sub-agents for multi-task work
-- `/plx/refine-architecture` - Create or update `ARCHITECTURE.md` with spec-ready component inventories
-- `/plx/refine-review` - Create or update `REVIEW.md` template
-- `/plx/refine-release` - Create or update `RELEASE.md` template
-- `/plx/refine-testing` - Create or update `TESTING.md` template
+- `/plx/refine-architecture` - Create or update `workspace/ARCHITECTURE.md` with spec-ready component inventories
+- `/plx/refine-review` - Create or update `workspace/REVIEW.md` template
+- `/plx/refine-release` - Create or update `workspace/RELEASE.md` template
+- `/plx/refine-testing` - Create or update `workspace/TESTING.md` template
 - `/plx/test` - Run tests based on scope (change, task, or spec)
 - `/plx/review` - Review implementations
 - `/plx/parse-feedback` - Parse feedback markers
 - `/plx/prepare-release` - Guided release preparation workflow
-- `/plx/prepare-compact` - Preserve session progress in PROGRESS.md
+- `/plx/prepare-compact` - Preserve session progress in workspace/PROGRESS.md
 - `/plx/sync-workspace` - Sync workspace state across changes
 
 ## Supported AI Tools
@@ -234,7 +234,7 @@ When you run `plx init`, these commands are installed for supported AI tools:
 
 | Tool | Command Format |
 |------|----------------|
-| Amazon Q Developer | `@plx-plan-proposal`, `@plx-implement`, `@plx-archive` |
+| Amazon Q Developer | `plx-plan-proposal`, `plx-implement`, `plx-archive` |
 | Antigravity | `/plx-plan-proposal`, `/plx-implement`, `/plx-archive` |
 | Auggie (Augment CLI) | `/plx-plan-proposal`, `/plx-implement`, `/plx-archive` |
 | Claude Code | `/plx:plan-proposal`, `/plx:implement`, `/plx:archive` |

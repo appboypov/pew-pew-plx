@@ -364,13 +364,17 @@ PLX creates/updates these files in a project:
 
 | File | Purpose |
 |------|---------|
-| `ARCHITECTURE.md` (root) | Project context and conventions (auto-generated during init) |
+| `workspace/ARCHITECTURE.md` | Project context and conventions (auto-generated during init) |
 | `workspace/AGENTS.md` | AI agent instructions |
+| `workspace/REVIEW.md` | Review guidelines and checklist template |
+| `workspace/RELEASE.md` | Release documentation template |
+| `workspace/TESTING.md` | Testing configuration and patterns template |
+| `workspace/PROGRESS.md` | Multi-agent task handoff progress tracking |
 | `AGENTS.md` (root) | Universal stub for AGENTS.md-compatible tools |
 | `.claude/commands/` | Claude Code slash commands |
 | Various tool configs | Tool-specific configuration files |
 
-The `plx init` command generates `ARCHITECTURE.md` at the project root with technology stack, folder structure, and architectural patterns.
+The `plx init` command generates template files in the `workspace/` directory with technology stack, folder structure, and architectural patterns.
 
 ### AI Tool Support
 
@@ -786,7 +790,7 @@ User runs: plx review create --parent-id <id> --parent-type change
     ↓
 ReviewCommand.execute()
     ↓
-Load REVIEW.md template (if exists)
+Load workspace/REVIEW.md template (if exists)
     ↓
 Load parent documents (proposal.md, design.md, spec.md)
     ↓
@@ -796,7 +800,7 @@ Display review context with next steps
 ```
 
 **Output includes:**
-- `REVIEW.md` template (if exists at project root)
+- `workspace/REVIEW.md` template (if exists)
 - Parent documents (proposal, design, or spec)
 - Next steps for adding feedback markers
 
@@ -901,24 +905,24 @@ Pew Pew Plx provides:
 7. **Slash Commands**: Commands in `.claude/commands/plx/`
    - `/plx/plan-request` - Clarify intent via iterative yes/no questions before proposal
    - `/plx/plan-proposal` - Scaffold change proposal (auto-consumes request.md)
-   - `/plx/plan-implementation` - Generate PROGRESS.md for multi-agent task handoff
+   - `/plx/plan-implementation` - Generate workspace/PROGRESS.md for multi-agent task handoff
    - `/plx/get-task` - Get next prioritized task and execute workflow
    - `/plx/copy-next-task` - Copy next task or feedback block to clipboard for external agent handoff
-   - `/plx/copy-review-request` - Copy review request with REVIEW.md guidelines to clipboard for external agent
-   - `/plx/copy-test-request` - Copy test request with TESTING.md configuration to clipboard for external agent
+   - `/plx/copy-review-request` - Copy review request with workspace/REVIEW.md guidelines to clipboard for external agent
+   - `/plx/copy-test-request` - Copy test request with workspace/TESTING.md configuration to clipboard for external agent
    - `/plx/complete-task` - Mark task as done
    - `/plx/undo-task` - Revert task to to-do
    - `/plx/implement` - Implement tasks with guided workflow (processes entire change)
    - `/plx/orchestrate` - Coordinate sub-agents for multi-task work
-   - `/plx/refine-architecture` - Create or update ARCHITECTURE.md with spec-ready component inventories
+   - `/plx/refine-architecture` - Create or update workspace/ARCHITECTURE.md with spec-ready component inventories
    - `/plx/review` - Review implementations against specs/changes/tasks
    - `/plx/parse-feedback` - Parse feedback markers and generate review tasks
-   - `/plx/refine-review` - Create or update REVIEW.md template
+   - `/plx/refine-review` - Create or update workspace/REVIEW.md template
    - `/plx/prepare-release` - Guided release preparation workflow
-   - `/plx/refine-release` - Create or update RELEASE.md template
-   - `/plx/refine-testing` - Create or update TESTING.md template
+   - `/plx/refine-release` - Create or update workspace/RELEASE.md template
+   - `/plx/refine-testing` - Create or update workspace/TESTING.md template
    - `/plx/test` - Run tests based on scope (change, task, or spec)
-   - `/plx/prepare-compact` - Preserve session progress in PROGRESS.md
+   - `/plx/prepare-compact` - Preserve session progress in workspace/PROGRESS.md
 8. **Extended Templates**: Architecture template generation
 9. **Get Command**: Extended with subcommands for all entities (`get task`, `get change`, `get spec`, `get review`, `get tasks`, `get changes`, `get specs`, `get reviews`) and content filtering (`--constraints`, `--acceptance-criteria`)
 10. **Automatic Task Completion**: Detects when in-progress task has all Implementation Checklist items checked and auto-advances to next task

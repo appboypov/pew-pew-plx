@@ -86,7 +86,7 @@ describe('InitCommand', () => {
 
       const workspacePath = path.join(testDir, 'workspace');
       expect(await fileExists(path.join(workspacePath, 'AGENTS.md'))).toBe(true);
-      expect(await fileExists(path.join(testDir, 'ARCHITECTURE.md'))).toBe(
+      expect(await fileExists(path.join(workspacePath, 'ARCHITECTURE.md'))).toBe(
         true
       );
 
@@ -97,7 +97,7 @@ describe('InitCommand', () => {
       expect(agentsContent).toContain('Pew Pew Plx Instructions');
 
       const architectureContent = await fs.readFile(
-        path.join(testDir, 'ARCHITECTURE.md'),
+        path.join(workspacePath, 'ARCHITECTURE.md'),
         'utf-8'
       );
       expect(architectureContent).toContain('Architecture');
@@ -113,7 +113,7 @@ describe('InitCommand', () => {
 
       const content = await fs.readFile(claudePath, 'utf-8');
       expect(content).toContain('<!-- PLX:START -->');
-      expect(content).toContain("@/workspace/AGENTS.md");
+      expect(content).toContain("/workspace/AGENTS.md");
       expect(content).toContain('plx update');
       expect(content).toContain('<!-- PLX:END -->');
     });
@@ -130,7 +130,7 @@ describe('InitCommand', () => {
 
       const updatedContent = await fs.readFile(claudePath, 'utf-8');
       expect(updatedContent).toContain('<!-- PLX:START -->');
-      expect(updatedContent).toContain("@/workspace/AGENTS.md");
+      expect(updatedContent).toContain("/workspace/AGENTS.md");
       expect(updatedContent).toContain('plx update');
       expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).toContain('Custom instructions here');
@@ -146,7 +146,7 @@ describe('InitCommand', () => {
 
       const content = await fs.readFile(clinePath, 'utf-8');
       expect(content).toContain('<!-- PLX:START -->');
-      expect(content).toContain("@/workspace/AGENTS.md");
+      expect(content).toContain("/workspace/AGENTS.md");
       expect(content).toContain('plx update');
       expect(content).toContain('<!-- PLX:END -->');
     });
@@ -163,7 +163,7 @@ describe('InitCommand', () => {
 
       const updatedContent = await fs.readFile(clinePath, 'utf-8');
       expect(updatedContent).toContain('<!-- PLX:START -->');
-      expect(updatedContent).toContain("@/workspace/AGENTS.md");
+      expect(updatedContent).toContain("/workspace/AGENTS.md");
       expect(updatedContent).toContain('plx update');
       expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).toContain('Custom Cline instructions here');
@@ -265,7 +265,7 @@ describe('InitCommand', () => {
 
       const content = await fs.readFile(rootAgentsPath, 'utf-8');
       expect(content).toContain('<!-- PLX:START -->');
-      expect(content).toContain("@/workspace/AGENTS.md");
+      expect(content).toContain("/workspace/AGENTS.md");
       expect(content).toContain('plx update');
       expect(content).toContain('<!-- PLX:END -->');
 
@@ -299,7 +299,7 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('name: Plan Proposal');
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Context**');
-      expect(proposalContent).toContain('@ARCHITECTURE.md');
+      expect(proposalContent).toContain('@workspace/ARCHITECTURE.md');
       expect(proposalContent).toContain('@workspace/AGENTS.md');
       expect(proposalContent).toContain('**Guardrails**');
 
@@ -333,12 +333,12 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(planProposal, 'utf-8');
       expect(proposalContent).toContain('**Context**');
-      expect(proposalContent).toContain('@ARCHITECTURE.md');
+      expect(proposalContent).toContain('@workspace/ARCHITECTURE.md');
       expect(proposalContent).toContain('@workspace/AGENTS.md');
 
       const requestContent = await fs.readFile(planRequest, 'utf-8');
       expect(requestContent).toContain('**Context**');
-      expect(requestContent).toContain('@ARCHITECTURE.md');
+      expect(requestContent).toContain('@workspace/ARCHITECTURE.md');
       expect(requestContent).toContain('@workspace/AGENTS.md');
     });
 
@@ -478,7 +478,7 @@ describe('InitCommand', () => {
 
       const updatedContent = await fs.readFile(iflowPath, 'utf-8');
       expect(updatedContent).toContain('<!-- PLX:START -->');
-      expect(updatedContent).toContain("@/workspace/AGENTS.md");
+      expect(updatedContent).toContain("/workspace/AGENTS.md");
       expect(updatedContent).toContain('plx update');
       expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).toContain('Custom instructions here');
@@ -553,7 +553,7 @@ describe('InitCommand', () => {
 
       const qwenConfigContent = await fs.readFile(qwenConfigPath, 'utf-8');
       expect(qwenConfigContent).toContain('<!-- PLX:START -->');
-      expect(qwenConfigContent).toContain("@/workspace/AGENTS.md");
+      expect(qwenConfigContent).toContain("/workspace/AGENTS.md");
       expect(qwenConfigContent).toContain('<!-- PLX:END -->');
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
@@ -571,7 +571,7 @@ describe('InitCommand', () => {
 
       const updatedContent = await fs.readFile(qwenPath, 'utf-8');
       expect(updatedContent).toContain('<!-- PLX:START -->');
-      expect(updatedContent).toContain("@/workspace/AGENTS.md");
+      expect(updatedContent).toContain("/workspace/AGENTS.md");
       expect(updatedContent).toContain('plx update');
       expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).toContain('Custom instructions here');
@@ -815,7 +815,7 @@ describe('InitCommand', () => {
       await testFileRecreationInExtendMode(
         testDir,
         initCommand,
-        'ARCHITECTURE.md',
+        'workspace/ARCHITECTURE.md',
         'Architecture'
       );
     });
@@ -1158,7 +1158,7 @@ describe('InitCommand', () => {
 
       const content = await fs.readFile(codeBuddyPath, 'utf-8');
       expect(content).toContain('<!-- PLX:START -->');
-      expect(content).toContain("@/workspace/AGENTS.md");
+      expect(content).toContain("/workspace/AGENTS.md");
       expect(content).toContain('plx update');
       expect(content).toContain('<!-- PLX:END -->');
     });
@@ -1175,7 +1175,7 @@ describe('InitCommand', () => {
 
       const updatedContent = await fs.readFile(codeBuddyPath, 'utf-8');
       expect(updatedContent).toContain('<!-- PLX:START -->');
-      expect(updatedContent).toContain("@/workspace/AGENTS.md");
+      expect(updatedContent).toContain("/workspace/AGENTS.md");
       expect(updatedContent).toContain('plx update');
       expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).toContain('Custom instructions here');
@@ -1389,7 +1389,7 @@ describe('InitCommand', () => {
 
       const content = await fs.readFile(costrictPath, 'utf-8');
       expect(content).toContain('<!-- PLX:START -->');
-      expect(content).toContain("@/workspace/AGENTS.md");
+      expect(content).toContain("/workspace/AGENTS.md");
       expect(content).toContain('plx update');
       expect(content).toContain('<!-- PLX:END -->');
     });
@@ -1404,7 +1404,7 @@ describe('InitCommand', () => {
 
       const content = await fs.readFile(qoderPath, 'utf-8');
       expect(content).toContain('<!-- PLX:START -->');
-      expect(content).toContain("@/workspace/AGENTS.md");
+      expect(content).toContain("/workspace/AGENTS.md");
       expect(content).toContain('plx update');
       expect(content).toContain('<!-- PLX:END -->');
     });
@@ -1436,7 +1436,7 @@ describe('InitCommand', () => {
 
       const updatedContent = await fs.readFile(qoderPath, 'utf-8');
       expect(updatedContent).toContain('<!-- PLX:START -->');
-      expect(updatedContent).toContain("@/workspace/AGENTS.md");
+      expect(updatedContent).toContain("/workspace/AGENTS.md");
       expect(updatedContent).toContain('plx update');
       expect(updatedContent).toContain('<!-- PLX:END -->');
       expect(updatedContent).toContain('Custom instructions here');

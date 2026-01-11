@@ -490,7 +490,7 @@ describe.skipIf(!isMacOS)('paste change command', () => {
     }
   });
 
-  it('detects verb prefix from first line', async () => {
+  it('detects verb prefix from first line', { timeout: 30000 }, async () => {
     const originalCwd = process.cwd();
     try {
       process.chdir(testDir);

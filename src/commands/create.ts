@@ -516,9 +516,8 @@ export class CreateCommand {
     // Generate PROGRESS.md content
     const progressContent = this.generateProgressContent(options.changeId, change.proposal, tasksWithContent);
 
-    // Write to project root (parent of workspace)
-    const projectRoot = path.dirname(change.workspacePath);
-    const progressPath = path.join(projectRoot, 'PROGRESS.md');
+    // Write to workspace directory
+    const progressPath = path.join(change.workspacePath, 'PROGRESS.md');
     await FileSystemUtils.writeFile(progressPath, progressContent);
 
     const relativePath = path.relative(process.cwd(), progressPath);

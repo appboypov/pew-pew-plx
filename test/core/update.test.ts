@@ -58,7 +58,7 @@ More content after.`;
     const updatedContent = await fs.readFile(claudePath, 'utf-8');
     expect(updatedContent).toContain('<!-- PLX:START -->');
     expect(updatedContent).toContain('<!-- PLX:END -->');
-    expect(updatedContent).toContain("@/workspace/AGENTS.md");
+    expect(updatedContent).toContain("/workspace/AGENTS.md");
     expect(updatedContent).toContain('plx update');
     expect(updatedContent).toContain('Some existing content here');
     expect(updatedContent).toContain('More content after');
@@ -93,7 +93,7 @@ More notes here.`;
     const updatedContent = await fs.readFile(qwenPath, 'utf-8');
     expect(updatedContent).toContain('<!-- PLX:START -->');
     expect(updatedContent).toContain('<!-- PLX:END -->');
-    expect(updatedContent).toContain("@/workspace/AGENTS.md");
+    expect(updatedContent).toContain("/workspace/AGENTS.md");
     expect(updatedContent).toContain('plx update');
     expect(updatedContent).toContain('Some existing content.');
     expect(updatedContent).toContain('More notes here.');
@@ -264,7 +264,7 @@ More rules after.`;
     const updatedContent = await fs.readFile(clinePath, 'utf-8');
     expect(updatedContent).toContain('<!-- PLX:START -->');
     expect(updatedContent).toContain('<!-- PLX:END -->');
-    expect(updatedContent).toContain("@/workspace/AGENTS.md");
+    expect(updatedContent).toContain("/workspace/AGENTS.md");
     expect(updatedContent).toContain('plx update');
     expect(updatedContent).toContain('Some existing Cline rules here');
     expect(updatedContent).toContain('More rules after');
@@ -1289,7 +1289,7 @@ More instructions after.`;
     const updatedContent = await fs.readFile(costrictPath, 'utf-8');
     expect(updatedContent).toContain('<!-- PLX:START -->');
     expect(updatedContent).toContain('<!-- PLX:END -->');
-    expect(updatedContent).toContain("@/workspace/AGENTS.md");
+    expect(updatedContent).toContain("/workspace/AGENTS.md");
     expect(updatedContent).toContain('plx update');
     expect(updatedContent).toContain('Some existing CoStrict instructions here');
     expect(updatedContent).toContain('More instructions after');
@@ -1532,7 +1532,7 @@ Old content
 
     const content = await fs.readFile(rootAgentsPath, 'utf-8');
     expect(content).toContain('<!-- PLX:START -->');
-    expect(content).toContain("@/workspace/AGENTS.md");
+    expect(content).toContain("/workspace/AGENTS.md");
     expect(content).toContain('plx update');
     expect(content).toContain('<!-- PLX:END -->');
   });
@@ -1549,7 +1549,7 @@ Old content
     const updated = await fs.readFile(rootAgentsPath, 'utf-8');
     expect(updated).toContain('# Custom intro');
     expect(updated).toContain('# Footnotes');
-    expect(updated).toContain("@/workspace/AGENTS.md");
+    expect(updated).toContain("/workspace/AGENTS.md");
     expect(updated).toContain('plx update');
     expect(updated).not.toContain('Old content');
 
@@ -1562,17 +1562,24 @@ Old content
     consoleSpy.mockRestore();
   });
 
-  it('should throw error if workspace directory does not exist', async () => {
+  it('should create workspace directory during migration if it does not exist', async () => {
     // Remove workspace directory
     await fs.rm(path.join(testDir, 'workspace'), {
       recursive: true,
       force: true,
     });
 
-    // Execute update command and expect error
-    await expect(updateCommand.execute(testDir)).rejects.toThrow(
-      "No Pew Pew Plx workspace directory found. Run 'plx init' first."
-    );
+    // Create a root file that needs migration
+    await fs.writeFile(path.join(testDir, 'ARCHITECTURE.md'), 'root content');
+
+    // Execute update command - migration creates workspace when files exist, so it should succeed
+    await updateCommand.execute(testDir);
+
+    // Verify workspace was created
+    expect(await FileSystemUtils.directoryExists(path.join(testDir, 'workspace'))).toBe(true);
+    // Verify file was migrated
+    expect(await FileSystemUtils.fileExists(path.join(testDir, 'workspace', 'ARCHITECTURE.md'))).toBe(true);
+    expect(await FileSystemUtils.fileExists(path.join(testDir, 'ARCHITECTURE.md'))).toBe(false);
   });
 
   it('should handle configurator errors gracefully', async () => {
@@ -1614,6 +1621,96 @@ Old content
     consoleSpy.mockRestore();
     errorSpy.mockRestore();
     writeSpy.mockRestore();
+  });
+
+  describe('root files migration', () => {
+    it('should migrate root files to workspace when they exist', async () => {
+      // Create root files
+      await fs.writeFile(path.join(testDir, 'ARCHITECTURE.md'), 'root architecture');
+      await fs.writeFile(path.join(testDir, 'REVIEW.md'), 'root review');
+
+      const consoleSpy = vi.spyOn(console, 'log');
+
+      await updateCommand.execute(testDir);
+
+      // Verify files migrated to workspace
+      const workspaceArchPath = path.join(testDir, 'workspace', 'ARCHITECTURE.md');
+      const workspaceReviewPath = path.join(testDir, 'workspace', 'REVIEW.md');
+      expect(await FileSystemUtils.fileExists(workspaceArchPath)).toBe(true);
+      expect(await FileSystemUtils.fileExists(workspaceReviewPath)).toBe(true);
+
+      // Verify root files removed
+      expect(await FileSystemUtils.fileExists(path.join(testDir, 'ARCHITECTURE.md'))).toBe(false);
+      expect(await FileSystemUtils.fileExists(path.join(testDir, 'REVIEW.md'))).toBe(false);
+
+      // Verify migration message logged
+      const migrationLog = consoleSpy.mock.calls.find(call => 
+        call[0]?.includes('Migrated') && call[0]?.includes('root file')
+      );
+      expect(migrationLog).toBeDefined();
+      expect(migrationLog?.[0]).toContain('ARCHITECTURE.md');
+      expect(migrationLog?.[0]).toContain('REVIEW.md');
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should keep workspace version when both root and workspace exist', async () => {
+      // Create files in both locations
+      await fs.writeFile(path.join(testDir, 'RELEASE.md'), 'root release');
+      await fs.writeFile(path.join(testDir, 'workspace', 'RELEASE.md'), 'workspace release');
+
+      const consoleSpy = vi.spyOn(console, 'log');
+
+      await updateCommand.execute(testDir);
+
+      // Verify workspace version preserved
+      const workspaceReleasePath = path.join(testDir, 'workspace', 'RELEASE.md');
+      const content = await fs.readFile(workspaceReleasePath, 'utf-8');
+      expect(content).toBe('workspace release');
+
+      // Verify root file deleted
+      expect(await FileSystemUtils.fileExists(path.join(testDir, 'RELEASE.md'))).toBe(false);
+
+      // Verify migration logged
+      const migrationLog = consoleSpy.mock.calls.find(call => 
+        call[0]?.includes('Migrated') && call[0]?.includes('RELEASE.md')
+      );
+      expect(migrationLog).toBeDefined();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should be silent when no root files to migrate', async () => {
+      const consoleSpy = vi.spyOn(console, 'log');
+
+      await updateCommand.execute(testDir);
+
+      // Verify no migration message
+      const migrationLog = consoleSpy.mock.calls.find(call => 
+        call[0]?.includes('Migrated') && call[0]?.includes('root file')
+      );
+      expect(migrationLog).toBeUndefined();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should create workspace directory if it does not exist during migration', async () => {
+      // Remove workspace directory
+      await fs.rm(path.join(testDir, 'workspace'), {
+        recursive: true,
+        force: true,
+      });
+
+      // Create root file
+      await fs.writeFile(path.join(testDir, 'TESTING.md'), 'root testing');
+
+      await updateCommand.execute(testDir);
+
+      // Verify workspace created and file migrated
+      expect(await FileSystemUtils.directoryExists(path.join(testDir, 'workspace'))).toBe(true);
+      expect(await FileSystemUtils.fileExists(path.join(testDir, 'workspace', 'TESTING.md'))).toBe(true);
+      expect(await FileSystemUtils.fileExists(path.join(testDir, 'TESTING.md'))).toBe(false);
+    });
   });
 
 });

@@ -37,7 +37,7 @@ const monorepoAwareness = `**Monorepo Awareness**
 - Follow each package's AGENTS.md instructions if present.`;
 
 const planningContext = `**Context**
-@ARCHITECTURE.md
+@workspace/ARCHITECTURE.md
 @workspace/AGENTS.md`;
 
 const proposalGuardrails = `${planningContext}\n\n${baseGuardrails}\n- Identify any vague or ambiguous details and gather the necessary clarifications before editing files.
@@ -49,7 +49,7 @@ const proposalSteps = `**Steps**
 0. Check for existing \`workspace/changes/<change-id>/request.md\`:
    - If found: consume it as the source of truth for user intent and skip interactive clarification.
    - If not found: proceed with gathering intent through conversation or your question tool.
-1. Review \`ARCHITECTURE.md\`, run \`plx get changes\` and \`plx get specs\`, and inspect related code or docs (e.g., via \`rg\`/\`ls\`) to ground the proposal in current behaviour; note any gaps that require clarification.
+1. Review \`workspace/ARCHITECTURE.md\`, run \`plx get changes\` and \`plx get specs\`, and inspect related code or docs (e.g., via \`rg\`/\`ls\`) to ground the proposal in current behaviour; note any gaps that require clarification.
 2. Choose a unique verb-led \`change-id\` and scaffold \`proposal.md\`, task files in \`workspace/tasks/\`, and \`design.md\` (when needed) under \`workspace/changes/<id>/\`.
 3. Map the change into concrete capabilities or requirements, breaking multi-scope efforts into distinct spec deltas with clear relationships and sequencing.
 4. Capture architectural reasoning in \`design.md\` when the solution spans multiple systems, introduces new patterns, or demands trade-off discussion before committing to specs.
@@ -112,16 +112,16 @@ const getTaskSteps = `**Steps**
 4. **Stop and await user confirmation** before proceeding to the next task.`;
 
 const prepareCompactGuardrails = `**Guardrails**
-- Save ALL modified files before creating PROGRESS.md.
-- Create PROGRESS.md in the project root directory.
+- Save ALL modified files before creating workspace/PROGRESS.md.
+- Create workspace/PROGRESS.md in the workspace directory.
 - Include enough detail that a new agent can continue without user re-explanation.
-- Add PROGRESS.md to .gitignore if not already present.
-- Update existing PROGRESS.md if one already exists (don't create duplicates).`;
+- Add workspace/PROGRESS.md to .gitignore if not already present.
+- Update existing workspace/PROGRESS.md if one already exists (don't create duplicates).`;
 
 const prepareCompactSteps = `**Steps**
 1. Save all files you have modified during this session.
-2. Create or update \`PROGRESS.md\` in the project root with these sections: Current Task, Status, Completed Steps, Remaining Steps, Key Decisions Made, Files Modified, Files Created, Open Questions/Blockers, Context for Next Agent, Related Resources.
-3. Check if \`.gitignore\` contains \`PROGRESS.md\`; if not present, add it on a new line.
+2. Create or update \`workspace/PROGRESS.md\` with these sections: Current Task, Status, Completed Steps, Remaining Steps, Key Decisions Made, Files Modified, Files Created, Open Questions/Blockers, Context for Next Agent, Related Resources.
+3. Check if \`.gitignore\` contains \`workspace/PROGRESS.md\`; if not present, add it on a new line.
 4. Confirm to user that progress has been saved and they can start a new session.`;
 
 const reviewGuardrails = `**Guardrails**
@@ -133,7 +133,7 @@ ${monorepoAwareness}`;
 
 const reviewSteps = `**Steps**
 1. Run \`plx review change --id <id>\` (or \`plx review spec --id <id>\`, \`plx review task --id <id>\`).
-2. Read the output: @REVIEW.md guidelines + parent documents.
+2. Read the output: @workspace/REVIEW.md guidelines + parent documents.
 3. Review implementation against constraints/acceptance criteria.
 4. Insert feedback markers with format: \`#FEEDBACK #TODO | {type}:{id} | {feedback}\`
    - Examples: \`task:001\`, \`change:my-feature\`, \`spec:auth-spec\`
@@ -175,15 +175,15 @@ Run these queries iteratively until no new components are discovered. Cross-refe
 
 const refineArchitectureSteps = `**Steps**
 1. **Discover** - Run Context Retrieval queries to build complete component inventory.
-2. **Check** - Determine if ARCHITECTURE.md exists at target location.
+2. **Check** - Determine if workspace/ARCHITECTURE.md exists.
 3. **Create or Load** - If missing: create from Template Structure below. If exists: read full content, identify gaps against discovered inventory.
 4. **Populate Inventories** - For each component category: list all discovered items with file paths, group by feature/domain where applicable, include brief purpose description for each item.
 5. **Map Dependencies** - Document service → API/repository relationships, view model → service relationships, data flow from external sources to UI.
 6. **Validate Completeness** - Cross-reference inventory against file tree. Flag any component types with zero entries (likely missed). Re-run targeted queries for empty categories.
-7. **Write** - Update ARCHITECTURE.md preserving user content outside PLX markers.`;
+7. **Write** - Update workspace/ARCHITECTURE.md preserving user content outside PLX markers.`;
 
 const refineArchitectureTemplateStructure = `**Template Structure**
-Reference \`workspace/templates/ARCHITECTURE.template.md\` for the canonical template structure. If it does not exist, use the project's existing ARCHITECTURE.md as reference, or create from these required sections:
+Reference \`workspace/templates/ARCHITECTURE.template.md\` for the canonical template structure. If it does not exist, use the project's existing workspace/ARCHITECTURE.md as reference, or create from these required sections:
 
 **Required Sections:**
 - Technology Stack (table format)
@@ -210,10 +210,10 @@ Reference \`workspace/templates/ARCHITECTURE.template.md\` for the canonical tem
 Omit empty categories only if that component type does not exist in the project.`;
 
 const refineReviewGuardrails = `**Guardrails**
-- Reference @REVIEW.md template structure.
+- Reference @workspace/REVIEW.md template structure.
 - Preserve existing review guidelines.
 - Use question tool to guide user through configuration options.
-- Write final selections to REVIEW.md.
+- Write final selections to workspace/REVIEW.md.
 
 ${monorepoAwareness}
 
@@ -246,7 +246,7 @@ ${monorepoAwareness}
 const refineReviewSteps = `**Steps**
 
 ## Part 1: Review Config
-1. Check if @REVIEW.md exists:
+1. Check if @workspace/REVIEW.md exists:
    - If not: create from template.
    - If exists: read current configuration.
 
@@ -263,10 +263,10 @@ const refineReviewSteps = `**Steps**
    - Present options: minimal, standard, comprehensive, custom.
    - Record selection.
 
-5. Write selections to REVIEW.md Review Config section.
+5. Write selections to workspace/REVIEW.md Review Config section.
 
 ## Part 2: Review Scope Research
-6. Research and populate each Review Scope section in @REVIEW.md:
+6. Research and populate each Review Scope section in @workspace/REVIEW.md:
 
    **Architecture Patterns**
    - Identify core architectural patterns (MVC, MVVM, Clean Architecture, etc.)
@@ -325,10 +325,10 @@ const refineReviewSteps = `**Steps**
 9. Explain how \`/plx:review\` will use these settings.`;
 
 const refineTestingGuardrails = `**Guardrails**
-- Reference @TESTING.md template structure.
+- Reference @workspace/TESTING.md template structure.
 - Preserve existing testing configuration.
 - Use question tool to guide user through configuration options.
-- Write final selections to TESTING.md.
+- Write final selections to workspace/TESTING.md.
 
 ${monorepoAwareness}
 
@@ -362,7 +362,7 @@ ${monorepoAwareness}
 const refineTestingSteps = `**Steps**
 
 ## Part 1: Test Config
-1. Check if @TESTING.md exists:
+1. Check if @workspace/TESTING.md exists:
    - If not: create from template.
    - If exists: read current configuration.
 
@@ -383,10 +383,10 @@ const refineTestingSteps = `**Steps**
    - Present common patterns based on selected runner.
    - Record patterns.
 
-6. Write selections to TESTING.md Test Config section.
+6. Write selections to workspace/TESTING.md Test Config section.
 
 ## Part 2: Test Scope Research
-7. Research and populate each Test Scope section in @TESTING.md:
+7. Research and populate each Test Scope section in @workspace/TESTING.md:
 
    **Unit Tests**
    - Find unit test directories and files
@@ -448,10 +448,10 @@ const parseFeedbackSteps = `**Steps**
 4. Archive when complete.`;
 
 const refineReleaseGuardrails = `**Guardrails**
-- Reference @RELEASE.md template structure.
+- Reference @workspace/RELEASE.md template structure.
 - Preserve existing release configuration.
 - Use question tool to guide user through configuration options.
-- Write final selections to RELEASE.md Config section.
+- Write final selections to workspace/RELEASE.md Config section.
 
 ${monorepoAwareness}
 
@@ -504,7 +504,7 @@ Node:      ![Node](https://img.shields.io/node/v/PACKAGE)
 const refineReleaseSteps = `**Steps**
 
 ## Part 1: Documentation Config
-1. Check if @RELEASE.md exists:
+1. Check if @workspace/RELEASE.md exists:
    - If not: create from template.
    - If exists: read current configuration.
 
@@ -533,10 +533,10 @@ const refineReleaseSteps = `**Steps**
    - If yes, present badge options and record selections.
    - Collect OWNER, REPO, PACKAGE values if needed.
 
-7. Write selections to RELEASE.md Documentation Config section.
+7. Write selections to workspace/RELEASE.md Documentation Config section.
 
 ## Part 2: Consistency Checklist Research
-8. Research and populate each Consistency Checklist section in @RELEASE.md:
+8. Research and populate each Consistency Checklist section in @workspace/RELEASE.md:
 
    **Primary Sources**
    - Search for entry points, main configs, core definitions
@@ -594,9 +594,9 @@ const refineReleaseSteps = `**Steps**
 11. Explain how \`/plx:prepare-release\` will use this configuration.`;
 
 const prepareReleaseGuardrails = `**Guardrails**
-- Read @RELEASE.md Config section for release configuration.
+- Read @workspace/RELEASE.md Config section for release configuration.
 - Apply defaults when config values are not specified.
-- Reference @README.md, @CHANGELOG.md, and @ARCHITECTURE.md for updates.
+- Reference @README.md, @CHANGELOG.md, and @workspace/ARCHITECTURE.md for updates.
 - Execute steps sequentially: changelog → readme → architecture.
 - User confirms or skips each step before proceeding.
 - Preserve existing content when updating files.
@@ -606,7 +606,7 @@ const prepareReleaseGuardrails = `**Guardrails**
 ${monorepoAwareness}
 
 ## Default Configuration
-When RELEASE.md Config section is missing or incomplete, apply these defaults:
+When workspace/RELEASE.md Config section is missing or incomplete, apply these defaults:
 | Setting | Default Value |
 |---------|---------------|
 | format | keep-a-changelog |
@@ -616,7 +616,7 @@ When RELEASE.md Config section is missing or incomplete, apply these defaults:
 | badges | (none) |`;
 
 const prepareReleaseSteps = `**Steps**
-1. Parse configuration from @RELEASE.md:
+1. Parse configuration from @workspace/RELEASE.md:
    - Read Config section (YAML block after "# Config" header).
    - Extract: format, style, audience, emoji, badges, owner, repo, package.
    - Apply defaults for any missing values:
@@ -643,7 +643,7 @@ const prepareReleaseSteps = `**Steps**
    - Update or create README.md preserving user content.
 
 4. Execute architecture update:
-   - Read existing ARCHITECTURE.md.
+   - Read existing workspace/ARCHITECTURE.md.
    - Explore codebase for current patterns and structure.
    - Update documentation while preserving user-written content.
    - Add sections for undocumented patterns.
@@ -798,7 +798,7 @@ const undoTaskSteps = `**Steps**
 const planImplementationGuardrails = `${planningContext}
 
 **Guardrails**
-- Generate PROGRESS.md before outputting task blocks.
+- Generate workspace/PROGRESS.md before outputting task blocks.
 - Output task blocks to chat for immediate copy to external agents.
 - Do NOT reference PROGRESS.md in task blocks—agents must work without knowledge of it.
 - Verify each agent's work against scope, TracelessChanges, conventions, and acceptance criteria.
@@ -817,7 +817,7 @@ const planImplementationSteps = `**Steps**
    \`\`\`bash
    plx create progress --change-id <change-id>
    \`\`\`
-3. Read the generated PROGRESS.md and identify the first non-completed task.
+3. Read the generated workspace/PROGRESS.md and identify the first non-completed task.
 4. Output the first task block to chat. Format:
    \`\`\`markdown
    ## Task: <task-name>
@@ -876,7 +876,7 @@ const planImplementationReference = `**Reference**
 - Use \`plx create progress --change-id <id>\` to regenerate progress file.`;
 
 const testGuardrails = `**Guardrails**
-- Read @TESTING.md for test runner, coverage threshold, and test patterns.
+- Read @workspace/TESTING.md for test runner, coverage threshold, and test patterns.
 - Parse arguments for scope: --id and --parent-type flags.
 - Run tests based on scope or all tests if no scope provided.
 - Report results and coverage against configured threshold.`;
@@ -887,7 +887,7 @@ const testSteps = `**Steps**
    - \`--id <id> --parent-type task\`: run tests related to task scope.
    - \`--id <id> --parent-type spec\`: run tests related to spec.
    - No arguments: run all tests.
-2. Read @TESTING.md for configuration:
+2. Read @workspace/TESTING.md for configuration:
    - Test runner (vitest, jest, pytest, flutter_test, etc.).
    - Coverage threshold (70%, 80%, 90%).
    - Test patterns and file locations.
@@ -903,7 +903,7 @@ const testSteps = `**Steps**
 5. Report results:
    - List passed/failed tests.
    - Show coverage percentage.
-   - Compare coverage to threshold from TESTING.md.
+   - Compare coverage to threshold from workspace/TESTING.md.
    - Highlight any failures or coverage gaps.
 6. If tests fail or coverage is below threshold:
    - Summarize failures with file locations.
@@ -921,9 +921,9 @@ ${monorepoAwareness}`;
 const copyNextTaskContextDetection = `**Context Detection**
 Determine which scenario applies:
 
-1. **Plan-implementation workflow active**: Check if PROGRESS.md exists AND conversation contains task blocks or feedback blocks.
+1. **Plan-implementation workflow active**: Check if workspace/PROGRESS.md exists AND conversation contains task blocks or feedback blocks.
    - If pending feedback: copy the most recent feedback block.
-   - If no feedback: copy the next uncompleted task block from PROGRESS.md.
+   - If no feedback: copy the next uncompleted task block from workspace/PROGRESS.md.
 
 2. **New conversation (no context)**: Run \`plx get task\` to retrieve the highest-priority task.
    - Generate a task block from the task content.
@@ -957,7 +957,7 @@ const copyNextTaskSteps = `**Steps**
 
    **If copying next task (no pending feedback):**
    a. Get task content:
-      - From PROGRESS.md if it exists and has uncompleted tasks
+      - From workspace/PROGRESS.md if it exists and has uncompleted tasks
       - Otherwise via \`plx get task\` (or \`plx get task --did-complete-previous\` if previous completed)
    b. Generate task block:
    \`\`\`markdown
@@ -992,11 +992,11 @@ const copyNextTaskReference = `**Reference**
 - Use \`plx get task\` to retrieve highest-priority task when no context exists.
 - Use \`plx get task --did-complete-previous\` after completing a task.
 - Use \`plx get change --id <change-id>\` to get proposal context.
-- Read PROGRESS.md if it exists to find next uncompleted task block.`;
+- Read workspace/PROGRESS.md if it exists to find next uncompleted task block.`;
 
 const copyReviewRequestGuardrails = `**Guardrails**
 - Output format must match review request block structure exactly.
-- Include full REVIEW.md content in the request block.
+- Include full workspace/REVIEW.md content in the request block.
 - The request is self-contained for a fresh sub-agent with no prior context.
 - Copy to clipboard using appropriate system command (pbcopy on macOS, xclip on Linux, clip on Windows).
 
@@ -1012,7 +1012,7 @@ const copyReviewRequestSteps = `**Steps**
 1. Detect context using Context Detection rules above.
 2. Gather review materials:
    - Run \`plx review change --id <change-id>\` or \`plx review task --id <task-id>\`
-   - Read @REVIEW.md for guidelines and checklist
+   - Read @workspace/REVIEW.md for guidelines and checklist
 3. Generate review request block:
    \`\`\`markdown
    ## Review Request: <task-name or change-name>
@@ -1021,7 +1021,7 @@ const copyReviewRequestSteps = `**Steps**
    **ID:** <id>
 
    ### Review Guidelines
-   <full REVIEW.md content>
+   <full workspace/REVIEW.md content>
 
    ### Context
    <proposal Why and What Changes sections>
@@ -1044,11 +1044,11 @@ const copyReviewRequestReference = `**Reference**
 - Use \`plx review change --id <id>\` for change review context.
 - Use \`plx review task --id <id>\` for task review context.
 - Use \`plx get change --id <id>\` for proposal details.
-- Read @REVIEW.md for review guidelines and checklist.`;
+- Read @workspace/REVIEW.md for review guidelines and checklist.`;
 
 const copyTestRequestGuardrails = `**Guardrails**
 - Output format must match test request block structure exactly.
-- Include full TESTING.md content in the request block.
+- Include full workspace/TESTING.md content in the request block.
 - The request is self-contained for a fresh sub-agent with no prior context.
 - Copy to clipboard using appropriate system command (pbcopy on macOS, xclip on Linux, clip on Windows).
 
@@ -1063,7 +1063,7 @@ Determine test scope from:
 const copyTestRequestSteps = `**Steps**
 1. Detect context using Context Detection rules above.
 2. Gather test materials:
-   - Read @TESTING.md for test configuration, patterns, and checklist
+   - Read @workspace/TESTING.md for test configuration, patterns, and checklist
    - Get implementation context from task or change
 3. Generate test request block:
    \`\`\`markdown
@@ -1073,7 +1073,7 @@ const copyTestRequestSteps = `**Steps**
    **ID:** <id>
 
    ### Testing Configuration
-   <full TESTING.md content>
+   <full workspace/TESTING.md content>
 
    ### Context
    <proposal Why and What Changes sections>
@@ -1083,8 +1083,8 @@ const copyTestRequestSteps = `**Steps**
 
    ### Instructions
    Test the implementation according to the configuration above.
-   Run tests: \`<test command from TESTING.md>\`
-   Ensure coverage meets threshold: <threshold from TESTING.md>
+   Run tests: \`<test command from workspace/TESTING.md>\`
+   Ensure coverage meets threshold: <threshold from workspace/TESTING.md>
    When complete, report test results and coverage.
    \`\`\`
 4. Copy to clipboard:
@@ -1094,7 +1094,7 @@ const copyTestRequestSteps = `**Steps**
 5. Confirm to user what was copied and the test scope.`;
 
 const copyTestRequestReference = `**Reference**
-- Read @TESTING.md for test configuration and patterns.
+- Read @workspace/TESTING.md for test configuration and patterns.
 - Use \`plx get task --id <id>\` for task context.
 - Use \`plx get change --id <id>\` for change context.`;
 

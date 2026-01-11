@@ -137,6 +137,13 @@ const FEEDBACK_SCANNER_EXCLUDES = [
   'CHANGELOG.md',
   'docs/',
 
+  // Workspace template files (documentation templates, not source code)
+  'workspace/ARCHITECTURE.md',
+  'workspace/REVIEW.md',
+  'workspace/RELEASE.md',
+  'workspace/TESTING.md',
+  'workspace/PROGRESS.md',
+
   // Workspace archives
   'workspace/changes/archive/',
   'workspace/specs/*/archive/',

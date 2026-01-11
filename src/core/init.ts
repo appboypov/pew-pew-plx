@@ -774,29 +774,29 @@ export class InitCommand {
       await FileSystemUtils.writeFile(filePath, template.content);
     }
 
-    // Write ARCHITECTURE.md at project root
-    const architecturePath = path.join(projectPath, 'ARCHITECTURE.md');
+    // Write ARCHITECTURE.md at workspace
+    const architecturePath = path.join(workspacePath, 'ARCHITECTURE.md');
     if (!skipExisting || !(await FileSystemUtils.fileExists(architecturePath))) {
       const architectureContent = TemplateManager.getArchitectureTemplate();
       await FileSystemUtils.writeFile(architecturePath, architectureContent);
     }
 
-    // Write REVIEW.md at project root
-    const reviewPath = path.join(projectPath, 'REVIEW.md');
+    // Write REVIEW.md at workspace
+    const reviewPath = path.join(workspacePath, 'REVIEW.md');
     if (!skipExisting || !(await FileSystemUtils.fileExists(reviewPath))) {
       const reviewContent = TemplateManager.getReviewTemplate();
       await FileSystemUtils.writeFile(reviewPath, reviewContent);
     }
 
-    // Write RELEASE.md at project root
-    const releasePath = path.join(projectPath, 'RELEASE.md');
+    // Write RELEASE.md at workspace
+    const releasePath = path.join(workspacePath, 'RELEASE.md');
     if (!skipExisting || !(await FileSystemUtils.fileExists(releasePath))) {
       const releaseContent = TemplateManager.getReleaseTemplate();
       await FileSystemUtils.writeFile(releasePath, releaseContent);
     }
 
-    // Write TESTING.md at project root
-    const testingPath = path.join(projectPath, 'TESTING.md');
+    // Write TESTING.md at workspace
+    const testingPath = path.join(workspacePath, 'TESTING.md');
     if (!skipExisting || !(await FileSystemUtils.fileExists(testingPath))) {
       const testingContent = TemplateManager.getTestingTemplate();
       await FileSystemUtils.writeFile(testingPath, testingContent);
@@ -932,7 +932,7 @@ export class InitCommand {
     console.log(PALETTE.white('1. Populate your architecture documentation:'));
     console.log(
       PALETTE.lightGray(
-        '   "Please read ARCHITECTURE.md and help me fill it out'
+        '   "Please read workspace/ARCHITECTURE.md and help me fill it out'
       )
     );
     console.log(

@@ -235,21 +235,23 @@ export class ReviewCommand {
 
     const documents: Array<{ path: string; content: string }> = [];
 
-    // Add REVIEW.md if exists
-    const reviewMdPath = path.join(this.root, 'REVIEW.md');
+    // Determine workspace path for REVIEW.md
+    let basePath = workspacePath;
+    if (!basePath) {
+      basePath = this.workspaces.length > 0 ? this.workspaces[0].path : path.join(this.root, 'workspace');
+    }
+
+    // Add REVIEW.md if exists (from workspace)
+    const reviewMdPath = path.join(basePath, 'REVIEW.md');
     try {
       const content = await fs.readFile(reviewMdPath, 'utf-8');
-      documents.push({ path: 'REVIEW.md', content });
+      documents.push({ path: 'workspace/REVIEW.md', content });
     } catch {
       // REVIEW.md may not exist
     }
 
     // Add parent documents
     if (parentType === 'change') {
-      let basePath = workspacePath;
-      if (!basePath) {
-        basePath = this.workspaces.length > 0 ? this.workspaces[0].path : path.join(this.root, 'workspace');
-      }
       const changeDir = path.join(basePath, 'changes', parentId);
       await this.addChangeDocuments(changeDir, documents);
     } else if (parentType === 'spec') {
@@ -280,8 +282,14 @@ export class ReviewCommand {
   ): Promise<void> {
     console.log(chalk.cyan(`\n═══ Review: ${parentType}/${parentId} ═══\n`));
 
-    // Output REVIEW.md if exists
-    const reviewMdPath = path.join(this.root, 'REVIEW.md');
+    // Determine workspace path for REVIEW.md
+    let basePath = workspacePath;
+    if (!basePath) {
+      basePath = this.workspaces.length > 0 ? this.workspaces[0].path : path.join(this.root, 'workspace');
+    }
+
+    // Output REVIEW.md if exists (from workspace)
+    const reviewMdPath = path.join(basePath, 'REVIEW.md');
     try {
       const content = await fs.readFile(reviewMdPath, 'utf-8');
       console.log(chalk.yellow('═══ REVIEW.md ═══\n'));

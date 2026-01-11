@@ -2,6 +2,7 @@ import path from 'path';
 import chalk from 'chalk';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { migrateOpenSpecProject } from '../utils/openspec-migration.js';
+import { migrateRootFiles } from '../utils/root-files-migration.js';
 import { PLX_DIR_NAME } from './config.js';
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
@@ -39,7 +40,21 @@ export class UpdateCommand {
     const workspaceDirName = PLX_DIR_NAME;
     const workspacePath = path.join(resolvedProjectPath, workspaceDirName);
 
-    // 1. Check workspace directory exists
+    // Migrate root files to workspace if detected (runs before workspace check since migration creates workspace)
+    const rootFilesMigrationResult = await migrateRootFiles(resolvedProjectPath, workspacePath);
+    if (rootFilesMigrationResult.migratedCount > 0) {
+      const fileList = rootFilesMigrationResult.migratedFiles.length > 0 
+        ? ` (${rootFilesMigrationResult.migratedFiles.join(', ')})`
+        : '';
+      console.log(chalk.green(`Migrated ${rootFilesMigrationResult.migratedCount} root file${rootFilesMigrationResult.migratedCount === 1 ? '' : 's'} to workspace${fileList}`));
+    }
+    if (rootFilesMigrationResult.errors.length > 0) {
+      for (const error of rootFilesMigrationResult.errors) {
+        console.log(chalk.yellow('Migration warning:'), error);
+      }
+    }
+
+    // 1. Check workspace directory exists (after migration which may have created it)
     if (!await FileSystemUtils.directoryExists(workspacePath)) {
       throw new Error(`No Pew Pew Plx workspace directory found. Run 'plx init' first.`);
     }
@@ -49,28 +64,35 @@ export class UpdateCommand {
 
     await FileSystemUtils.writeFile(agentsPath, agentsTemplate);
 
-    // 3. Create REVIEW.md if not exists
-    const reviewPath = path.join(resolvedProjectPath, 'REVIEW.md');
+    // 3. Create ARCHITECTURE.md if not exists
+    const architecturePath = path.join(workspacePath, 'ARCHITECTURE.md');
+    if (!(await FileSystemUtils.fileExists(architecturePath))) {
+      const architectureContent = TemplateManager.getArchitectureTemplate();
+      await FileSystemUtils.writeFile(architecturePath, architectureContent);
+    }
+
+    // 4. Create REVIEW.md if not exists
+    const reviewPath = path.join(workspacePath, 'REVIEW.md');
     if (!(await FileSystemUtils.fileExists(reviewPath))) {
       const reviewContent = TemplateManager.getReviewTemplate();
       await FileSystemUtils.writeFile(reviewPath, reviewContent);
     }
 
-    // 4. Create RELEASE.md if not exists
-    const releasePath = path.join(resolvedProjectPath, 'RELEASE.md');
+    // 5. Create RELEASE.md if not exists
+    const releasePath = path.join(workspacePath, 'RELEASE.md');
     if (!(await FileSystemUtils.fileExists(releasePath))) {
       const releaseContent = TemplateManager.getReleaseTemplate();
       await FileSystemUtils.writeFile(releasePath, releaseContent);
     }
 
-    // 5. Create TESTING.md if not exists
-    const testingPath = path.join(resolvedProjectPath, 'TESTING.md');
+    // 6. Create TESTING.md if not exists
+    const testingPath = path.join(workspacePath, 'TESTING.md');
     if (!(await FileSystemUtils.fileExists(testingPath))) {
       const testingContent = TemplateManager.getTestingTemplate();
       await FileSystemUtils.writeFile(testingPath, testingContent);
     }
 
-    // 6. Update existing AI tool configuration files only
+    // 7. Update existing AI tool configuration files only
     const configurators = ToolRegistry.getAll();
     const slashConfigurators = SlashCommandRegistry.getAll();
     const updatedFiles: string[] = [];

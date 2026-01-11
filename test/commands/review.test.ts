@@ -97,7 +97,7 @@ describe('ReviewCommand', () => {
 
   async function createReviewMd(content?: string): Promise<void> {
     await fs.writeFile(
-      path.join(tempDir, 'REVIEW.md'),
+      path.join(tempDir, 'workspace', 'REVIEW.md'),
       content ?? '# Review Guidelines\n\nGuidelines content'
     );
   }
@@ -311,7 +311,7 @@ describe('ReviewCommand', () => {
       const output = JSON.parse(jsonCall![0]);
 
       const reviewDoc = output.documents.find(
-        (d: { path: string }) => d.path === 'REVIEW.md'
+        (d: { path: string }) => d.path === 'workspace/REVIEW.md'
       );
       expect(reviewDoc).toBeDefined();
       expect(reviewDoc.content).toContain('Guidelines');

@@ -860,25 +860,25 @@ export class TransferService {
       }
     }
 
-    const architecturePath = path.join(projectPath, 'ARCHITECTURE.md');
+    const architecturePath = path.join(workspacePath, 'ARCHITECTURE.md');
     if (!(await FileSystemUtils.fileExists(architecturePath))) {
       const architectureContent = TemplateManager.getArchitectureTemplate();
       await FileSystemUtils.writeFile(architecturePath, architectureContent);
     }
 
-    const reviewPath = path.join(projectPath, 'REVIEW.md');
+    const reviewPath = path.join(workspacePath, 'REVIEW.md');
     if (!(await FileSystemUtils.fileExists(reviewPath))) {
       const reviewContent = TemplateManager.getReviewTemplate();
       await FileSystemUtils.writeFile(reviewPath, reviewContent);
     }
 
-    const releasePath = path.join(projectPath, 'RELEASE.md');
+    const releasePath = path.join(workspacePath, 'RELEASE.md');
     if (!(await FileSystemUtils.fileExists(releasePath))) {
       const releaseContent = TemplateManager.getReleaseTemplate();
       await FileSystemUtils.writeFile(releasePath, releaseContent);
     }
 
-    const testingPath = path.join(projectPath, 'TESTING.md');
+    const testingPath = path.join(workspacePath, 'TESTING.md');
     if (!(await FileSystemUtils.fileExists(testingPath))) {
       const testingContent = TemplateManager.getTestingTemplate();
       await FileSystemUtils.writeFile(testingPath, testingContent);
