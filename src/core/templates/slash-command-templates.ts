@@ -112,11 +112,11 @@ const getTaskSteps = `**Steps**
 4. **Stop and await user confirmation** before proceeding to the next task.`;
 
 const prepareCompactGuardrails = `**Guardrails**
-- Save ALL modified files before creating PROGRESS.md.
-- Create PROGRESS.md in the workspace directory.
+- Save ALL modified files before creating workspace/PROGRESS.md.
+- Create workspace/PROGRESS.md in the workspace directory.
 - Include enough detail that a new agent can continue without user re-explanation.
 - Add PROGRESS.md to .gitignore if not already present.
-- Update existing PROGRESS.md if one already exists (don't create duplicates).`;
+- Update existing workspace/PROGRESS.md if one already exists (don't create duplicates).`;
 
 const prepareCompactSteps = `**Steps**
 1. Save all files you have modified during this session.
@@ -183,7 +183,7 @@ const refineArchitectureSteps = `**Steps**
 7. **Write** - Update workspace/ARCHITECTURE.md preserving user content outside PLX markers.`;
 
 const refineArchitectureTemplateStructure = `**Template Structure**
-Reference \`workspace/templates/ARCHITECTURE.template.md\` for the canonical template structure. If it does not exist, use the project's existing ARCHITECTURE.md as reference, or create from these required sections:
+Reference \`workspace/templates/ARCHITECTURE.template.md\` for the canonical template structure. If it does not exist, use the project's existing workspace/ARCHITECTURE.md as reference, or create from these required sections:
 
 **Required Sections:**
 - Technology Stack (table format)
@@ -606,7 +606,7 @@ const prepareReleaseGuardrails = `**Guardrails**
 ${monorepoAwareness}
 
 ## Default Configuration
-When RELEASE.md Config section is missing or incomplete, apply these defaults:
+When workspace/RELEASE.md Config section is missing or incomplete, apply these defaults:
 | Setting | Default Value |
 |---------|---------------|
 | format | keep-a-changelog |
@@ -817,7 +817,7 @@ const planImplementationSteps = `**Steps**
    \`\`\`bash
    plx create progress --change-id <change-id>
    \`\`\`
-3. Read the generated PROGRESS.md and identify the first non-completed task.
+3. Read the generated workspace/PROGRESS.md and identify the first non-completed task.
 4. Output the first task block to chat. Format:
    \`\`\`markdown
    ## Task: <task-name>
@@ -921,9 +921,9 @@ ${monorepoAwareness}`;
 const copyNextTaskContextDetection = `**Context Detection**
 Determine which scenario applies:
 
-1. **Plan-implementation workflow active**: Check if PROGRESS.md exists AND conversation contains task blocks or feedback blocks.
+1. **Plan-implementation workflow active**: Check if workspace/PROGRESS.md exists AND conversation contains task blocks or feedback blocks.
    - If pending feedback: copy the most recent feedback block.
-   - If no feedback: copy the next uncompleted task block from PROGRESS.md.
+   - If no feedback: copy the next uncompleted task block from workspace/PROGRESS.md.
 
 2. **New conversation (no context)**: Run \`plx get task\` to retrieve the highest-priority task.
    - Generate a task block from the task content.
@@ -1021,7 +1021,7 @@ const copyReviewRequestSteps = `**Steps**
    **ID:** <id>
 
    ### Review Guidelines
-   <full REVIEW.md content>
+   <full workspace/REVIEW.md content>
 
    ### Context
    <proposal Why and What Changes sections>
@@ -1073,7 +1073,7 @@ const copyTestRequestSteps = `**Steps**
    **ID:** <id>
 
    ### Testing Configuration
-   <full TESTING.md content>
+   <full workspace/TESTING.md content>
 
    ### Context
    <proposal Why and What Changes sections>

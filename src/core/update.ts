@@ -46,7 +46,7 @@ export class UpdateCommand {
       const fileList = rootFilesMigrationResult.migratedFiles.length > 0 
         ? ` (${rootFilesMigrationResult.migratedFiles.join(', ')})`
         : '';
-      console.log(chalk.green(`Migrated ${rootFilesMigrationResult.migratedCount} root file${rootFilesMigrationResult.migratedCount === 1 ? '' : 's'} to workspace/${fileList}`));
+      console.log(chalk.green(`Migrated ${rootFilesMigrationResult.migratedCount} root file${rootFilesMigrationResult.migratedCount === 1 ? '' : 's'} to workspace${fileList}`));
     }
     if (rootFilesMigrationResult.errors.length > 0) {
       for (const error of rootFilesMigrationResult.errors) {
@@ -92,7 +92,7 @@ export class UpdateCommand {
       await FileSystemUtils.writeFile(testingPath, testingContent);
     }
 
-    // 6. Update existing AI tool configuration files only
+    // 7. Update existing AI tool configuration files only
     const configurators = ToolRegistry.getAll();
     const slashConfigurators = SlashCommandRegistry.getAll();
     const updatedFiles: string[] = [];

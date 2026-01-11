@@ -932,7 +932,7 @@ export class InitCommand {
     console.log(PALETTE.white('1. Populate your architecture documentation:'));
     console.log(
       PALETTE.lightGray(
-        '   "Please read ARCHITECTURE.md and help me fill it out'
+        '   "Please read workspace/ARCHITECTURE.md and help me fill it out'
       )
     );
     console.log(
