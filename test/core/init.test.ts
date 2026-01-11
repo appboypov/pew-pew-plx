@@ -299,7 +299,7 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('name: Plan Proposal');
       expect(proposalContent).toContain('<!-- PLX:START -->');
       expect(proposalContent).toContain('**Context**');
-      expect(proposalContent).toContain('@ARCHITECTURE.md');
+      expect(proposalContent).toContain('@workspace/ARCHITECTURE.md');
       expect(proposalContent).toContain('@workspace/AGENTS.md');
       expect(proposalContent).toContain('**Guardrails**');
 
@@ -333,12 +333,12 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(planProposal, 'utf-8');
       expect(proposalContent).toContain('**Context**');
-      expect(proposalContent).toContain('@ARCHITECTURE.md');
+      expect(proposalContent).toContain('@workspace/ARCHITECTURE.md');
       expect(proposalContent).toContain('@workspace/AGENTS.md');
 
       const requestContent = await fs.readFile(planRequest, 'utf-8');
       expect(requestContent).toContain('**Context**');
-      expect(requestContent).toContain('@ARCHITECTURE.md');
+      expect(requestContent).toContain('@workspace/ARCHITECTURE.md');
       expect(requestContent).toContain('@workspace/AGENTS.md');
     });
 
@@ -815,7 +815,7 @@ describe('InitCommand', () => {
       await testFileRecreationInExtendMode(
         testDir,
         initCommand,
-        'ARCHITECTURE.md',
+        'workspace/ARCHITECTURE.md',
         'Architecture'
       );
     });
