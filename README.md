@@ -234,7 +234,7 @@ When you run `plx init`, these commands are installed for supported AI tools:
 
 | Tool | Command Format |
 |------|----------------|
-| Amazon Q Developer | `@plx-plan-proposal`, `@plx-implement`, `@plx-archive` |
+| Amazon Q Developer | `plx-plan-proposal`, `plx-implement`, `plx-archive` |
 | Antigravity | `/plx-plan-proposal`, `/plx-implement`, `/plx-archive` |
 | Auggie (Augment CLI) | `/plx-plan-proposal`, `/plx-implement`, `/plx-archive` |
 | Claude Code | `/plx:plan-proposal`, `/plx:implement`, `/plx:archive` |
