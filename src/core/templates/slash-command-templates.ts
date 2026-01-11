@@ -1,10 +1,14 @@
 export type SlashCommandId =
   | 'archive'
   | 'complete-task'
+  | 'copy-next-task'
+  | 'copy-review-request'
+  | 'copy-test-request'
   | 'get-task'
   | 'implement'
   | 'orchestrate'
   | 'parse-feedback'
+  | 'plan-implementation'
   | 'plan-proposal'
   | 'plan-request'
   | 'prepare-compact'
@@ -62,16 +66,21 @@ const proposalReferences = `**Reference**
 const implementSteps = `**Steps**
 Track these steps as TODOs and complete them one by one.
 1. Determine the scope:
-   - If user specified a task ID in ARGUMENTS, use \`plx get task --id <task-id>\` to get that specific task and proceed to step 2
+   - If user specified a task ID in ARGUMENTS, use \`plx get task --id <task-id>\` to get that specific task and proceed to step 3
    - Otherwise, run \`plx get tasks\` to retrieve all tasks for the highest-priority change
-2. For each task (or the single task if task ID was provided):
+2. Generate progress file for tracking:
+   \`\`\`bash
+   plx create progress --change-id <change-id>
+   \`\`\`
+3. For each task (or the single task if task ID was provided):
    a. Work through the task's Implementation Checklist, keeping edits minimal
    b. Mark checklist items complete (\`[x]\`) in the task file
    c. Mark the task as done with \`plx complete task --id <task-id>\`
-3. Stop when complete:
+   d. Regenerate progress: \`plx create progress --change-id <change-id>\`
+4. Stop when complete:
    - If implementing a specific task ID (from step 1), stop after completing that task
    - If implementing all tasks in a change, stop after all tasks have been completed
-4. Reference \`plx get changes\` or \`plx get change --id <item>\` when additional context is required.`;
+5. Reference \`plx get changes\` or \`plx get change --id <item>\` when additional context is required.`;
 
 const implementReferences = `**Reference**
 - Use \`plx get change --id <id> --json --deltas-only\` if you need additional context from the proposal while implementing.`;
@@ -668,25 +677,30 @@ const orchestrateSteps = `**Steps**
    - For changes: run \`plx get tasks\` to see all tasks.
    - For reviews: identify review aspects (architecture, scope, testing, etc.).
    - For other work: enumerate the discrete units of work.
-2. For each unit of work:
+2. Generate progress file for tracking:
+   \`\`\`bash
+   plx create progress --change-id <change-id>
+   \`\`\`
+3. For each unit of work:
    a. Get detailed context (\`plx get task --id <id>\` or equivalent).
    b. Spawn a sub-agent with clear, scoped instructions; select model based on task skill-level (junior→haiku, medior→sonnet, senior→opus).
    c. Wait for sub-agent to complete work.
-3. Review sub-agent output:
+4. Review sub-agent output:
    - Scope adherence: no unrequested features or changes.
    - Convention alignment: follows project patterns and standards.
    - TracelessChanges: no artifacts of prior implementation.
    - Quality: meets acceptance criteria.
-4. If issues found:
+5. If issues found:
    - Provide specific, actionable feedback to sub-agent.
    - Request revision with clear guidance.
    - Repeat review until satisfactory.
-5. If approved:
+6. If approved:
    - For tasks: mark complete with \`plx complete task --id <id>\`.
    - For reviews: consolidate feedback.
+   - Regenerate progress: \`plx create progress --change-id <change-id>\`
    - Proceed to next unit of work.
-6. Continue until all work is complete.
-7. Final validation: run \`plx validate\` if applicable.`;
+7. Continue until all work is complete.
+8. Final validation: run \`plx validate\` if applicable.`;
 
 const orchestrateReference = `**Reference**
 - Use \`plx get change --id <change-id>\` for proposal context.
@@ -781,6 +795,86 @@ const undoTaskSteps = `**Steps**
 3. Run \`plx undo task --id <task-id>\` to revert the task to to-do.
 4. Confirm undo to user.`;
 
+const planImplementationGuardrails = `${planningContext}
+
+**Guardrails**
+- Generate PROGRESS.md before outputting task blocks.
+- Output task blocks to chat for immediate copy to external agents.
+- Do NOT reference PROGRESS.md in task blocks—agents must work without knowledge of it.
+- Verify each agent's work against scope, TracelessChanges, conventions, and acceptance criteria.
+- Enforce TracelessChanges:
+  - No comments referencing removed code.
+  - No "we don't do X" statements about removed features.
+  - No clarifications about previous states or deprecated behavior.
+- Verify scope adherence: confirm no unnecessary additions.
+- Verify project convention alignment before accepting work.
+
+${monorepoAwareness}`;
+
+const planImplementationSteps = `**Steps**
+1. Parse \`$ARGUMENTS\` to extract change-id.
+2. Generate progress file:
+   \`\`\`bash
+   plx create progress --change-id <change-id>
+   \`\`\`
+3. Read the generated PROGRESS.md and identify the first non-completed task.
+4. Output the first task block to chat. Format:
+   \`\`\`markdown
+   ## Task: <task-name>
+
+   **Task ID:** <task-id>
+   **Status:** <status>
+
+   ### Context
+   <proposal Why and What Changes sections>
+
+   ### Task Details
+   <full task content without frontmatter>
+
+   ### Instructions
+   Implement this task according to the specifications above.
+   Focus on the Constraints and Acceptance Criteria sections.
+   When complete, mark the task as done:
+   \\\`\\\`\\\`bash
+   plx complete task --id <task-id>
+   \\\`\\\`\\\`
+   \`\`\`
+5. Wait for external agent to complete the task and return with results.
+6. Review agent's work using verification checklist:
+   - [ ] Scope adherence: only requested changes, no extras
+   - [ ] TracelessChanges: no artifacts of prior implementation
+   - [ ] Convention alignment: follows project patterns
+   - [ ] Tests: all tests pass
+   - [ ] Acceptance criteria: all items verified
+7. If issues found, generate feedback block and output to chat:
+   \`\`\`markdown
+   ## Feedback for Task: <task-name>
+
+   **Task ID:** <task-id>
+
+   ### Issues Found
+   1. <specific issue with location and expected fix>
+   2. <next issue>
+
+   ### Context Reminder
+   <re-include relevant task context>
+
+   ### Instructions
+   Address the issues above. When complete, return with updated results.
+   \`\`\`
+8. If all checks pass:
+   - Mark task complete: \`plx complete task --id <task-id>\`
+   - Regenerate progress: \`plx create progress --change-id <change-id>\`
+   - If more tasks remain, output next task block (return to step 4)
+9. When all tasks are complete:
+   - Run final validation: \`plx validate change --id <change-id> --strict\`
+   - Report completion summary with all tasks marked done.`;
+
+const planImplementationReference = `**Reference**
+- Use \`plx get change --id <change-id>\` for proposal context.
+- Use \`plx get tasks --parent-id <change-id> --parent-type change\` to see all tasks.
+- Use \`plx create progress --change-id <id>\` to regenerate progress file.`;
+
 const testGuardrails = `**Guardrails**
 - Read @TESTING.md for test runner, coverage threshold, and test patterns.
 - Parse arguments for scope: --id and --parent-type flags.
@@ -815,13 +909,206 @@ const testSteps = `**Steps**
    - Summarize failures with file locations.
    - Suggest fixes or next steps.`;
 
+const copyNextTaskGuardrails = `**Guardrails**
+- Output format must match task block or feedback block structure exactly.
+- Do NOT modify task content—copy verbatim from source.
+- The copied block is self-contained for a fresh sub-agent with no prior context.
+- Do NOT reference PROGRESS.md in the output—agents must work without knowledge of it.
+- Copy to clipboard using appropriate system command (pbcopy on macOS, xclip on Linux, clip on Windows).
+
+${monorepoAwareness}`;
+
+const copyNextTaskContextDetection = `**Context Detection**
+Determine which scenario applies:
+
+1. **Plan-implementation workflow active**: Check if PROGRESS.md exists AND conversation contains task blocks or feedback blocks.
+   - If pending feedback: copy the most recent feedback block.
+   - If no feedback: copy the next uncompleted task block from PROGRESS.md.
+
+2. **New conversation (no context)**: Run \`plx get task\` to retrieve the highest-priority task.
+   - Generate a task block from the task content.
+
+3. **Existing conversation with context**: Analyze conversation history.
+   - If a task was just reviewed with issues: generate a feedback block.
+   - If a task was completed: get next task via \`plx get task --did-complete-previous\`.
+   - If unclear: ask user what to copy.`;
+
+const copyNextTaskSteps = `**Steps**
+1. Detect context using Context Detection rules above.
+2. Based on context, determine what to copy:
+
+   **If feedback is pending (issues found in review):**
+   Generate feedback block:
+   \`\`\`markdown
+   ## Feedback for Task: <task-name>
+
+   **Task ID:** <task-id>
+
+   ### Issues Found
+   1. <specific issue with location and expected fix>
+   2. <next issue>
+
+   ### Context Reminder
+   <re-include relevant task context from proposal>
+
+   ### Instructions
+   Address the issues above. When complete, return with updated results.
+   \`\`\`
+
+   **If copying next task (no pending feedback):**
+   a. Get task content:
+      - From PROGRESS.md if it exists and has uncompleted tasks
+      - Otherwise via \`plx get task\` (or \`plx get task --did-complete-previous\` if previous completed)
+   b. Generate task block:
+   \`\`\`markdown
+   ## Task: <task-name>
+
+   **Task ID:** <task-id>
+   **Status:** <status>
+
+   ### Context
+   <proposal Why and What Changes sections>
+
+   ### Task Details
+   <full task content without frontmatter>
+
+   ### Instructions
+   Implement this task according to the specifications above.
+   Focus on the Constraints and Acceptance Criteria sections.
+   When complete, mark the task as done:
+   \\\`\\\`\\\`bash
+   plx complete task --id <task-id>
+   \\\`\\\`\\\`
+   \`\`\`
+
+3. Copy the generated block to clipboard:
+   - macOS: \`echo "<block>" | pbcopy\`
+   - Linux: \`echo "<block>" | xclip -selection clipboard\`
+   - Windows: \`echo "<block>" | clip\`
+
+4. Confirm to user what was copied and the task/feedback ID.`;
+
+const copyNextTaskReference = `**Reference**
+- Use \`plx get task\` to retrieve highest-priority task when no context exists.
+- Use \`plx get task --did-complete-previous\` after completing a task.
+- Use \`plx get change --id <change-id>\` to get proposal context.
+- Read PROGRESS.md if it exists to find next uncompleted task block.`;
+
+const copyReviewRequestGuardrails = `**Guardrails**
+- Output format must match review request block structure exactly.
+- Include full REVIEW.md content in the request block.
+- The request is self-contained for a fresh sub-agent with no prior context.
+- Copy to clipboard using appropriate system command (pbcopy on macOS, xclip on Linux, clip on Windows).
+
+${monorepoAwareness}`;
+
+const copyReviewRequestContextDetection = `**Context Detection**
+Determine review scope from:
+1. **Task context**: If current conversation has an active task, review that task's implementation.
+2. **Change context**: If a change-id is provided or can be derived, review all tasks in that change.
+3. **New conversation**: Ask user what to review or run \`plx get task\` to get current task.`;
+
+const copyReviewRequestSteps = `**Steps**
+1. Detect context using Context Detection rules above.
+2. Gather review materials:
+   - Run \`plx review change --id <change-id>\` or \`plx review task --id <task-id>\`
+   - Read @REVIEW.md for guidelines and checklist
+3. Generate review request block:
+   \`\`\`markdown
+   ## Review Request: <task-name or change-name>
+
+   **Scope:** <task|change>
+   **ID:** <id>
+
+   ### Review Guidelines
+   <full REVIEW.md content>
+
+   ### Context
+   <proposal Why and What Changes sections>
+
+   ### Implementation Details
+   <task details or change summary>
+
+   ### Instructions
+   Review the implementation against the guidelines above.
+   Add feedback markers in code: \`// #FEEDBACK #TODO | {feedback}\`
+   When complete, summarize findings and list any blocking issues.
+   \`\`\`
+4. Copy to clipboard:
+   - macOS: \`echo "<block>" | pbcopy\`
+   - Linux: \`echo "<block>" | xclip -selection clipboard\`
+   - Windows: \`echo "<block>" | clip\`
+5. Confirm to user what was copied and the review scope.`;
+
+const copyReviewRequestReference = `**Reference**
+- Use \`plx review change --id <id>\` for change review context.
+- Use \`plx review task --id <id>\` for task review context.
+- Use \`plx get change --id <id>\` for proposal details.
+- Read @REVIEW.md for review guidelines and checklist.`;
+
+const copyTestRequestGuardrails = `**Guardrails**
+- Output format must match test request block structure exactly.
+- Include full TESTING.md content in the request block.
+- The request is self-contained for a fresh sub-agent with no prior context.
+- Copy to clipboard using appropriate system command (pbcopy on macOS, xclip on Linux, clip on Windows).
+
+${monorepoAwareness}`;
+
+const copyTestRequestContextDetection = `**Context Detection**
+Determine test scope from:
+1. **Task context**: If current conversation has an active task, test that task's implementation.
+2. **Change context**: If a change-id is provided or can be derived, test all implementations in that change.
+3. **New conversation**: Ask user what to test or run \`plx get task\` to get current task.`;
+
+const copyTestRequestSteps = `**Steps**
+1. Detect context using Context Detection rules above.
+2. Gather test materials:
+   - Read @TESTING.md for test configuration, patterns, and checklist
+   - Get implementation context from task or change
+3. Generate test request block:
+   \`\`\`markdown
+   ## Test Request: <task-name or change-name>
+
+   **Scope:** <task|change>
+   **ID:** <id>
+
+   ### Testing Configuration
+   <full TESTING.md content>
+
+   ### Context
+   <proposal Why and What Changes sections>
+
+   ### Implementation Details
+   <task details or change summary>
+
+   ### Instructions
+   Test the implementation according to the configuration above.
+   Run tests: \`<test command from TESTING.md>\`
+   Ensure coverage meets threshold: <threshold from TESTING.md>
+   When complete, report test results and coverage.
+   \`\`\`
+4. Copy to clipboard:
+   - macOS: \`echo "<block>" | pbcopy\`
+   - Linux: \`echo "<block>" | xclip -selection clipboard\`
+   - Windows: \`echo "<block>" | clip\`
+5. Confirm to user what was copied and the test scope.`;
+
+const copyTestRequestReference = `**Reference**
+- Read @TESTING.md for test configuration and patterns.
+- Use \`plx get task --id <id>\` for task context.
+- Use \`plx get change --id <id>\` for change context.`;
+
 export const slashCommandBodies: Record<SlashCommandId, string> = {
   'archive': [baseGuardrails, archiveSteps, archiveReferences].join('\n\n'),
   'complete-task': completeTaskSteps,
+  'copy-next-task': [copyNextTaskGuardrails, copyNextTaskContextDetection, copyNextTaskSteps, copyNextTaskReference].join('\n\n'),
+  'copy-review-request': [copyReviewRequestGuardrails, copyReviewRequestContextDetection, copyReviewRequestSteps, copyReviewRequestReference].join('\n\n'),
+  'copy-test-request': [copyTestRequestGuardrails, copyTestRequestContextDetection, copyTestRequestSteps, copyTestRequestReference].join('\n\n'),
   'get-task': [getTaskGuardrails, getTaskSteps].join('\n\n'),
   'implement': [baseGuardrails, implementSteps, implementReferences].join('\n\n'),
   'orchestrate': [orchestrateGuardrails, orchestrateSteps, orchestrateReference].join('\n\n'),
   'parse-feedback': [parseFeedbackGuardrails, parseFeedbackSteps].join('\n\n'),
+  'plan-implementation': [planImplementationGuardrails, planImplementationSteps, planImplementationReference].join('\n\n'),
   'plan-proposal': [proposalGuardrails, proposalSteps, proposalReferences].join('\n\n'),
   'plan-request': [planRequestGuardrails, planRequestSteps, planRequestReference].join('\n\n'),
   'prepare-compact': [prepareCompactGuardrails, prepareCompactSteps].join('\n\n'),

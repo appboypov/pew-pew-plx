@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 parent-type: change
 parent-id: add-upward-workspace-discovery
 ---
@@ -39,13 +39,13 @@ Confirm the upward workspace discovery works correctly in real-world scenarios a
 
 ## Implementation Checklist
 
-- [ ] 3.1 Run `pnpm test` and verify all tests pass
-- [ ] 3.2 Run `pnpm typecheck` and fix any type errors
-- [ ] 3.3 Run `pnpm lint` and fix any linting issues
-- [ ] 3.4 Manual test from `src/` subdirectory
-- [ ] 3.5 Manual test from `src/commands/` subdirectory
-- [ ] 3.6 Manual test from project root (regression check)
-- [ ] 3.7 Review all changed files for consistency
+- [x] 3.1 Run `pnpm test` and verify all tests pass
+- [x] 3.2 Run `pnpm typecheck` and fix any type errors
+- [x] 3.3 Run `pnpm lint` and fix any linting issues
+- [x] 3.4 Manual test from `src/` subdirectory
+- [x] 3.5 Manual test from `src/commands/` subdirectory
+- [x] 3.6 Manual test from project root (regression check)
+- [x] 3.7 Review all changed files for consistency
 
 ## Notes
 

@@ -207,7 +207,11 @@ When you run `plx init`, these commands are installed for supported AI tools:
 
 - `/plx/plan-request` - Clarify intent via iterative yes/no questions
 - `/plx/plan-proposal` - Scaffold change proposal (auto-consumes request.md)
+- `/plx/plan-implementation` - Generate PROGRESS.md for multi-agent task handoff
 - `/plx/get-task` - Get next prioritized task
+- `/plx/copy-next-task` - Copy next task or feedback block to clipboard
+- `/plx/copy-review-request` - Copy review request with REVIEW.md guidelines to clipboard
+- `/plx/copy-test-request` - Copy test request with TESTING.md configuration to clipboard
 - `/plx/complete-task` - Mark task as done
 - `/plx/undo-task` - Revert task to to-do
 - `/plx/implement` - Implement current task with guided workflow

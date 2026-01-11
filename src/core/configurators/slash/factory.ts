@@ -4,10 +4,14 @@ import { SlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.factory/commands/plx-archive.md',
   'complete-task': '.factory/commands/plx-complete-task.md',
+  'copy-next-task': '.factory/commands/plx-copy-next-task.md',
+  'copy-review-request': '.factory/commands/plx-copy-review-request.md',
+  'copy-test-request': '.factory/commands/plx-copy-test-request.md',
   'get-task': '.factory/commands/plx-get-task.md',
   'implement': '.factory/commands/plx-implement.md',
   'orchestrate': '.factory/commands/plx-orchestrate.md',
   'parse-feedback': '.factory/commands/plx-parse-feedback.md',
+  'plan-implementation': '.factory/commands/plx-plan-implementation.md',
   'plan-proposal': '.factory/commands/plx-plan-proposal.md',
   'plan-request': '.factory/commands/plx-plan-request.md',
   'prepare-compact': '.factory/commands/plx-prepare-compact.md',
@@ -31,6 +35,18 @@ argument-hint: change-id
 description: Mark a task as done.
 argument-hint: task-id
 ---`,
+  'copy-next-task': `---
+description: Copy next task or feedback block to clipboard for external agent handoff.
+argument-hint: (optional context)
+---`,
+  'copy-review-request': `---
+description: Copy review request block with REVIEW.md guidelines to clipboard for external agent.
+argument-hint: (optional context)
+---`,
+  'copy-test-request': `---
+description: Copy test request block with TESTING.md configuration to clipboard for external agent.
+argument-hint: (optional context)
+---`,
   'get-task': `---
 description: Select and display the next prioritized task to work on.
 argument-hint: (optional context)
@@ -45,6 +61,10 @@ argument-hint: (optional context)
 ---`,
   'parse-feedback': `---
 description: Parse feedback markers and generate review tasks.
+argument-hint: (optional context)
+---`,
+  'plan-implementation': `---
+description: Generate PROGRESS.md and orchestrate multi-agent task handoff.
 argument-hint: (optional context)
 ---`,
   'plan-proposal': `---

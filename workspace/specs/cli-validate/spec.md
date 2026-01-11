@@ -216,3 +216,103 @@ The markdown parser SHALL correctly identify sections regardless of line ending 
 - **WHEN** running `plx validate <change-id>`
 - **THEN** validation SHALL recognize the sections and NOT raise parsing errors
 
+### Requirement: Task Skill Level Validation Warning
+
+The CLI SHALL warn in strict mode when tasks are missing the `skill-level` field.
+
+#### Scenario: Warning for missing skill level in strict mode
+
+- **WHEN** user runs `plx validate <change-id> --strict`
+- **AND** a task file exists without a `skill-level` field in frontmatter
+- **THEN** the system SHALL emit a WARNING (not ERROR)
+- **AND** the warning message SHALL indicate which task is missing skill level
+- **AND** validation SHALL still pass if no other issues exist
+
+#### Scenario: No warning in non-strict mode
+
+- **WHEN** user runs `plx validate <change-id>` (without --strict)
+- **AND** a task file exists without a `skill-level` field
+- **THEN** no warning SHALL be emitted for missing skill level
+
+#### Scenario: Valid skill level values
+
+- **WHEN** a task has `skill-level` in frontmatter
+- **AND** the value is one of: junior, medior, senior
+- **THEN** no warning SHALL be emitted for that field
+
+#### Scenario: Invalid skill level value
+
+- **WHEN** a task has `skill-level` in frontmatter
+- **AND** the value is not one of: junior, medior, senior
+- **THEN** the system SHALL emit a WARNING about invalid skill level
+
+### Requirement: Entity Subcommands
+
+The validate command SHALL support entity subcommands with singular/plural distinction.
+
+#### Scenario: Validate specific change
+
+- **WHEN** `plx validate change --id <id>` is executed
+- **THEN** validate the specified change
+- **AND** display validation results
+
+#### Scenario: Validate all changes
+
+- **WHEN** `plx validate changes` is executed
+- **THEN** validate all changes in workspace/changes/ (excluding archive)
+- **AND** display results for each change
+- **AND** show summary statistics
+
+#### Scenario: Validate specific spec
+
+- **WHEN** `plx validate spec --id <id>` is executed
+- **THEN** validate the specified spec
+- **AND** display validation results
+
+#### Scenario: Validate all specs
+
+- **WHEN** `plx validate specs` is executed
+- **THEN** validate all specs in workspace/specs/
+- **AND** display results for each spec
+- **AND** show summary statistics
+
+#### Scenario: Strict validation with subcommand
+
+- **WHEN** `plx validate change --id <id> --strict` is executed
+- **THEN** apply strict validation
+- **AND** treat warnings as errors
+
+#### Scenario: JSON output with subcommand
+
+- **WHEN** `plx validate changes --json` is executed
+- **THEN** output validation results as JSON
+- **AND** include detailed issues for each item
+
+### Requirement: Legacy Command Deprecation
+
+The validate command SHALL emit deprecation warnings for legacy syntax.
+
+#### Scenario: Deprecation warning on positional argument
+
+- **WHEN** `plx validate <item>` is executed (without subcommand)
+- **THEN** emit warning to stderr: "Deprecation: 'plx validate <item>' is deprecated. Use 'plx validate <type> --id <item>' instead."
+- **AND** continue with normal validation
+
+#### Scenario: Deprecation warning on --changes flag
+
+- **WHEN** `plx validate --changes` is executed
+- **THEN** emit warning to stderr: "Deprecation: 'plx validate --changes' is deprecated. Use 'plx validate changes' instead."
+- **AND** continue with normal validation
+
+#### Scenario: Deprecation warning on --specs flag
+
+- **WHEN** `plx validate --specs` is executed
+- **THEN** emit warning to stderr: "Deprecation: 'plx validate --specs' is deprecated. Use 'plx validate specs' instead."
+- **AND** continue with normal validation
+
+#### Scenario: Suppressing deprecation warnings
+
+- **WHEN** `plx validate --changes --no-deprecation-warnings` is executed
+- **THEN** do not emit deprecation warning
+- **AND** continue with normal validation
+

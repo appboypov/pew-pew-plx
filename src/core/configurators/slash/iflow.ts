@@ -4,10 +4,14 @@ import { SlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.iflow/commands/plx-archive.md',
   'complete-task': '.iflow/commands/plx-complete-task.md',
+  'copy-next-task': '.iflow/commands/plx-copy-next-task.md',
+  'copy-review-request': '.iflow/commands/plx-copy-review-request.md',
+  'copy-test-request': '.iflow/commands/plx-copy-test-request.md',
   'get-task': '.iflow/commands/plx-get-task.md',
   'implement': '.iflow/commands/plx-implement.md',
   'orchestrate': '.iflow/commands/plx-orchestrate.md',
   'parse-feedback': '.iflow/commands/plx-parse-feedback.md',
+  'plan-implementation': '.iflow/commands/plx-plan-implementation.md',
   'plan-proposal': '.iflow/commands/plx-plan-proposal.md',
   'plan-request': '.iflow/commands/plx-plan-request.md',
   'prepare-compact': '.iflow/commands/plx-prepare-compact.md',
@@ -35,6 +39,24 @@ id: plx-complete-task
 category: Pew Pew Plx
 description: Mark a task as done.
 ---`,
+  'copy-next-task': `---
+name: /plx-copy-next-task
+id: plx-copy-next-task
+category: Pew Pew Plx
+description: Copy next task or feedback block to clipboard for external agent handoff.
+---`,
+  'copy-review-request': `---
+name: /plx-copy-review-request
+id: plx-copy-review-request
+category: Pew Pew Plx
+description: Copy review request block with REVIEW.md guidelines to clipboard for external agent.
+---`,
+  'copy-test-request': `---
+name: /plx-copy-test-request
+id: plx-copy-test-request
+category: Pew Pew Plx
+description: Copy test request block with TESTING.md configuration to clipboard for external agent.
+---`,
   'get-task': `---
 name: /plx-get-task
 id: plx-get-task
@@ -58,6 +80,12 @@ name: /plx-parse-feedback
 id: plx-parse-feedback
 category: Pew Pew Plx
 description: Parse feedback markers and generate review tasks.
+---`,
+  'plan-implementation': `---
+name: /plx-plan-implementation
+id: plx-plan-implementation
+category: Pew Pew Plx
+description: Generate PROGRESS.md and orchestrate multi-agent task handoff.
 ---`,
   'plan-proposal': `---
 name: /plx-plan-proposal

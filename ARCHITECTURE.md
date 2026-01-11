@@ -901,7 +901,11 @@ Pew Pew Plx provides:
 7. **Slash Commands**: Commands in `.claude/commands/plx/`
    - `/plx/plan-request` - Clarify intent via iterative yes/no questions before proposal
    - `/plx/plan-proposal` - Scaffold change proposal (auto-consumes request.md)
+   - `/plx/plan-implementation` - Generate PROGRESS.md for multi-agent task handoff
    - `/plx/get-task` - Get next prioritized task and execute workflow
+   - `/plx/copy-next-task` - Copy next task or feedback block to clipboard for external agent handoff
+   - `/plx/copy-review-request` - Copy review request with REVIEW.md guidelines to clipboard for external agent
+   - `/plx/copy-test-request` - Copy test request with TESTING.md configuration to clipboard for external agent
    - `/plx/complete-task` - Mark task as done
    - `/plx/undo-task` - Revert task to to-do
    - `/plx/implement` - Implement tasks with guided workflow (processes entire change)

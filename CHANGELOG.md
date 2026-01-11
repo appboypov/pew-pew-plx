@@ -1,5 +1,22 @@
 # Pew Pew Plx Changelog
 
+## 0.18.0 - 2026-01-10
+
+### Added
+
+- **Plan-implementation workflow for multi-agent handoff**: New commands for orchestrating work across sub-agents
+  - `plx create progress --change-id <id>` generates PROGRESS.md with embedded task blocks for external agent handoff
+  - `/plx:plan-implementation` slash command orchestrates the workflow with verification loops
+  - Task blocks are self-contained for copy-paste to external agents without context dependencies
+  - Feedback blocks allow iterative refinement until tasks pass review
+- **Copy-next-task slash command**: `/plx:copy-next-task` copies the next task or feedback block to clipboard
+  - Context-aware: detects plan-implementation workflow, new conversation, or existing conversation
+  - Generates task blocks with proposal context for fresh sub-agents
+  - Generates feedback blocks when issues are found during review
+  - Cross-platform clipboard support (pbcopy, xclip, clip)
+
+---
+
 ## 0.17.0 - 2026-01-10
 
 ### Added

@@ -4,10 +4,14 @@ import { SlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.amazonq/prompts/plx-archive.md',
   'complete-task': '.amazonq/prompts/plx-complete-task.md',
+  'copy-next-task': '.amazonq/prompts/plx-copy-next-task.md',
+  'copy-review-request': '.amazonq/prompts/plx-copy-review-request.md',
+  'copy-test-request': '.amazonq/prompts/plx-copy-test-request.md',
   'get-task': '.amazonq/prompts/plx-get-task.md',
   'implement': '.amazonq/prompts/plx-implement.md',
   'orchestrate': '.amazonq/prompts/plx-orchestrate.md',
   'parse-feedback': '.amazonq/prompts/plx-parse-feedback.md',
+  'plan-implementation': '.amazonq/prompts/plx-plan-implementation.md',
   'plan-proposal': '.amazonq/prompts/plx-plan-proposal.md',
   'plan-request': '.amazonq/prompts/plx-plan-request.md',
   'prepare-compact': '.amazonq/prompts/plx-prepare-compact.md',
@@ -37,6 +41,21 @@ description: Mark a task as done.
 ---
 
 <arguments>$ARGUMENTS</arguments>`,
+  'copy-next-task': `---
+description: Copy next task or feedback block to clipboard for external agent handoff.
+---
+
+<arguments>$ARGUMENTS</arguments>`,
+  'copy-review-request': `---
+description: Copy review request block with REVIEW.md guidelines to clipboard for external agent.
+---
+
+<arguments>$ARGUMENTS</arguments>`,
+  'copy-test-request': `---
+description: Copy test request block with TESTING.md configuration to clipboard for external agent.
+---
+
+<arguments>$ARGUMENTS</arguments>`,
   'get-task': `---
 description: Select and display the next prioritized task to work on.
 ---
@@ -58,6 +77,11 @@ description: Orchestrate sub-agents to complete work collaboratively.
 <arguments>$ARGUMENTS</arguments>`,
   'parse-feedback': `---
 description: Parse feedback markers and generate review tasks.
+---
+
+<arguments>$ARGUMENTS</arguments>`,
+  'plan-implementation': `---
+description: Generate PROGRESS.md and orchestrate multi-agent task handoff.
 ---
 
 <arguments>$ARGUMENTS</arguments>`,

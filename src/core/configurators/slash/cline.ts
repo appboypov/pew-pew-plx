@@ -4,10 +4,14 @@ import { SlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.clinerules/workflows/plx-archive.md',
   'complete-task': '.clinerules/workflows/plx-complete-task.md',
+  'copy-next-task': '.clinerules/workflows/plx-copy-next-task.md',
+  'copy-review-request': '.clinerules/workflows/plx-copy-review-request.md',
+  'copy-test-request': '.clinerules/workflows/plx-copy-test-request.md',
   'get-task': '.clinerules/workflows/plx-get-task.md',
   'implement': '.clinerules/workflows/plx-implement.md',
   'orchestrate': '.clinerules/workflows/plx-orchestrate.md',
   'parse-feedback': '.clinerules/workflows/plx-parse-feedback.md',
+  'plan-implementation': '.clinerules/workflows/plx-plan-implementation.md',
   'plan-proposal': '.clinerules/workflows/plx-plan-proposal.md',
   'plan-request': '.clinerules/workflows/plx-plan-request.md',
   'prepare-compact': '.clinerules/workflows/plx-prepare-compact.md',
@@ -29,6 +33,15 @@ Archive a deployed PLX change and update specs.`,
   'complete-task': `# PLX: Complete Task
 
 Mark a task as done.`,
+  'copy-next-task': `# PLX: Copy Next Task
+
+Copy next task or feedback block to clipboard for external agent handoff.`,
+  'copy-review-request': `# PLX: Copy Review Request
+
+Copy review request block with REVIEW.md guidelines to clipboard for external agent.`,
+  'copy-test-request': `# PLX: Copy Test Request
+
+Copy test request block with TESTING.md configuration to clipboard for external agent.`,
   'get-task': `# PLX: Get Task
 
 Select and display the next prioritized task to work on.`,
@@ -41,6 +54,9 @@ Orchestrate sub-agents to complete work collaboratively.`,
   'parse-feedback': `# PLX: Parse Feedback
 
 Parse feedback markers and generate review tasks.`,
+  'plan-implementation': `# PLX: Plan Implementation
+
+Generate PROGRESS.md and orchestrate multi-agent task handoff.`,
   'plan-proposal': `# PLX: Plan Proposal
 
 Scaffold a new PLX change and validate strictly. Consumes request.md when present.`,

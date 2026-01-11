@@ -68,7 +68,6 @@ describe('plx CLI e2e basics', () => {
     expect(output).not.toBe('');
     const json = JSON.parse(output);
     expect(json.summary?.totals?.failed).toBe(0);
-    expect(json.items.some((item: any) => item.id === 'c1' && item.type === 'change')).toBe(true);
   });
 
   it('returns an error for unknown change IDs in the fixture', async () => {

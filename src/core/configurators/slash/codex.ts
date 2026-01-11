@@ -8,10 +8,14 @@ import { PLX_MARKERS } from '../../config.js';
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.codex/prompts/plx-archive.md',
   'complete-task': '.codex/prompts/plx-complete-task.md',
+  'copy-next-task': '.codex/prompts/plx-copy-next-task.md',
+  'copy-review-request': '.codex/prompts/plx-copy-review-request.md',
+  'copy-test-request': '.codex/prompts/plx-copy-test-request.md',
   'get-task': '.codex/prompts/plx-get-task.md',
   'implement': '.codex/prompts/plx-implement.md',
   'orchestrate': '.codex/prompts/plx-orchestrate.md',
   'parse-feedback': '.codex/prompts/plx-parse-feedback.md',
+  'plan-implementation': '.codex/prompts/plx-plan-implementation.md',
   'plan-proposal': '.codex/prompts/plx-plan-proposal.md',
   'plan-request': '.codex/prompts/plx-plan-request.md',
   'prepare-compact': '.codex/prompts/plx-prepare-compact.md',
@@ -39,6 +43,24 @@ argument-hint: task-id
 ---
 
 $ARGUMENTS`,
+  'copy-next-task': `---
+description: Copy next task or feedback block to clipboard for external agent handoff.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'copy-review-request': `---
+description: Copy review request block with REVIEW.md guidelines to clipboard for external agent.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'copy-test-request': `---
+description: Copy test request block with TESTING.md configuration to clipboard for external agent.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
   'get-task': `---
 description: Select and display the next prioritized task to work on.
 argument-hint: (optional context)
@@ -59,6 +81,12 @@ argument-hint: (optional context)
 $ARGUMENTS`,
   'parse-feedback': `---
 description: Parse feedback markers and generate review tasks.
+argument-hint: (optional context)
+---
+
+$ARGUMENTS`,
+  'plan-implementation': `---
+description: Generate PROGRESS.md and orchestrate multi-agent task handoff.
 argument-hint: (optional context)
 ---
 

@@ -27,6 +27,11 @@ interface RequestOptions {
   json?: boolean;
 }
 
+interface ProgressOptions {
+  changeId: string;
+  json?: boolean;
+}
+
 interface ResolvedParent {
   type: 'change' | 'review' | 'spec';
   path: string;
@@ -443,5 +448,187 @@ export class CreateCommand {
       console.log(chalk.dim(`  - request.md`));
       console.log();
     }
+  }
+
+  async createProgress(options: ProgressOptions): Promise<void> {
+    const workspaces = await getFilteredWorkspaces(process.cwd());
+
+    if (workspaces.length === 0) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: 'No workspace found' }));
+      } else {
+        ora().fail('No workspace found. Run plx init first.');
+      }
+      process.exitCode = 1;
+      return;
+    }
+
+    const itemRetrieval = await ItemRetrievalService.create(
+      process.cwd(),
+      workspaces.map(w => ({
+        path: w.path,
+        relativePath: path.relative(process.cwd(), w.path),
+        projectName: w.projectName,
+        isRoot: true,
+      }))
+    );
+
+    // Get the change
+    const change = await itemRetrieval.getChangeById(options.changeId);
+    if (!change) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: `Change not found: ${options.changeId}` }));
+      } else {
+        ora().fail(`Change not found: ${options.changeId}`);
+      }
+      process.exitCode = 1;
+      return;
+    }
+
+    // Get tasks for this change and filter to non-completed
+    const allOpenTasks = await itemRetrieval.getAllOpenTasks('change');
+    const changeTasks = allOpenTasks.filter(t => t.parentId === options.changeId);
+
+    if (changeTasks.length === 0) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: 'All tasks are complete. Nothing to generate.' }));
+      } else {
+        ora().fail('All tasks are complete. Nothing to generate.');
+      }
+      process.exitCode = 1;
+      return;
+    }
+
+    // Sort tasks by sequence
+    changeTasks.sort((a, b) => a.task.sequence - b.task.sequence);
+
+    // Read task contents
+    const tasksWithContent = await Promise.all(changeTasks.map(async (t) => {
+      let content = '';
+      try {
+        content = await fs.readFile(t.task.filepath, 'utf-8');
+      } catch {
+        content = '*Task content could not be read*';
+      }
+      return { ...t, content };
+    }));
+
+    // Generate PROGRESS.md content
+    const progressContent = this.generateProgressContent(options.changeId, change.proposal, tasksWithContent);
+
+    // Write to project root (parent of workspace)
+    const projectRoot = path.dirname(change.workspacePath);
+    const progressPath = path.join(projectRoot, 'PROGRESS.md');
+    await FileSystemUtils.writeFile(progressPath, progressContent);
+
+    const relativePath = path.relative(process.cwd(), progressPath);
+
+    if (options.json) {
+      console.log(JSON.stringify({
+        success: true,
+        type: 'progress',
+        path: relativePath,
+        changeId: options.changeId,
+        taskCount: changeTasks.length,
+      }, null, 2));
+    } else {
+      console.log(chalk.green(`\n✓ Created progress file: ${relativePath}`));
+      console.log(chalk.dim(`  - ${changeTasks.length} task(s) included`));
+      console.log();
+    }
+  }
+
+  private generateProgressContent(
+    changeId: string,
+    proposal: string,
+    tasks: Array<{
+      taskId: string;
+      task: { filename: string; filepath: string; sequence: number; name: string };
+      status: string;
+      content: string;
+    }>
+  ): string {
+    const lines: string[] = [];
+
+    lines.push(`# Implementation Progress: ${changeId}`);
+    lines.push('');
+    lines.push('## Tasks Overview');
+    lines.push('');
+
+    // Task checklist
+    for (const t of tasks) {
+      const checkbox = t.status === 'in-progress' ? '- [~]' : '- [ ]';
+      const statusLabel = t.status === 'in-progress' ? ' (in-progress)' : '';
+      lines.push(`${checkbox} Task ${t.task.sequence}: ${t.task.name}${statusLabel}`);
+    }
+
+    lines.push('');
+    lines.push('---');
+    lines.push('');
+
+    // Extract proposal context once (reused for all tasks)
+    const proposalContext = this.extractProposalContext(proposal);
+
+    // Each task as a self-contained block
+    for (const t of tasks) {
+      lines.push(`## Task ${t.task.sequence}: ${t.task.name}`);
+      lines.push('');
+      lines.push(`**Status:** ${t.status}`);
+      lines.push(`**Task ID:** ${t.taskId}`);
+      lines.push('');
+
+      lines.push('### Context');
+      lines.push('');
+      lines.push('<details>');
+      lines.push('<summary>Proposal Context (click to expand)</summary>');
+      lines.push('');
+      lines.push(proposalContext);
+      lines.push('</details>');
+      lines.push('');
+
+      lines.push('### Task Details');
+      lines.push('');
+      lines.push(this.stripFrontmatter(t.content));
+      lines.push('');
+
+      lines.push('### Agent Instructions');
+      lines.push('');
+      lines.push('Pick up this task and implement it according to the specifications above.');
+      lines.push('Focus on the Constraints and Acceptance Criteria sections.');
+      lines.push('When complete, mark the task as done:');
+      lines.push('');
+      lines.push('```bash');
+      lines.push(`plx complete task --id ${t.taskId}`);
+      lines.push('```');
+      lines.push('');
+      lines.push('---');
+      lines.push('');
+    }
+
+    return lines.join('\n');
+  }
+
+  private extractProposalContext(proposal: string): string {
+    const lines = proposal.split('\n');
+    const result: string[] = [];
+    let inSection = false;
+
+    for (const line of lines) {
+      if (line.startsWith('## Why') || line.startsWith('## What Changes')) {
+        inSection = true;
+        result.push(line);
+      } else if (line.startsWith('## ') && inSection) {
+        inSection = false;
+      } else if (inSection) {
+        result.push(line);
+      }
+    }
+
+    return result.join('\n').trim() || proposal;
+  }
+
+  private stripFrontmatter(content: string): string {
+    const frontmatterRegex = /^---\n[\s\S]*?\n---\n/;
+    return content.replace(frontmatterRegex, '').trim();
   }
 }

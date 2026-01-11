@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 parent-type: change
 parent-id: add-upward-workspace-discovery
 ---
@@ -41,12 +41,12 @@ PLX commands work when executed from any subdirectory within a project by scanni
 
 ## Implementation Checklist
 
-- [ ] 1.1 Add `isValidPlxWorkspace(dir: string)` function to check for `workspace/AGENTS.md` with PLX signature
-- [ ] 1.2 Add `findProjectRoot(startDir: string)` function that scans upward
-- [ ] 1.3 Implement upward traversal logic with workspace priority and `.git` fallback ceiling
-- [ ] 1.4 Modify `getFilteredWorkspaces()` to call `findProjectRoot()` first
-- [ ] 1.5 Update `discoverWorkspaces()` call to use found root instead of `process.cwd()`
-- [ ] 1.6 Handle edge case: CWD is already valid PLX workspace (skip upward scan)
+- [x] 1.1 Add `isValidPlxWorkspace(dir: string)` function to check for `workspace/AGENTS.md` with PLX signature
+- [x] 1.2 Add `findProjectRoot(startDir: string)` function that scans upward
+- [x] 1.3 Implement upward traversal logic with workspace priority and `.git` fallback ceiling
+- [x] 1.4 Modify `getFilteredWorkspaces()` to call `findProjectRoot()` first
+- [x] 1.5 Update `discoverWorkspaces()` call to use found root instead of `process.cwd()`
+- [x] 1.6 Handle edge case: CWD is already valid PLX workspace (skip upward scan)
 
 ## Notes
 

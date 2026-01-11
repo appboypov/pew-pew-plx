@@ -6,28 +6,28 @@ The `get task` command retrieves and displays task content from PLX changes with
 ## Requirements
 ### Requirement: Get Task Command
 
-The CLI SHALL provide a `get task` subcommand that displays the next uncompleted task from the highest-priority change.
+The CLI SHALL provide a `get task` subcommand that displays the next uncompleted task from the highest-priority change or review.
 
 #### Scenario: Basic invocation shows next task with change context
 
 - **WHEN** user runs `plx get task`
-- **AND** active changes exist
-- **THEN** the system selects the change with highest completion percentage
-- **AND** displays proposal.md content
+- **AND** active changes or reviews exist with open tasks
+- **THEN** the system selects the item with highest completion percentage
+- **AND** displays proposal.md/review.md content
 - **AND** displays design.md content if exists
 - **AND** displays the next uncompleted task content
 - **AND** if the task was 'to-do', it is transitioned to 'in-progress'
 
-#### Scenario: No active changes
+#### Scenario: No active changes or reviews
 
 - **WHEN** user runs `plx get task`
-- **AND** no active changes exist in `workspace/changes/`
+- **AND** no active changes or reviews exist
 - **THEN** the system displays "No active changes found"
 
 #### Scenario: All tasks complete
 
 - **WHEN** user runs `plx get task`
-- **AND** all tasks in all changes have status `done`
+- **AND** all tasks in all changes and reviews have status `done`
 - **THEN** the system displays "All tasks complete"
 
 ### Requirement: Task Completion Flag
@@ -77,19 +77,25 @@ The CLI SHALL support a `--json` flag for machine-readable output.
 
 ### Requirement: Task ID Retrieval
 
-The CLI SHALL support an `--id` flag on `get task` to retrieve a specific task by filename without extension.
+The CLI SHALL support an `--id` flag on `get task` to retrieve a specific task by filename without extension, searching both changes and reviews.
 
 #### Scenario: Retrieve task by ID
 
 - **WHEN** user runs `plx get task --id 001-implement`
-- **AND** task file `001-implement.md` exists in any active change
+- **AND** task file `001-implement.md` exists in any active change or review
 - **THEN** the system displays the task content
 - **AND** does not display change documents (proposal.md, design.md)
+
+#### Scenario: Retrieve task by full ID from review
+
+- **WHEN** user runs `plx get task --id my-review/001-fix`
+- **AND** task file `001-fix.md` exists in review `my-review`
+- **THEN** the system displays the task content
 
 #### Scenario: Task ID not found
 
 - **WHEN** user runs `plx get task --id nonexistent`
-- **AND** no task file matches the ID
+- **AND** no task file matches the ID in any change or review
 - **THEN** the system displays error "Task 'nonexistent' not found"
 - **AND** exits with non-zero status
 
@@ -132,7 +138,7 @@ The CLI SHALL support `--constraints` and `--acceptance-criteria` flags to filte
 
 ### Requirement: Get Change Command
 
-The CLI SHALL provide a `get change` subcommand to retrieve a specific change proposal by ID.
+The CLI SHALL provide a `get change` subcommand to retrieve a specific change proposal by ID, with filtering options from the show command.
 
 #### Scenario: Retrieve change by ID
 
@@ -158,9 +164,15 @@ The CLI SHALL provide a `get change` subcommand to retrieve a specific change pr
 - **WHEN** user runs `plx get change --id add-feature --json`
 - **THEN** the output is valid JSON with proposal, design, and tasks
 
+#### Scenario: Change with deltas only
+
+- **WHEN** user runs `plx get change --id add-feature --deltas-only`
+- **THEN** displays only the deltas in JSON format
+- **AND** excludes proposal why/what sections
+
 ### Requirement: Get Spec Command
 
-The CLI SHALL provide a `get spec` subcommand to retrieve a specific specification by ID.
+The CLI SHALL provide a `get spec` subcommand to retrieve a specific specification by ID, with filtering options from the show command.
 
 #### Scenario: Retrieve spec by ID
 
@@ -180,26 +192,43 @@ The CLI SHALL provide a `get spec` subcommand to retrieve a specific specificati
 - **WHEN** user runs `plx get spec --id user-auth --json`
 - **THEN** the output is valid JSON with spec content
 
+#### Scenario: Spec requirements only
+
+- **WHEN** user runs `plx get spec --id user-auth --requirements`
+- **THEN** displays only requirement names and SHALL statements
+- **AND** excludes scenario content
+
+#### Scenario: Spec without scenarios
+
+- **WHEN** user runs `plx get spec --id user-auth --no-scenarios`
+- **THEN** displays spec content excluding scenario blocks
+
+#### Scenario: Specific requirement
+
+- **WHEN** user runs `plx get spec --id user-auth -r 1`
+- **THEN** displays only the requirement at index 1
+
 ### Requirement: Get Tasks Command
 
-The CLI SHALL provide a `get tasks` subcommand to list tasks.
+The CLI SHALL provide a `get tasks` subcommand to list tasks with filtering options.
 
 #### Scenario: List all open tasks
 
 - **WHEN** user runs `plx get tasks`
-- **THEN** displays a summary table of all open tasks across all changes
-- **AND** table includes columns: ID, Name, Status, Change
+- **THEN** displays a summary table of all open tasks across all changes and reviews
+- **AND** table includes columns: ID, Name, Status, Parent, ParentType
 
-#### Scenario: List tasks for specific change
+#### Scenario: List tasks for specific parent
 
-- **WHEN** user runs `plx get tasks --id add-feature`
-- **AND** change `add-feature` exists
-- **THEN** displays tasks only from that change
+- **WHEN** user runs `plx get tasks --parent-id add-feature`
+- **AND** parent `add-feature` exists (unambiguously)
+- **THEN** displays tasks only from that parent
 
 #### Scenario: Tasks JSON output
 
 - **WHEN** user runs `plx get tasks --json`
 - **THEN** the output is valid JSON array of task summaries
+- **AND** each task includes parentType field
 
 ### Requirement: Shell Completion Support
 
@@ -300,4 +329,166 @@ The CLI SHALL automatically transition to-do tasks to in-progress when retrieved
 - **WHEN** user runs `plx get task --json`
 - **AND** a to-do task was transitioned to in-progress
 - **THEN** the JSON output includes `transitionedToInProgress: true`
+
+### Requirement: Task Skill Level Display
+
+The CLI SHALL display task skill level in output when the field is present in task frontmatter.
+
+#### Scenario: Skill level shown in text output
+
+- **WHEN** user runs `plx get task`
+- **AND** the task has a `skill-level` field in frontmatter
+- **THEN** the skill level (junior/medior/senior) SHALL be displayed in the task header
+
+#### Scenario: Skill level shown in JSON output
+
+- **WHEN** user runs `plx get task --json`
+- **AND** the task has a `skill-level` field in frontmatter
+- **THEN** the JSON output SHALL include a `skillLevel` field with the value
+
+#### Scenario: Skill level in tasks list
+
+- **WHEN** user runs `plx get tasks`
+- **AND** tasks have `skill-level` fields in frontmatter
+- **THEN** the skill level SHALL be displayed in the table alongside status
+
+#### Scenario: Missing skill level handled gracefully
+
+- **WHEN** user runs `plx get task`
+- **AND** the task does not have a `skill-level` field
+- **THEN** the output SHALL not include skill level information
+- **AND** no error SHALL occur
+
+### Requirement: Get Changes Command
+
+The CLI SHALL provide a `get changes` subcommand to list all active changes.
+
+#### Scenario: List all changes
+
+- **WHEN** user runs `plx get changes`
+- **THEN** the system scans `workspace/changes/` directory
+- **AND** excludes the `archive/` subdirectory
+- **AND** displays each change with name, tracked issue (if present), and task progress
+- **AND** output format matches existing `plx list` behavior
+
+#### Scenario: JSON output for changes
+
+- **WHEN** user runs `plx get changes --json`
+- **THEN** the output is valid JSON array of change objects
+- **AND** each object includes: id, trackedIssues, taskProgress
+
+#### Scenario: No active changes
+
+- **WHEN** user runs `plx get changes`
+- **AND** no active changes exist
+- **THEN** the system displays "No active changes found."
+
+### Requirement: Get Specs Command
+
+The CLI SHALL provide a `get specs` subcommand to list all specifications.
+
+#### Scenario: List all specs
+
+- **WHEN** user runs `plx get specs`
+- **THEN** the system scans `workspace/specs/` directory
+- **AND** displays each spec with ID and requirement count
+- **AND** output format matches existing `plx list --specs` behavior
+
+#### Scenario: JSON output for specs
+
+- **WHEN** user runs `plx get specs --json`
+- **THEN** the output is valid JSON array of spec objects
+- **AND** each object includes: id, requirementCount
+
+#### Scenario: No specs found
+
+- **WHEN** user runs `plx get specs`
+- **AND** no specs exist
+- **THEN** the system displays "No specs found."
+
+### Requirement: Get Reviews Command
+
+The CLI SHALL provide a `get reviews` subcommand to list all active reviews.
+
+#### Scenario: List all reviews
+
+- **WHEN** user runs `plx get reviews`
+- **THEN** the system scans `workspace/reviews/` directory
+- **AND** excludes the `archive/` subdirectory
+- **AND** displays each review with name, target type, and task progress
+- **AND** output format matches existing `plx list --reviews` behavior
+
+#### Scenario: JSON output for reviews
+
+- **WHEN** user runs `plx get reviews --json`
+- **THEN** the output is valid JSON array of review objects
+- **AND** each object includes: id, targetType, targetId, taskProgress
+
+#### Scenario: No active reviews
+
+- **WHEN** user runs `plx get reviews`
+- **AND** no active reviews exist
+- **THEN** the system displays "No active reviews found."
+
+### Requirement: Get Review Command
+
+The CLI SHALL provide a `get review` subcommand to retrieve a specific review by ID.
+
+#### Scenario: Retrieve review by ID
+
+- **WHEN** user runs `plx get review --id code-quality`
+- **AND** review directory `code-quality` exists
+- **THEN** the system displays review.md content
+- **AND** displays list of tasks with status and spec-impact
+
+#### Scenario: Review not found
+
+- **WHEN** user runs `plx get review --id nonexistent`
+- **AND** no review directory matches the ID
+- **THEN** the system displays error "Review 'nonexistent' not found"
+- **AND** exits with non-zero status
+
+#### Scenario: Review JSON output
+
+- **WHEN** user runs `plx get review --id code-quality --json`
+- **THEN** the output is valid JSON with review details and tasks
+
+### Requirement: Parent Type Filter for Tasks
+
+The CLI SHALL support a `--parent-type` flag on `get tasks` to filter by parent entity type.
+
+#### Scenario: Filter tasks by parent type
+
+- **WHEN** user runs `plx get tasks --parent-type change`
+- **THEN** only tasks from changes are displayed
+- **AND** tasks from reviews and specs are excluded
+
+#### Scenario: Filter tasks from reviews
+
+- **WHEN** user runs `plx get tasks --parent-type review`
+- **THEN** only tasks from reviews are displayed
+
+#### Scenario: Filter tasks from specs
+
+- **WHEN** user runs `plx get tasks --parent-type spec`
+- **THEN** only tasks linked to specs are displayed
+
+#### Scenario: Parent ID with type disambiguation
+
+- **WHEN** user runs `plx get tasks --parent-id feature-x`
+- **AND** `feature-x` exists as both a change and a review
+- **THEN** the system displays error "Ambiguous parent ID 'feature-x'. Use --parent-type to specify: change, review"
+- **AND** exits with non-zero status
+
+#### Scenario: Parent ID with explicit type
+
+- **WHEN** user runs `plx get tasks --parent-id feature-x --parent-type change`
+- **THEN** tasks from the change `feature-x` are displayed
+- **AND** no ambiguity error occurs
+
+#### Scenario: Invalid parent type
+
+- **WHEN** user runs `plx get tasks --parent-type invalid`
+- **THEN** the system displays error with valid options: change, review, spec
+- **AND** exits with non-zero status
 

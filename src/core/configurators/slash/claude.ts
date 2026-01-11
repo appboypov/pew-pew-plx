@@ -4,10 +4,14 @@ import { SlashCommandId } from '../../templates/index.js';
 const FILE_PATHS: Record<SlashCommandId, string> = {
   'archive': '.claude/commands/plx/archive.md',
   'complete-task': '.claude/commands/plx/complete-task.md',
+  'copy-next-task': '.claude/commands/plx/copy-next-task.md',
+  'copy-review-request': '.claude/commands/plx/copy-review-request.md',
+  'copy-test-request': '.claude/commands/plx/copy-test-request.md',
   'get-task': '.claude/commands/plx/get-task.md',
   'implement': '.claude/commands/plx/implement.md',
   'orchestrate': '.claude/commands/plx/orchestrate.md',
   'parse-feedback': '.claude/commands/plx/parse-feedback.md',
+  'plan-implementation': '.claude/commands/plx/plan-implementation.md',
   'plan-proposal': '.claude/commands/plx/plan-proposal.md',
   'plan-request': '.claude/commands/plx/plan-request.md',
   'prepare-compact': '.claude/commands/plx/prepare-compact.md',
@@ -35,6 +39,24 @@ description: Mark a task as done.
 category: Pew Pew Plx
 tags: [plx, task, workflow]
 ---`,
+  'copy-next-task': `---
+name: Copy Next Task
+description: Copy next task or feedback block to clipboard for external agent handoff.
+category: Pew Pew Plx
+tags: [plx, orchestrate, workflow]
+---`,
+  'copy-review-request': `---
+name: Copy Review Request
+description: Copy review request block with REVIEW.md guidelines to clipboard for external agent.
+category: Pew Pew Plx
+tags: [plx, review, workflow]
+---`,
+  'copy-test-request': `---
+name: Copy Test Request
+description: Copy test request block with TESTING.md configuration to clipboard for external agent.
+category: Pew Pew Plx
+tags: [plx, testing, workflow]
+---`,
   'get-task': `---
 name: Get Task
 description: Select and display the next prioritized task to work on.
@@ -58,6 +80,12 @@ name: Parse Feedback
 description: Parse feedback markers and generate review tasks.
 category: Pew Pew Plx
 tags: [plx, review, workflow]
+---`,
+  'plan-implementation': `---
+name: Plan Implementation
+description: Generate PROGRESS.md and orchestrate multi-agent task handoff.
+category: Pew Pew Plx
+tags: [plx, orchestrate, workflow]
 ---`,
   'plan-proposal': `---
 name: Plan Proposal

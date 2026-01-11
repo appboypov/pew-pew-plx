@@ -1,5 +1,5 @@
 ---
-status: to-do
+status: done
 parent-type: change
 parent-id: add-upward-workspace-discovery
 ---
@@ -38,15 +38,15 @@ Comprehensive test coverage for the new upward scanning functionality.
 
 ## Implementation Checklist
 
-- [ ] 2.1 Add test file `test/utils/workspace-discovery-upward.test.ts`
-- [ ] 2.2 Add tests for `isValidPlxWorkspace()` with valid workspace
-- [ ] 2.3 Add tests for `isValidPlxWorkspace()` with missing `workspace/` directory
-- [ ] 2.4 Add tests for `isValidPlxWorkspace()` with `workspace/` but no `AGENTS.md`
-- [ ] 2.5 Add tests for `isValidPlxWorkspace()` with `AGENTS.md` but no PLX signature
-- [ ] 2.6 Add tests for `findProjectRoot()` finding workspace in parent
-- [ ] 2.7 Add tests for `findProjectRoot()` stopping at `.git` boundary
-- [ ] 2.8 Add tests for `findProjectRoot()` with CWD as valid workspace
-- [ ] 2.9 Add integration test for `getFilteredWorkspaces()` from subdirectory
+- [x] 2.1 Add test file `test/utils/workspace-discovery-upward.test.ts`
+- [x] 2.2 Add tests for `isValidPlxWorkspace()` with valid workspace
+- [x] 2.3 Add tests for `isValidPlxWorkspace()` with missing `workspace/` directory
+- [x] 2.4 Add tests for `isValidPlxWorkspace()` with `workspace/` but no `AGENTS.md`
+- [x] 2.5 Add tests for `isValidPlxWorkspace()` with `AGENTS.md` but no PLX signature
+- [x] 2.6 Add tests for `findProjectRoot()` finding workspace in parent
+- [x] 2.7 Add tests for `findProjectRoot()` stopping at `.git` boundary
+- [x] 2.8 Add tests for `findProjectRoot()` with CWD as valid workspace
+- [x] 2.9 Add integration test for `getFilteredWorkspaces()` from subdirectory
 
 ## Notes
 

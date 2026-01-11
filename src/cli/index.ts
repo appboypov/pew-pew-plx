@@ -1012,6 +1012,22 @@ createCmd
     }
   });
 
+createCmd
+  .command('progress')
+  .description('Create a PROGRESS.md file with non-completed tasks for multi-agent handoff')
+  .requiredOption('--change-id <id>', 'Change ID to generate progress for')
+  .option('--json', 'Output as JSON')
+  .action(async (options: { changeId: string; json?: boolean }) => {
+    try {
+      const createCommand = new CreateCommand();
+      await createCommand.createProgress(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 // Migrate command with subcommands
 const migrateCmd = program
   .command('migrate')

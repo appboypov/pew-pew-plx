@@ -925,6 +925,19 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
           COMMON_FLAGS.json,
         ],
       },
+      {
+        name: 'progress',
+        description: 'Create a PROGRESS.md file with non-completed tasks for multi-agent handoff',
+        flags: [
+          {
+            name: 'change-id',
+            description: 'Change ID to generate progress for',
+            takesValue: true,
+            valueType: 'change-id',
+          },
+          COMMON_FLAGS.json,
+        ],
+      },
     ],
   },
   {
