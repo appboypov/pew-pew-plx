@@ -215,6 +215,48 @@ export async function getTasksForParent(
 }
 
 /**
+ * Gets the next sequence number for a new task under a given parent.
+ * Scans existing tasks in the tasks directory and returns max+1.
+ *
+ * @param tasksDir Absolute path to the tasks directory
+ * @param parentId The parent entity ID (used to filter task files)
+ * @returns Next sequence number (1 if no existing tasks for this parent)
+ */
+export async function getNextTaskSequenceForParent(
+  tasksDir: string,
+  parentId: string
+): Promise<number> {
+  try {
+    const entries = await fs.readdir(tasksDir);
+    const parentPrefix = `${parentId}-`;
+
+    // Filter to markdown files that belong to this parent
+    // Task files follow pattern: NNN-parentId-taskname.md
+    // After the 3-digit sequence and hyphen (position 4), the filename should start with parentId-
+    const parentTasks = entries.filter(
+      (f) => f.endsWith('.md') && f.substring(4).startsWith(parentPrefix)
+    );
+
+    if (parentTasks.length === 0) {
+      return 1;
+    }
+
+    const sortedTasks = sortTaskFilesBySequence(parentTasks);
+    const lastTask = sortedTasks[sortedTasks.length - 1];
+    const match = lastTask.match(/^(\d+)-/);
+
+    if (match) {
+      return parseInt(match[1], 10) + 1;
+    }
+
+    return 1;
+  } catch {
+    // Directory might not exist yet
+    return 1;
+  }
+}
+
+/**
  * Archives all tasks linked to a specific parent entity.
  * Moves task files from workspace/tasks/ to workspace/tasks/archive/.
  * Handles duplicate filenames by appending numeric suffixes.

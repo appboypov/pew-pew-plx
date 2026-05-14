@@ -1,0 +1,243 @@
+# cli-create Specification
+
+## Purpose
+TBD - created by archiving change add-create-command. Update Purpose after archive.
+## Requirements
+### Requirement: Create Task Command
+The command SHALL create standalone or parented task files with proper frontmatter, content structure, and location rules based on parent type.
+
+#### Scenario: Creating standalone task
+- **WHEN** `splx create task "Fix typo in README"` is executed
+- **THEN** create task file in `workspace/tasks/`
+- **AND** use filename format `NNN-<slugified-title>.md`
+- **AND** include frontmatter with `status: to-do`
+- **AND** populate `# Task: <title>` header and template sections
+
+#### Scenario: Creating parented task with unambiguous parent
+- **WHEN** `splx create task "Implement feature" --parent-id add-feature` is executed
+- **AND** only one entity with ID `add-feature` exists across changes, reviews, and specs
+- **THEN** create task file linked to that parent
+- **AND** include frontmatter with `status: to-do`, `parent-type`, and `parent-id`
+- **AND** store change-linked tasks in `workspace/changes/add-feature/tasks/` with filename `NNN-<slugified-title>.md`
+- **AND** store non-change tasks in `workspace/tasks/` with filename `NNN-<parent-id>-<slugified-title>.md`
+
+#### Scenario: Creating parented task with explicit parent type
+- **WHEN** `splx create task "Review logic" --parent-id my-review --parent-type review` is executed
+- **THEN** create task file linked to review `my-review`
+- **AND** include frontmatter with `status: to-do`, `parent-type: review`, `parent-id: my-review`
+- **AND** store the task in `workspace/tasks/` with filename `NNN-my-review-review-logic.md`
+
+#### Scenario: Handling ambiguous parent ID
+- **WHEN** `splx create task "Task" --parent-id shared-name` is executed
+- **AND** multiple entities with ID `shared-name` exist across different types
+- **THEN** exit with error code 1
+- **AND** display error message listing conflicting types
+- **AND** suggest using `--parent-type` flag to disambiguate
+
+#### Scenario: Handling non-existent parent
+- **WHEN** `splx create task "Task" --parent-id non-existent` is executed
+- **AND** no entity with ID `non-existent` exists
+- **THEN** exit with error code 1
+- **AND** display error message indicating parent not found
+
+### Requirement: Create Change Command
+
+The command SHALL scaffold a complete change proposal directory structure.
+
+#### Scenario: Creating change proposal
+
+- **WHEN** `splx create change "Add user authentication"` is executed
+- **THEN** create directory `workspace/changes/<slugified-name>/`
+- **AND** create `proposal.md` with template content including title from argument
+- **AND** create empty `tasks/` directory
+- **AND** create empty `specs/` directory
+- **AND** display success message with created paths
+
+#### Scenario: Handling duplicate change name
+
+- **WHEN** `splx create change "Existing Change"` is executed
+- **AND** `workspace/changes/existing-change/` already exists
+- **THEN** exit with error code 1
+- **AND** display error message indicating change already exists
+
+### Requirement: Create Spec Command
+
+The command SHALL scaffold a spec directory with template spec file.
+
+#### Scenario: Creating spec
+
+- **WHEN** `splx create spec "User Authentication"` is executed
+- **THEN** create directory `workspace/specs/<slugified-name>/`
+- **AND** create `spec.md` with template content including title from argument
+- **AND** display success message with created path
+
+#### Scenario: Handling duplicate spec name
+
+- **WHEN** `splx create spec "Existing Spec"` is executed
+- **AND** `workspace/specs/existing-spec/` already exists
+- **THEN** exit with error code 1
+- **AND** display error message indicating spec already exists
+
+### Requirement: Create Request Command
+
+The command SHALL create a request file as a pre-proposal artifact.
+
+#### Scenario: Creating request
+
+- **WHEN** `splx create request "Add dark mode support"` is executed
+- **THEN** create directory `workspace/changes/<slugified-name>/`
+- **AND** create `request.md` with template content including description from argument
+- **AND** template includes sections: Source Input, Current Understanding, Identified Ambiguities, Decisions, Final Intent
+- **AND** display success message with created path
+
+#### Scenario: Handling duplicate request name
+
+- **WHEN** `splx create request "Existing Request"` is executed
+- **AND** `workspace/changes/existing-request/` already exists
+- **THEN** exit with error code 1
+- **AND** display error message indicating change directory already exists
+
+### Requirement: Task Template Structure
+
+The task template SHALL include all standard task sections.
+
+#### Scenario: Task template content
+
+- **WHEN** a task is created via `splx create task`
+- **THEN** the generated file SHALL include:
+  - YAML frontmatter with `status: to-do`
+  - `# Task: <title>` header
+  - `## End Goal` section (empty)
+  - `## Currently` section (empty)
+  - `## Should` section (empty)
+  - `## Constraints` section with checkbox placeholders
+  - `## Acceptance Criteria` section with checkbox placeholders
+  - `## Implementation Checklist` section with checkbox placeholders
+  - `## Notes` section (empty)
+
+### Requirement: Change Template Structure
+
+The change proposal template SHALL include standard proposal sections.
+
+#### Scenario: Change proposal template content
+
+- **WHEN** a change is created via `splx create change`
+- **THEN** the generated `proposal.md` SHALL include:
+  - `# Change: <name>` header
+  - `## Why` section (empty)
+  - `## What Changes` section with placeholder bullets
+  - `## Impact` section with placeholders for affected specs and code
+
+### Requirement: Spec Template Structure
+
+The spec template SHALL include standard specification sections.
+
+#### Scenario: Spec template content
+
+- **WHEN** a spec is created via `splx create spec`
+- **THEN** the generated `spec.md` SHALL include:
+  - `# <name> Specification` header
+  - `## Purpose` section (empty)
+  - `## Requirements` section (empty)
+  - `## Why` section (empty)
+
+### Requirement: Request Template Structure
+
+The request template SHALL include sections aligned with `splx/plan-request` output.
+
+#### Scenario: Request template content
+
+- **WHEN** a request is created via `splx create request`
+- **THEN** the generated `request.md` SHALL include:
+  - `# Request: <description>` header
+  - `## Source Input` section (empty)
+  - `## Current Understanding` section (empty)
+  - `## Identified Ambiguities` section (empty)
+  - `## Decisions` section (empty)
+  - `## Final Intent` section (empty)
+
+### Requirement: Name Slugification
+
+The command SHALL convert entity names to valid kebab-case directory/file names.
+
+#### Scenario: Slugifying entity names
+
+- **WHEN** an entity name contains spaces, special characters, or mixed case
+- **THEN** convert to lowercase kebab-case
+- **AND** remove special characters except hyphens
+- **AND** collapse multiple hyphens into single hyphen
+- **AND** trim leading/trailing hyphens
+
+### Requirement: Output Formatting
+
+The command SHALL provide clear feedback on created entities.
+
+#### Scenario: Success output
+
+- **WHEN** entity creation succeeds
+- **THEN** display success message with entity type and location
+- **AND** suggest next steps appropriate to entity type
+
+#### Scenario: JSON output
+
+- **WHEN** `--json` flag is provided
+- **THEN** output JSON with `success`, `entityType`, `path`, and `name` fields
+
+### Requirement: Help Text
+
+The command SHALL provide descriptive help text for all subcommands and options.
+
+#### Scenario: Displaying help for create command
+
+- **WHEN** `splx create --help` is executed
+- **THEN** display usage synopsis with all subcommands
+- **AND** describe each subcommand's purpose
+
+#### Scenario: Displaying help for create task subcommand
+
+- **WHEN** `splx create task --help` is executed
+- **THEN** display usage synopsis with positional and optional arguments
+- **AND** describe `--parent-id` and `--parent-type` options
+- **AND** list valid parent types (change, review, spec)
+
+### Requirement: Create Progress Command
+
+The command SHALL generate a PROGRESS.md file with embedded task content for multi-agent handoff.
+
+#### Scenario: Creating progress for a change
+
+- **WHEN** `splx create progress --change-id add-feature` is executed
+- **AND** the change `add-feature` exists with non-completed tasks
+- **THEN** create PROGRESS.md at project root
+- **AND** include a task checklist section for each non-completed task
+- **AND** embed full task content within each section
+- **AND** include relevant proposal context for each task
+- **AND** include agent pickup instructions without PROGRESS.md references
+- **AND** include `splx complete task --id <task-id>` command at end of each task block
+
+#### Scenario: Filtering completed tasks
+
+- **WHEN** `splx create progress --change-id add-feature` is executed
+- **AND** the change has tasks with status `done`
+- **THEN** exclude tasks with status `done` from PROGRESS.md
+- **AND** only include tasks with status `to-do` or `in-progress`
+
+#### Scenario: Handling change with no non-completed tasks
+
+- **WHEN** `splx create progress --change-id add-feature` is executed
+- **AND** all tasks in the change have status `done`
+- **THEN** exit with error code 1
+- **AND** display message indicating all tasks are complete
+
+#### Scenario: Handling non-existent change
+
+- **WHEN** `splx create progress --change-id non-existent` is executed
+- **AND** no change with ID `non-existent` exists
+- **THEN** exit with error code 1
+- **AND** display error message indicating change not found
+
+#### Scenario: JSON output
+
+- **WHEN** `--json` flag is provided
+- **THEN** output JSON with `success`, `path`, `changeId`, and `taskCount` fields
+

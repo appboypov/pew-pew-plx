@@ -93,9 +93,17 @@ The system SHALL implement feature A
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${splxBin} change list 2>&1`, {
-          encoding: 'utf-8'
-        });
+        let output = '';
+        try {
+          output = execSync(`node ${splxBin} change list 2>&1`, {
+            encoding: 'utf-8'
+          });
+        } catch (error: any) {
+          output = error.stdout?.toString() || '';
+          if (error.stderr) {
+            output += error.stderr.toString();
+          }
+        }
 
         expect(output).toContain("Deprecation: 'splx change list' is deprecated");
         expect(output).toContain("Use 'splx get changes' instead");
@@ -108,9 +116,17 @@ The system SHALL implement feature A
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${splxBin} --no-deprecation-warnings change list 2>&1`, {
-          encoding: 'utf-8'
-        });
+        let output = '';
+        try {
+          output = execSync(`node ${splxBin} --no-deprecation-warnings change list 2>&1`, {
+            encoding: 'utf-8'
+          });
+        } catch (error: any) {
+          output = error.stdout?.toString() || '';
+          if (error.stderr) {
+            output += error.stderr.toString();
+          }
+        }
 
         expect(output).not.toContain("Deprecation:");
       } finally {

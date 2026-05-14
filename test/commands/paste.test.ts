@@ -207,7 +207,7 @@ describe.skipIf(!isMacOS)('paste task command', () => {
       expect(taskContent).toContain('parent-type: change');
       expect(taskContent).toContain('parent-id: test-change');
       expect(taskContent).toContain('# Task: Implement user authentication');
-      expect(taskContent).toContain('## End Goal');
+      // Paste task uses clipboard content as body directly
       expect(taskContent).toContain('Implement user authentication');
       expect(taskContent).toContain('Add login and signup forms');
     } finally {

@@ -7,6 +7,8 @@ import {
   parseFeedbackMarker,
 } from '../utils/comment-markers.js';
 import { ReviewParent } from '../core/schemas/index.js';
+import { TemplateManager } from '../core/templates/index.js';
+import { buildTaskFrontmatter } from '../utils/task-utils.js';
 
 /**
  * Feedback marker found in a source file
@@ -193,6 +195,7 @@ export class FeedbackScannerService {
   ): Promise<void> {
     const reviewDir = path.join(this.reviewsPath, reviewId);
     const tasksDir = path.join(this.root, 'workspace', 'tasks');
+    const workspacePath = path.join(this.root, 'workspace');
 
     await fs.mkdir(reviewDir, { recursive: true });
     await fs.mkdir(tasksDir, { recursive: true });
@@ -205,7 +208,7 @@ export class FeedbackScannerService {
       const sequence = String(i + 1).padStart(3, '0');
       const taskName = this.generateTaskName(marker.feedback);
       const filename = `${sequence}-${reviewId}-${taskName}.md`;
-      const taskContent = this.generateTaskContent(marker, reviewId);
+      const taskContent = await this.generateTaskContent(marker, reviewId, workspacePath);
       await fs.writeFile(path.join(tasksDir, filename), taskContent);
     }
   }
@@ -380,38 +383,81 @@ ${uniqueFiles.map((f) => `- ${f}`).join('\n')}
 `;
   }
 
-  private generateTaskContent(marker: FeedbackMarker, reviewId: string): string {
-    return `---
-status: to-do
-parent-type: review
-parent-id: ${reviewId}
----
+  private async generateTaskContent(
+    marker: FeedbackMarker,
+    reviewId: string,
+    workspacePath: string
+  ): Promise<string> {
+    const taskTitle = this.truncateFeedback(marker.feedback, 60);
 
-# Task: ${this.truncateFeedback(marker.feedback, 60)}
+    // Try to read the bug template from workspace
+    const templateResult = await TemplateManager.readWorkspaceTemplate(
+      workspacePath,
+      'bug',
+      taskTitle
+    );
 
-## Feedback
-${marker.feedback}
+    if (templateResult.found) {
+      const frontmatter = buildTaskFrontmatter({
+        status: 'to-do',
+        parentType: 'review',
+        parentId: reviewId,
+        type: 'bug',
+      });
 
-## End Goal
+      // Replace template placeholders with actual values
+      let body = templateResult.body;
+
+      // Replace End Goal section
+      const endGoalMatch = body.match(/## 🎯 End Goal\n[\s\S]*?(?=\n## |$)/);
+      if (endGoalMatch) {
+        body = body.replace(endGoalMatch[0], `## 🎯 End Goal\nAddress feedback: ${marker.feedback}`);
+      }
+
+      // Replace Currently section
+      const currentlyMatch = body.match(/## 📍 Currently\n[\s\S]*?(?=\n## |$)/);
+      if (currentlyMatch) {
+        body = body.replace(currentlyMatch[0], `## 📍 Currently\nFeedback marker exists at ${marker.file}:${marker.line}`);
+      }
+
+      // Replace Notes section
+      const notesMatch = body.match(/## 📝 Notes\n[\s\S]*?(?=\n## |$)/);
+      if (notesMatch) {
+        body = body.replace(notesMatch[0], `## 📝 Notes\nGenerated from feedback marker at ${marker.file}:${marker.line}`);
+      }
+
+      return frontmatter + '\n\n' + body;
+    }
+
+    // Fallback to hardcoded template if workspace template not found
+    const frontmatter = buildTaskFrontmatter({
+      status: 'to-do',
+      parentType: 'review',
+      parentId: reviewId,
+      type: 'bug',
+    });
+
+    return `${frontmatter}
+
+# 🐞 ${taskTitle}
+
+## 🎯 End Goal
 Address feedback: ${marker.feedback}
 
-## Currently
+## 📍 Currently
 Feedback marker exists at ${marker.file}:${marker.line}
 
-## Should
-Implement the required change.
+## ⚠️ Constraints
+- [ ] None specified
 
-## Constraints
-- None specified
-
-## Acceptance Criteria
+## ✅ Acceptance Criteria
 - [ ] Feedback addressed
 
-## Implementation Checklist
+## 📋 Implementation Checklist
 - [ ] Address feedback
 - [ ] Remove feedback marker
 
-## Notes
+## 📝 Notes
 Generated from feedback marker at ${marker.file}:${marker.line}
 `;
   }

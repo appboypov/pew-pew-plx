@@ -3,12 +3,12 @@ import { TemplateManager } from '../../../src/core/templates/index.js';
 
 describe('entity templates', () => {
   describe('taskTemplate', () => {
-    it('generates task with title', () => {
+    it('generates task with title and frontmatter', () => {
       const content = TemplateManager.getTaskTemplate({ title: 'My Task' });
       expect(content).toContain('status: to-do');
       expect(content).toContain('# Task: My Task');
-      expect(content).toContain('## End Goal');
-      expect(content).toContain('## Implementation Checklist');
+      // Fallback template warns about missing --type
+      expect(content).toContain('No template type specified');
     });
 
     it('includes skill-level when provided', () => {
@@ -32,15 +32,19 @@ describe('entity templates', () => {
       expect(seniorContent).toContain('skill-level: senior');
     });
 
-    it('includes all required sections', () => {
-      const content = TemplateManager.getTaskTemplate({ title: 'Complete Task' });
-      expect(content).toContain('## End Goal');
-      expect(content).toContain('## Currently');
-      expect(content).toContain('## Should');
-      expect(content).toContain('## Constraints');
-      expect(content).toContain('## Acceptance Criteria');
-      expect(content).toContain('## Implementation Checklist');
-      expect(content).toContain('## Notes');
+    it('includes type in frontmatter when provided', () => {
+      const content = TemplateManager.getTaskTemplate({ title: 'Task', type: 'implementation' });
+      expect(content).toContain('type: implementation');
+    });
+
+    it('includes parent info in frontmatter', () => {
+      const content = TemplateManager.getTaskTemplate({
+        title: 'Task',
+        parentType: 'change',
+        parentId: 'my-change'
+      });
+      expect(content).toContain('parent-type: change');
+      expect(content).toContain('parent-id: my-change');
     });
   });
 

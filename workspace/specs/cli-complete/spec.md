@@ -1,0 +1,84 @@
+# cli-complete Specification
+
+## Purpose
+TBD - created by archiving change add-task-completion-commands. Update Purpose after archive.
+## Requirements
+### Requirement: Complete Task Command
+The CLI SHALL provide a `complete task` command that marks a task as done and checks all markdown checkbox items in the task file.
+
+#### Scenario: Complete task by ID
+- **WHEN** user runs `splx complete task --id <task-id>`
+- **THEN** the task status is set to 'done'
+- **THEN** all unchecked markdown checkbox items are checked
+
+#### Scenario: Complete already-done task
+- **WHEN** user runs `splx complete task --id <task-id>` on a task with status 'done'
+- **THEN** a warning message is displayed
+- **THEN** the command exits with code 0
+
+#### Scenario: Complete non-existent task
+- **WHEN** user runs `splx complete task --id <invalid-id>`
+- **THEN** an error message is displayed
+- **THEN** the command exits with code 1
+
+### Requirement: Complete Change Command
+The CLI SHALL provide a `complete change` command that marks all tasks in a change as done.
+
+#### Scenario: Complete all tasks in a change
+- **WHEN** user runs `splx complete change --id <change-id>`
+- **THEN** all tasks in the change are marked as done
+- **THEN** all markdown checkbox items in each task are checked
+- **THEN** already-done tasks are skipped with a note
+
+#### Scenario: Complete non-existent change
+- **WHEN** user runs `splx complete change --id <invalid-id>`
+- **THEN** an error message is displayed
+- **THEN** the command exits with code 1
+
+### Requirement: Complete Command JSON Output
+
+The CLI SHALL support `--json` flag for machine-readable output.
+
+#### Scenario: JSON output for complete task
+
+- **WHEN** user runs `splx complete task --id <task-id> --json`
+- **THEN** output is valid JSON with taskId, changeId, previousStatus, newStatus, and completedItems fields
+
+#### Scenario: JSON output for complete change
+
+- **WHEN** user runs `splx complete change --id <change-id> --json`
+- **THEN** output is valid JSON with changeId, completedTasks array, and skippedTasks array
+
+### Requirement: Complete Review Command
+The CLI SHALL provide a `complete review` command that marks all tasks in a review as done.
+
+#### Scenario: Complete all tasks in a review
+- **WHEN** user runs `splx complete review --id <review-id>`
+- **THEN** all tasks in the review are marked as done
+- **THEN** all markdown checkbox items in each task are checked
+- **THEN** already-done tasks are skipped with a note
+
+#### Scenario: Complete non-existent review
+- **WHEN** user runs `splx complete review --id <invalid-id>`
+- **THEN** an error message is displayed
+- **THEN** the command exits with code 1
+
+### Requirement: Complete Spec Command
+The CLI SHALL provide a `complete spec` command that marks all tasks linked to a spec as done.
+
+#### Scenario: Complete all tasks linked to a spec
+- **WHEN** user runs `splx complete spec --id <spec-id>`
+- **THEN** all tasks linked to the spec are marked as done
+- **THEN** all markdown checkbox items in each task are checked
+- **THEN** already-done tasks are skipped with a note
+
+#### Scenario: Complete spec with no linked tasks
+- **WHEN** user runs `splx complete spec --id <spec-id>` on a spec with no linked tasks
+- **THEN** a message is displayed indicating no tasks found
+- **THEN** the command exits with code 0
+
+#### Scenario: Complete non-existent spec
+- **WHEN** user runs `splx complete spec --id <invalid-id>`
+- **THEN** an error message is displayed
+- **THEN** the command exits with code 1
+

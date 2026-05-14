@@ -1,0 +1,22 @@
+{
+  "name": "all-tests-pass",
+  "category": "validation",
+  "description": "Validates that all project tests pass by running npm test (vitest)",
+  "task_template": {
+    "name": "Fix failing tests",
+    "sections": {
+      "should": "All project tests should pass before code is pushed",
+      "end_goal": "All tests pass with exit code 0",
+      "acceptance_criteria": [
+        "All failing tests are fixed",
+        "npm test exits with code 0",
+        "Eval passes: `dart workspace/evals/validation/all-tests-pass/eval.dart`"
+      ],
+      "suggested_approach": [
+        "Review the test output above to identify failing tests",
+        "Fix the underlying code or update the tests",
+        "Re-run tests to verify the fix"
+      ]
+    }
+  }
+}

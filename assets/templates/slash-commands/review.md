@@ -1,0 +1,22 @@
+**Guardrails**
+- Use CLI to retrieve review context.
+- Output feedback as language-aware markers.
+- Include parent linkage in markers when reviewing a task, change, or spec.
+
+**Monorepo Awareness**
+- Derive target package from the user's request context (mentioned package name, file paths, or current focus).
+- If target package is unclear in a monorepo, clarify with user before proceeding.
+- Create artifacts in the relevant package's workspace folder (e.g., `packages/foo/workspace/`), not the monorepo root.
+- For root-level changes (not package-specific), use the root workspace.
+- If multiple packages are affected, process each package separately.
+- Follow each package's AGENTS.md instructions if present.
+
+**Steps**
+1. Run `splx review change --id <id>` (or `splx review spec --id <id>`, `splx review task --id <id>`).
+2. Read the output: @workspace/REVIEW.md guidelines + parent documents.
+3. Review implementation against constraints/acceptance criteria.
+4. Insert feedback markers with format: `#FEEDBACK #TODO | {type}:{id} | {feedback}`
+   - Examples: `task:001`, `change:my-feature`, `spec:auth-spec`
+   - Parent linkage is optional but recommended.
+5. Summarize findings.
+6. Instruct to run `splx parse feedback <name> --parent-id <id> --parent-type change|spec|task` (or omit flags if markers include parent linkage).

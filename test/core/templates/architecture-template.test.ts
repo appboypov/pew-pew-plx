@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { architectureTemplate, ArchitectureContext } from '../../../src/core/templates/architecture-template.js';
+import { TemplateManager, ArchitectureContext } from '../../../src/core/templates/index.js';
 
 describe('architecture-template', () => {
-  describe('architectureTemplate', () => {
+  describe('getArchitectureTemplate', () => {
     it('generates template with all required sections', () => {
-      const template = architectureTemplate();
+      const template = TemplateManager.getArchitectureTemplate();
 
       expect(template).toContain('# Architecture');
       expect(template).toContain('## Overview');
@@ -32,7 +32,7 @@ describe('architecture-template', () => {
     });
 
     it('uses TBD placeholders for empty context', () => {
-      const template = architectureTemplate();
+      const template = TemplateManager.getArchitectureTemplate();
 
       expect(template).toContain('TBD');
     });
@@ -42,14 +42,14 @@ describe('architecture-template', () => {
         description: 'A CLI tool for managing specifications'
       };
 
-      const template = architectureTemplate(context);
+      const template = TemplateManager.getArchitectureTemplate(context);
 
       expect(template).toContain('A CLI tool for managing specifications');
       expect(template).not.toContain('TBD - Describe the project purpose');
     });
 
     it('handles empty context object', () => {
-      const template = architectureTemplate({});
+      const template = TemplateManager.getArchitectureTemplate({});
 
       expect(template).toContain('## Overview');
       expect(template).toContain('TBD');

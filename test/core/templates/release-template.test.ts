@@ -1,32 +1,32 @@
 import { describe, it, expect } from 'vitest';
-import { releaseTemplate } from '../../../src/core/templates/release-template.js';
+import { TemplateManager } from '../../../src/core/templates/index.js';
 
 describe('release-template', () => {
-  describe('releaseTemplate', () => {
+  describe('getReleaseTemplate', () => {
     it('returns a non-empty string', () => {
-      const result = releaseTemplate();
+      const result = TemplateManager.getReleaseTemplate();
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
     });
 
     it('contains the main heading', () => {
-      const result = releaseTemplate();
+      const result = TemplateManager.getReleaseTemplate();
       expect(result).toContain('# Release Preparation');
     });
 
     it('contains Purpose section', () => {
-      const result = releaseTemplate();
+      const result = TemplateManager.getReleaseTemplate();
       expect(result).toContain('## Purpose');
     });
 
     it('contains Documentation Config section with yaml', () => {
-      const result = releaseTemplate();
+      const result = TemplateManager.getReleaseTemplate();
       expect(result).toContain('## Documentation Config');
       expect(result).toContain('```yaml');
     });
 
     it('contains default values', () => {
-      const result = releaseTemplate();
+      const result = TemplateManager.getReleaseTemplate();
       expect(result).toContain('keep-a-changelog');
       expect(result).toContain('standard');
       expect(result).toContain('technical');
@@ -34,7 +34,7 @@ describe('release-template', () => {
     });
 
     it('contains Consistency Checklist section', () => {
-      const result = releaseTemplate();
+      const result = TemplateManager.getReleaseTemplate();
       expect(result).toContain('## Consistency Checklist');
       expect(result).toContain('### Primary Sources');
       expect(result).toContain('### Derived Artifacts');
@@ -42,7 +42,7 @@ describe('release-template', () => {
     });
 
     it('contains Release Checklist', () => {
-      const result = releaseTemplate();
+      const result = TemplateManager.getReleaseTemplate();
       expect(result).toContain('## Release Checklist');
       expect(result).toContain('- [ ]');
     });

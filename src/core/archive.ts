@@ -120,6 +120,8 @@ export class ArchiveCommand {
     mainSpecsDir: string,
     options: { yes?: boolean; skipSpecs?: boolean; noValidate?: boolean; validate?: boolean }
   ): Promise<void> {
+    // Normalize yes flag to ensure it's a boolean
+    const yesFlag = !!options.yes;
     const archiveDir = path.join(changesDir, 'archive');
 
     // Check if changes directory exists
@@ -218,7 +220,7 @@ export class ArchiveCommand {
       // Log warning when validation is skipped
       const timestamp = new Date().toISOString();
       
-      if (!options.yes) {
+      if (!yesFlag) {
         const { confirm } = await import('@inquirer/prompts');
         const proceed = await confirm({
           message: chalk.yellow('⚠️  WARNING: Skipping validation may archive invalid specs. Continue? (y/N)'),
@@ -245,7 +247,7 @@ export class ArchiveCommand {
       console.log(`Task status: ${tasks.length - incompleteTasks.length}/${tasks.length} tasks complete`);
       console.log(`Incomplete tasks: ${incompleteTasks.map(t => t.filename).join(', ')}`);
 
-      if (!options.yes) {
+      if (!yesFlag) {
         const { confirm } = await import('@inquirer/prompts');
         const proceed = await confirm({
           message: `Warning: ${incompleteTasks.length} incomplete task(s) found. Continue?`,
@@ -280,7 +282,7 @@ export class ArchiveCommand {
         }
 
         let shouldUpdateSpecs = true;
-        if (!options.yes) {
+        if (!yesFlag) {
           const { confirm } = await import('@inquirer/prompts');
           shouldUpdateSpecs = await confirm({
             message: 'Proceed with spec updates?',
@@ -513,6 +515,8 @@ export class ArchiveCommand {
     mainSpecsDir: string,
     options: { yes?: boolean; skipSpecs?: boolean; noValidate?: boolean; validate?: boolean }
   ): Promise<void> {
+    // Normalize yes flag to ensure it's a boolean
+    const yesFlag = !!options.yes;
     const archiveDir = path.join(reviewsDir, 'archive');
 
     // Check if reviews directory exists
@@ -587,7 +591,7 @@ export class ArchiveCommand {
       // Log warning when validation is skipped
       const timestamp = new Date().toISOString();
 
-      if (!options.yes) {
+      if (!yesFlag) {
         const { confirm } = await import('@inquirer/prompts');
         const proceed = await confirm({
           message: chalk.yellow('⚠️  WARNING: Skipping validation may archive invalid specs. Continue? (y/N)'),
@@ -614,7 +618,7 @@ export class ArchiveCommand {
       console.log(`Task status: ${tasks.length - incompleteTasks.length}/${tasks.length} tasks complete`);
       console.log(`Incomplete tasks: ${incompleteTasks.map(t => t.filename).join(', ')}`);
 
-      if (!options.yes) {
+      if (!yesFlag) {
         const { confirm } = await import('@inquirer/prompts');
         const proceed = await confirm({
           message: `Warning: ${incompleteTasks.length} incomplete task(s) found. Continue?`,
@@ -652,7 +656,7 @@ export class ArchiveCommand {
         }
 
         let shouldUpdateSpecs = true;
-        if (!options.yes) {
+        if (!yesFlag) {
           const { confirm } = await import('@inquirer/prompts');
           shouldUpdateSpecs = await confirm({
             message: 'Proceed with spec updates?',

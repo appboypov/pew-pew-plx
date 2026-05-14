@@ -437,36 +437,20 @@ export class InitCommand {
 
     // Step 1: Create directory structure
     if (!extendMode) {
-      const structureSpinner = this.startSpinner(
-        'Creating OpenSplx structure...'
-      );
       await this.createDirectoryStructure(workspacePath);
-      await this.generateFiles(projectPath, workspacePath, config);
-      structureSpinner.stopAndPersist({
-        symbol: PALETTE.white('▌'),
-        text: PALETTE.white('OpenSplx structure created'),
-      });
+      await this.generateFiles(projectPath, workspacePath, config, workspaceDir);
     } else {
-      ora({ stream: process.stdout }).info(
-        PALETTE.midGray(
-          'OpenSplx already initialized. Checking for missing files...'
-        )
-      );
+      console.log(PALETTE.midGray('OpenSplx already initialized. Checking for missing files...'));
       await this.createDirectoryStructure(workspacePath);
-      await this.ensureTemplateFiles(projectPath, workspacePath, config);
+      await this.ensureTemplateFiles(projectPath, workspacePath, config, workspaceDir);
     }
 
     // Step 2: Configure AI tools
-    const toolSpinner = this.startSpinner('Configuring AI tools...');
     const rootStubStatus = await this.configureAITools(
       projectPath,
       workspaceDir,
       config.aiTools
     );
-    toolSpinner.stopAndPersist({
-      symbol: PALETTE.white('▌'),
-      text: PALETTE.white('AI tools configured'),
-    });
 
     // Success message
     this.displaySuccessMessage(
@@ -732,6 +716,7 @@ export class InitCommand {
       path.join(workspacePath, 'specs'),
       path.join(workspacePath, 'changes'),
       path.join(workspacePath, 'changes', 'archive'),
+      path.join(workspacePath, 'templates'),
     ];
 
     for (const dir of directories) {
@@ -742,24 +727,27 @@ export class InitCommand {
   private async generateFiles(
     projectPath: string,
     workspacePath: string,
-    config: SplxConfig
+    config: SplxConfig,
+    workspaceDir: string
   ): Promise<void> {
-    await this.writeTemplateFiles(projectPath, workspacePath, config, false);
+    await this.writeTemplateFiles(projectPath, workspacePath, config, false, workspaceDir);
   }
 
   private async ensureTemplateFiles(
     projectPath: string,
     workspacePath: string,
-    config: SplxConfig
+    config: SplxConfig,
+    workspaceDir: string
   ): Promise<void> {
-    await this.writeTemplateFiles(projectPath, workspacePath, config, true);
+    await this.writeTemplateFiles(projectPath, workspacePath, config, true, workspaceDir);
   }
 
   private async writeTemplateFiles(
     projectPath: string,
     workspacePath: string,
     config: SplxConfig,
-    skipExisting: boolean
+    skipExisting: boolean,
+    workspaceDir: string = PLX_DIR_NAME
   ): Promise<void> {
     const templates = TemplateManager.getTemplates();
 
@@ -768,38 +756,53 @@ export class InitCommand {
 
       // Skip if file exists and we're in skipExisting mode
       if (skipExisting && (await FileSystemUtils.fileExists(filePath))) {
+        this.logFileStatus('skipped', `${workspaceDir}/${template.path}`);
         continue;
       }
 
       await FileSystemUtils.writeFile(filePath, template.content);
+      this.logFileStatus('created', `${workspaceDir}/${template.path}`);
     }
 
-    // Write ARCHITECTURE.md at workspace
-    const architecturePath = path.join(workspacePath, 'ARCHITECTURE.md');
-    if (!skipExisting || !(await FileSystemUtils.fileExists(architecturePath))) {
-      const architectureContent = TemplateManager.getArchitectureTemplate();
-      await FileSystemUtils.writeFile(architecturePath, architectureContent);
+    // Write workspace documentation files
+    const workspaceFiles = [
+      { name: 'ARCHITECTURE.md', getContent: () => TemplateManager.getArchitectureTemplate() },
+      { name: 'REVIEW.md', getContent: () => TemplateManager.getReviewTemplate() },
+      { name: 'RELEASE.md', getContent: () => TemplateManager.getReleaseTemplate() },
+      { name: 'TESTING.md', getContent: () => TemplateManager.getTestingTemplate() },
+    ];
+
+    for (const file of workspaceFiles) {
+      const filePath = path.join(workspacePath, file.name);
+      const fileExists = await FileSystemUtils.fileExists(filePath);
+      if (!skipExisting || !fileExists) {
+        await FileSystemUtils.writeFile(filePath, file.getContent());
+        this.logFileStatus('created', `${workspaceDir}/${file.name}`);
+      } else if (skipExisting && fileExists) {
+        this.logFileStatus('skipped', `${workspaceDir}/${file.name}`);
+      }
     }
 
-    // Write REVIEW.md at workspace
-    const reviewPath = path.join(workspacePath, 'REVIEW.md');
-    if (!skipExisting || !(await FileSystemUtils.fileExists(reviewPath))) {
-      const reviewContent = TemplateManager.getReviewTemplate();
-      await FileSystemUtils.writeFile(reviewPath, reviewContent);
+    // Write task type templates to workspace/templates/
+    const taskTypeTemplates = TemplateManager.getTaskTypeTemplates();
+    const templatesDir = path.join(workspacePath, 'templates');
+    let templatesCreated = 0;
+    let templatesSkipped = 0;
+    for (const typeTemplate of taskTypeTemplates) {
+      const templatePath = path.join(templatesDir, typeTemplate.filename);
+      const templateExists = await FileSystemUtils.fileExists(templatePath);
+      if (!skipExisting || !templateExists) {
+        await FileSystemUtils.writeFile(templatePath, typeTemplate.content);
+        templatesCreated++;
+      } else {
+        templatesSkipped++;
+      }
     }
-
-    // Write RELEASE.md at workspace
-    const releasePath = path.join(workspacePath, 'RELEASE.md');
-    if (!skipExisting || !(await FileSystemUtils.fileExists(releasePath))) {
-      const releaseContent = TemplateManager.getReleaseTemplate();
-      await FileSystemUtils.writeFile(releasePath, releaseContent);
+    if (templatesCreated > 0) {
+      console.log(`${PALETTE.white('▌')} ${PALETTE.white(`Created ${workspaceDir}/templates/ (${templatesCreated} task type templates)`)}`);
     }
-
-    // Write TESTING.md at workspace
-    const testingPath = path.join(workspacePath, 'TESTING.md');
-    if (!skipExisting || !(await FileSystemUtils.fileExists(testingPath))) {
-      const testingContent = TemplateManager.getTestingTemplate();
-      await FileSystemUtils.writeFile(testingPath, testingContent);
+    if (templatesSkipped > 0 && templatesCreated === 0) {
+      console.log(`${PALETTE.midGray('▌')} ${PALETTE.midGray(`Skipped ${workspaceDir}/templates/ (${templatesSkipped} templates exist)`)}`);
     }
   }
 
@@ -813,6 +816,15 @@ export class InitCommand {
       workspaceDir
     );
 
+    // Log root stub status
+    if (rootStubStatus === 'created') {
+      console.log(`${PALETTE.white('▌')} ${PALETTE.white('Created AGENTS.md (root stub)')}`);
+    } else if (rootStubStatus === 'updated') {
+      console.log(`${PALETTE.white('▌')} ${PALETTE.white('Updated AGENTS.md (root stub)')}`);
+    } else if (rootStubStatus === 'skipped') {
+      console.log(`${PALETTE.midGray('▌')} ${PALETTE.midGray('Skipped AGENTS.md (root stub exists)')}`);
+    }
+
     for (const toolId of toolIds) {
       const configurator = ToolRegistry.get(toolId);
       if (configurator && configurator.isAvailable) {
@@ -821,7 +833,13 @@ export class InitCommand {
 
       const slashConfigurator = SlashCommandRegistry.get(toolId);
       if (slashConfigurator && slashConfigurator.isAvailable) {
-        await slashConfigurator.generateAll(projectPath);
+        const updatedFiles = await slashConfigurator.generateAll(projectPath);
+        if (updatedFiles.length > 0) {
+          // Get the tool directory as relative path from first file
+          const firstFile = updatedFiles[0];
+          const toolDir = path.dirname(firstFile);
+          console.log(`${PALETTE.white('▌')} ${PALETTE.white(`Created ${toolDir}/ (${updatedFiles.length} slash commands)`)}`);
+        }
       }
     }
 
@@ -972,6 +990,17 @@ export class InitCommand {
         PALETTE.midGray('Prompts installed to ~/.codex/prompts (or $CODEX_HOME/prompts).')
       );
       console.log();
+    }
+  }
+
+  private logFileStatus(
+    action: 'created' | 'skipped',
+    filePath: string
+  ): void {
+    if (action === 'created') {
+      console.log(`${PALETTE.white('▌')} ${PALETTE.white(`Created ${filePath}`)}`);
+    } else {
+      console.log(`${PALETTE.midGray('▌')} ${PALETTE.midGray(`Skipped ${filePath} (exists)`)}`);
     }
   }
 

@@ -6,8 +6,8 @@ import { migrateRootFiles } from '../utils/root-files-migration.js';
 import { PLX_DIR_NAME } from './config.js';
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
-import { agentsTemplate } from './templates/agents-template.js';
-import { TemplateManager } from './templates/index.js';
+import { getAgentsTemplate, TemplateManager } from './templates/index.js';
+import { PALETTE } from './styles/palette.js';
 
 export class UpdateCommand {
   async execute(projectPath: string): Promise<void> {
@@ -61,44 +61,54 @@ export class UpdateCommand {
 
     // 2. Update AGENTS.md (full replacement)
     const agentsPath = path.join(workspacePath, 'AGENTS.md');
+    await FileSystemUtils.writeFile(agentsPath, getAgentsTemplate());
+    console.log(`${PALETTE.white('▌')} ${PALETTE.white(`Updated ${workspaceDirName}/AGENTS.md`)}`);
 
-    await FileSystemUtils.writeFile(agentsPath, agentsTemplate);
+    // 3. Create workspace files if not exist
+    const workspaceFiles = [
+      { name: 'ARCHITECTURE.md', getContent: () => TemplateManager.getArchitectureTemplate() },
+      { name: 'REVIEW.md', getContent: () => TemplateManager.getReviewTemplate() },
+      { name: 'RELEASE.md', getContent: () => TemplateManager.getReleaseTemplate() },
+      { name: 'TESTING.md', getContent: () => TemplateManager.getTestingTemplate() },
+    ];
 
-    // 3. Create ARCHITECTURE.md if not exists
-    const architecturePath = path.join(workspacePath, 'ARCHITECTURE.md');
-    if (!(await FileSystemUtils.fileExists(architecturePath))) {
-      const architectureContent = TemplateManager.getArchitectureTemplate();
-      await FileSystemUtils.writeFile(architecturePath, architectureContent);
+    for (const file of workspaceFiles) {
+      const filePath = path.join(workspacePath, file.name);
+      const exists = await FileSystemUtils.fileExists(filePath);
+      if (!exists) {
+        await FileSystemUtils.writeFile(filePath, file.getContent());
+        console.log(`${PALETTE.white('▌')} ${PALETTE.white(`Created ${workspaceDirName}/${file.name}`)}`);
+      } else {
+        console.log(`${PALETTE.midGray('▌')} ${PALETTE.midGray(`Skipped ${workspaceDirName}/${file.name} (exists)`)}`);
+      }
     }
 
-    // 4. Create REVIEW.md if not exists
-    const reviewPath = path.join(workspacePath, 'REVIEW.md');
-    if (!(await FileSystemUtils.fileExists(reviewPath))) {
-      const reviewContent = TemplateManager.getReviewTemplate();
-      await FileSystemUtils.writeFile(reviewPath, reviewContent);
+    // 7. Create templates directory and write task type templates if not exist
+    const templatesDir = path.join(workspacePath, 'templates');
+    await FileSystemUtils.createDirectory(templatesDir);
+    const taskTypeTemplates = TemplateManager.getTaskTypeTemplates();
+    let templatesCreated = 0;
+    let templatesSkipped = 0;
+    for (const typeTemplate of taskTypeTemplates) {
+      const templatePath = path.join(templatesDir, typeTemplate.filename);
+      if (!(await FileSystemUtils.fileExists(templatePath))) {
+        await FileSystemUtils.writeFile(templatePath, typeTemplate.content);
+        templatesCreated++;
+      } else {
+        templatesSkipped++;
+      }
+    }
+    if (templatesCreated > 0) {
+      console.log(`${PALETTE.white('▌')} ${PALETTE.white(`Created ${workspaceDirName}/templates/ (${templatesCreated} task type templates)`)}`);
+    }
+    if (templatesSkipped > 0 && templatesCreated === 0) {
+      console.log(`${PALETTE.midGray('▌')} ${PALETTE.midGray(`Skipped ${workspaceDirName}/templates/ (${templatesSkipped} templates exist)`)}`);
     }
 
-    // 5. Create RELEASE.md if not exists
-    const releasePath = path.join(workspacePath, 'RELEASE.md');
-    if (!(await FileSystemUtils.fileExists(releasePath))) {
-      const releaseContent = TemplateManager.getReleaseTemplate();
-      await FileSystemUtils.writeFile(releasePath, releaseContent);
-    }
-
-    // 6. Create TESTING.md if not exists
-    const testingPath = path.join(workspacePath, 'TESTING.md');
-    if (!(await FileSystemUtils.fileExists(testingPath))) {
-      const testingContent = TemplateManager.getTestingTemplate();
-      await FileSystemUtils.writeFile(testingPath, testingContent);
-    }
-
-    // 7. Update existing AI tool configuration files only
+    // 8. Update existing AI tool configuration files only
     const configurators = ToolRegistry.getAll();
     const slashConfigurators = SlashCommandRegistry.getAll();
-    const updatedFiles: string[] = [];
-    const createdFiles: string[] = [];
     const failedFiles: string[] = [];
-    const updatedSlashFiles: string[] = [];
     const failedSlashTools: string[] = [];
 
     for (const configurator of configurators) {
@@ -122,10 +132,14 @@ export class UpdateCommand {
         }
 
         await configurator.configure(resolvedProjectPath, workspacePath);
-        updatedFiles.push(configurator.configFileName);
 
-        if (!fileExists) {
-          createdFiles.push(configurator.configFileName);
+        // Log the root AGENTS.md stub
+        if (configurator.configFileName === 'AGENTS.md') {
+          if (fileExists) {
+            console.log(`${PALETTE.white('▌')} ${PALETTE.white('Updated AGENTS.md')}`);
+          } else {
+            console.log(`${PALETTE.white('▌')} ${PALETTE.white('Created AGENTS.md')}`);
+          }
         }
       } catch (error) {
         failedFiles.push(configurator.configFileName);
@@ -152,7 +166,11 @@ export class UpdateCommand {
         const updated = await slashConfigurator.generateAll(
           resolvedProjectPath
         );
-        updatedSlashFiles.push(...updated);
+        if (updated.length > 0) {
+          const firstFile = updated[0];
+          const toolDir = path.relative(resolvedProjectPath, path.dirname(firstFile));
+          console.log(`${PALETTE.white('▌')} ${PALETTE.white(`Updated ${toolDir}/ (${updated.length} slash commands)`)}`);
+        }
       } catch (error) {
         failedSlashTools.push(slashConfigurator.toolId);
         console.error(
@@ -163,30 +181,7 @@ export class UpdateCommand {
       }
     }
 
-    const summaryParts: string[] = [];
-    const instructionFiles: string[] = ['workspace/AGENTS.md'];
-
-    if (updatedFiles.includes('AGENTS.md')) {
-      instructionFiles.push(
-        createdFiles.includes('AGENTS.md') ? 'AGENTS.md (created)' : 'AGENTS.md'
-      );
-    }
-
-    summaryParts.push(
-      `Updated OpenSplx instructions (${instructionFiles.join(', ')})`
-    );
-
-    const aiToolFiles = updatedFiles.filter((file) => file !== 'AGENTS.md');
-    if (aiToolFiles.length > 0) {
-      summaryParts.push(`Updated AI tool files: ${aiToolFiles.join(', ')}`);
-    }
-
-    if (updatedSlashFiles.length > 0) {
-      // Normalize to forward slashes for cross-platform log consistency
-      const normalized = updatedSlashFiles.map((p) => p.replace(/\\/g, '/'));
-      summaryParts.push(`Updated slash commands: ${normalized.join(', ')}`);
-    }
-
+    // Log any failures at the end
     const failedItems = [
       ...failedFiles,
       ...failedSlashTools.map(
@@ -195,11 +190,7 @@ export class UpdateCommand {
     ];
 
     if (failedItems.length > 0) {
-      summaryParts.push(`Failed to update: ${failedItems.join(', ')}`);
+      console.log(chalk.red(`Failed to update: ${failedItems.join(', ')}`));
     }
-
-    console.log(summaryParts.join(' | '));
-
-    // No additional notes
   }
 }

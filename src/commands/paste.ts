@@ -1,13 +1,14 @@
 import path from 'path';
 import ora from 'ora';
 import chalk from 'chalk';
-import { promises as fs } from 'fs';
 import { ClipboardUtils } from '../utils/clipboard.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { getFilteredWorkspaces } from '../utils/workspace-filter.js';
 import { TemplateManager } from '../core/templates/index.js';
-import { ItemRetrievalService } from '../services/item-retrieval.js';
-import { sortTaskFilesBySequence, buildTaskFilename } from '../utils/task-file-parser.js';
+import { buildTaskFilename } from '../utils/task-file-parser.js';
+import { toKebabCase, parseItemId, buildTaskFrontmatter } from '../utils/task-utils.js';
+import { ParentResolverService, ResolvedParent } from '../services/parent-resolver.js';
+import { getNextTaskSequenceForParent } from '../utils/centralized-task-discovery.js';
 
 interface RequestOptions {
   json?: boolean;
@@ -17,6 +18,8 @@ interface TaskOptions {
   parentId?: string;
   parentType?: 'change' | 'review' | 'spec';
   skillLevel?: 'junior' | 'medior' | 'senior';
+  type?: string;
+  blockedBy?: string[];
   json?: boolean;
 }
 
@@ -28,136 +31,7 @@ interface SpecOptions {
   json?: boolean;
 }
 
-interface ResolvedParent {
-  type: 'change' | 'review' | 'spec';
-  path: string;
-  workspacePath: string;
-  projectName: string;
-}
-
 export class PasteCommand {
-  private toKebabCase(str: string): string {
-    return str
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .substring(0, 50);
-  }
-
-  /**
-   * Resolves a parent ID to its entity type and path.
-   * Searches changes, reviews, and specs across all workspaces.
-   * Detects ambiguity when the same ID matches multiple entity types.
-   * Supports multi-workspace prefixed IDs like "project-a/change-name".
-   */
-  private async resolveParent(
-    parentId: string,
-    parentType: 'change' | 'review' | 'spec' | undefined,
-    workspaces: Array<{ path: string; projectName: string }>
-  ): Promise<ResolvedParent | null> {
-    const itemRetrieval = await ItemRetrievalService.create(
-      process.cwd(),
-      workspaces.map(w => ({
-        path: w.path,
-        relativePath: path.relative(process.cwd(), w.path),
-        projectName: w.projectName,
-        isRoot: true,
-      }))
-    );
-
-    // Parse the parent ID to extract project prefix if present
-    const parsePrefixedId = (id: string): { projectName: string | null; itemId: string } => {
-      const slashIndex = id.indexOf('/');
-      if (slashIndex === -1) {
-        return { projectName: null, itemId: id };
-      }
-
-      const candidateProjectName = id.substring(0, slashIndex);
-      const candidateItemId = id.substring(slashIndex + 1);
-
-      const hasMatchingWorkspace = workspaces.some(
-        w => w.projectName.toLowerCase() === candidateProjectName.toLowerCase()
-      );
-
-      if (!hasMatchingWorkspace) {
-        return { projectName: null, itemId: id };
-      }
-
-      return {
-        projectName: candidateProjectName,
-        itemId: candidateItemId,
-      };
-    };
-
-    const parsed = parsePrefixedId(parentId);
-    const matches: ResolvedParent[] = [];
-
-    // Determine which types to search
-    const typesToSearch: Array<'change' | 'review' | 'spec'> = parentType
-      ? [parentType]
-      : ['change', 'review', 'spec'];
-
-    // Search each type
-    for (const type of typesToSearch) {
-      if (type === 'change') {
-        const changeResult = await itemRetrieval.getChangeById(parentId);
-        if (changeResult) {
-          matches.push({
-            type: 'change',
-            path: path.join(changeResult.workspacePath, 'changes', parsed.itemId),
-            workspacePath: changeResult.workspacePath,
-            projectName: changeResult.projectName,
-          });
-        }
-      } else if (type === 'review') {
-        // Check all workspaces for review (or specific workspace if prefixed)
-        const searchWorkspaces = parsed.projectName
-          ? workspaces.filter(w => w.projectName.toLowerCase() === parsed.projectName!.toLowerCase())
-          : workspaces;
-
-        for (const workspace of searchWorkspaces) {
-          const reviewPath = path.join(workspace.path, 'reviews', parsed.itemId, 'review.md');
-          if (await FileSystemUtils.fileExists(reviewPath)) {
-            matches.push({
-              type: 'review',
-              path: path.join(workspace.path, 'reviews', parsed.itemId),
-              workspacePath: workspace.path,
-              projectName: workspace.projectName,
-            });
-          }
-        }
-      } else if (type === 'spec') {
-        const specResult = await itemRetrieval.getSpecById(parentId);
-        if (specResult) {
-          matches.push({
-            type: 'spec',
-            path: path.join(specResult.workspacePath, 'specs', parsed.itemId),
-            workspacePath: specResult.workspacePath,
-            projectName: specResult.projectName,
-          });
-        }
-      }
-    }
-
-    // Handle results
-    if (matches.length === 0) {
-      return null;
-    }
-
-    if (matches.length === 1) {
-      return matches[0];
-    }
-
-    // Multiple matches - ambiguous
-    const matchDescriptions = matches
-      .map(m => `  - ${m.type}: workspace/${m.type === 'change' ? 'changes' : m.type === 'review' ? 'reviews' : 'specs'}/${parsed.itemId}/`)
-      .join('\n');
-
-    throw new Error(
-      `Parent ID '${parentId}' matches multiple types:\n${matchDescriptions}\nUse --parent-type to specify: splx paste task --parent-id ${parentId} --parent-type change`
-    );
-  }
-
   async request(options: RequestOptions = {}): Promise<void> {
     try {
       // Discover workspaces - use root if exists, else first child
@@ -249,7 +123,12 @@ export class PasteCommand {
       // Resolve parent
       let resolved: ResolvedParent | null = null;
       try {
-        resolved = await this.resolveParent(options.parentId, options.parentType, workspaces);
+        resolved = await ParentResolverService.resolve(
+          options.parentId,
+          options.parentType,
+          workspaces,
+          'splx paste task'
+        );
       } catch (error) {
         if (options.json) {
           console.log(JSON.stringify({ error: (error as Error).message }));
@@ -292,38 +171,9 @@ export class PasteCommand {
       const tasksDir = path.join(parentWorkspacePath, 'tasks');
       await FileSystemUtils.createDirectory(tasksDir);
 
-      // Parse the parent ID to get the item ID without workspace prefix
-      const parsePrefixedId = (id: string): string => {
-        const slashIndex = id.indexOf('/');
-        if (slashIndex === -1) {
-          return id;
-        }
-        return id.substring(slashIndex + 1);
-      };
-      const parentItemId = parsePrefixedId(options.parentId);
-
-      // Find next sequence number by scanning existing tasks for this parent
-      let nextSequence = 1;
-      try {
-        const existingTasks = await fs.readdir(tasksDir);
-        const parentPrefix = `${parentItemId}-`;
-        const parentTasks = existingTasks.filter(f =>
-          f.endsWith('.md') && f.substring(4).startsWith(parentPrefix)
-        );
-        const sortedTasks = sortTaskFilesBySequence(parentTasks);
-
-        if (sortedTasks.length > 0) {
-          const lastTask = sortedTasks[sortedTasks.length - 1];
-          const match = lastTask.match(/^(\d+)-/);
-          if (match) {
-            nextSequence = parseInt(match[1], 10) + 1;
-          }
-        }
-      } catch {
-        // Directory might not exist yet
-      }
-
-      const kebabTitle = this.toKebabCase(title);
+      const parentItemId = parseItemId(options.parentId);
+      const nextSequence = await getNextTaskSequenceForParent(tasksDir, parentItemId);
+      const kebabTitle = toKebabCase(title);
       const filename = buildTaskFilename({
         sequence: nextSequence,
         parentId: parentItemId,
@@ -331,34 +181,110 @@ export class PasteCommand {
       });
       const filepath = path.join(tasksDir, filename);
 
-      // Get base template and inject clipboard content into End Goal
-      const templateContent = TemplateManager.getTaskTemplate({
-        title,
-        skillLevel: options.skillLevel,
-        parentType: actualParentType,
-        parentId: parentItemId,
-      });
+      let content: string;
+      let templateWarning: string | null = null;
 
-      const content = templateContent.replace(
-        '## End Goal\nTBD - What this task accomplishes.',
-        `## End Goal\n${endGoalContent}`
-      );
+      if (options.type) {
+        // Try to read template from workspace/templates/<type>.md
+        const templateResult = await TemplateManager.readWorkspaceTemplate(
+          parentWorkspacePath,
+          options.type,
+          title
+        );
+
+        if (templateResult.found) {
+          const frontmatter = buildTaskFrontmatter({
+            status: 'to-do',
+            skillLevel: options.skillLevel,
+            parentType: actualParentType,
+            parentId: parentItemId,
+            type: options.type,
+            blockedBy: options.blockedBy,
+          });
+
+          // Replace the End Goal section content with clipboard content
+          // Use function form to prevent $& $' $` $n special replacement patterns
+          let body = templateResult.body;
+          const endGoalMatch = body.match(/## 🎯 End Goal\n[\s\S]*?(?=\n## |$)/);
+          if (endGoalMatch) {
+            body = body.replace(endGoalMatch[0], () => `## 🎯 End Goal\n${endGoalContent}`);
+          }
+
+          content = frontmatter + '\n\n' + body;
+        } else {
+          // Template not found - fall back to minimal structure with clipboard content
+          templateWarning = templateResult.error || `Template '${options.type}' not found in workspace/templates/. Using minimal template.`;
+
+          const frontmatter = buildTaskFrontmatter({
+            status: 'to-do',
+            skillLevel: options.skillLevel,
+            parentType: actualParentType,
+            parentId: parentItemId,
+            type: options.type,
+            blockedBy: options.blockedBy,
+          });
+
+          content = `${frontmatter}
+
+# Task: ${title}
+
+## 🎯 End Goal
+${endGoalContent}
+`;
+        }
+      } else {
+        // No type specified - use simple format with clipboard content as body
+        const frontmatter = buildTaskFrontmatter({
+          status: 'to-do',
+          skillLevel: options.skillLevel,
+          parentType: actualParentType,
+          parentId: parentItemId,
+          blockedBy: options.blockedBy,
+        });
+
+        content = `${frontmatter}
+
+# Task: ${title}
+
+${endGoalContent}
+`;
+      }
 
       await FileSystemUtils.writeFile(filepath, content);
 
       const relativePath = path.relative(process.cwd(), filepath);
 
       if (options.json) {
-        console.log(JSON.stringify({
+        const result: Record<string, unknown> = {
           success: true,
           type: 'task',
           path: relativePath,
           parentId: parentItemId,
           parentType: actualParentType,
           taskId: `${parentItemId}-${kebabTitle}`,
-        }, null, 2));
+        };
+        if (options.type) {
+          result.templateType = options.type;
+        }
+        if (options.blockedBy && options.blockedBy.length > 0) {
+          result.blockedBy = options.blockedBy;
+        }
+        if (templateWarning) {
+          result.warning = templateWarning;
+        }
+        console.log(JSON.stringify(result, null, 2));
       } else {
-        console.log(chalk.green(`\n✓ Created task: ${relativePath}\n`));
+        if (templateWarning) {
+          console.log(chalk.yellow(`\n⚠ ${templateWarning}`));
+        }
+        console.log(chalk.green(`\n✓ Created task: ${relativePath}`));
+        if (options.type && !templateWarning) {
+          console.log(chalk.dim(`  Using template: ${options.type}`));
+        }
+        if (options.blockedBy && options.blockedBy.length > 0) {
+          console.log(chalk.dim(`  Blocked by: ${options.blockedBy.join(', ')}`));
+        }
+        console.log();
       }
     } catch (error) {
       if (options.json) {
@@ -403,12 +329,10 @@ export class PasteCommand {
       // Extract first line and convert to kebab-case
       const lines = clipboardContent.split('\n');
       const firstLine = lines[0].trim();
-      let baseName = this.toKebabCase(firstLine);
+      let baseName = toKebabCase(firstLine);
 
       // Detect verb prefix from first line
       const verbPrefixes = ['add', 'update', 'fix', 'refactor', 'remove', 'create', 'implement', 'enable', 'disable'];
-      const words = firstLine.toLowerCase().split(/\s+/);
-      const firstWord = words[0];
 
       let changeName = baseName;
       const hasVerbPrefix = verbPrefixes.some(verb => baseName.startsWith(`${verb}-`));
@@ -507,7 +431,7 @@ export class PasteCommand {
       // Extract first line and convert to kebab-case
       const lines = clipboardContent.split('\n');
       const firstLine = lines[0].trim();
-      const specName = this.toKebabCase(firstLine);
+      const specName = toKebabCase(firstLine);
 
       // Check if spec already exists (no auto-suffix for specs)
       const specsDir = path.join(workspace.path, 'specs');
